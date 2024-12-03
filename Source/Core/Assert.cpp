@@ -9,7 +9,7 @@
 #include <Core/Assert.hpp>
 #include <Core/Logger.hpp>
 
-void Assert::Check(bool condition, const std::string& fileName, const std::string& function, int line, const std::string& message)
+void Assert::Check(bool condition, const String& fileName, const String& function, int line, const String& message)
 {
     if (!condition) {
         LOG_CRITICAL("ASSERTION FAILED ({0}:{1} - line {2}): {3}", fileName, function, line, message);

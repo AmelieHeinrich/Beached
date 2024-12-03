@@ -5,13 +5,13 @@
 
 #pragma once
 
-#include <string>
+#include <Core/Common.hpp>
 
 class UTF
 {
 public:
-    static std::string WideToAscii(const wchar_t* text);
-    static std::string WideToAscii(const std::wstring& text);
-    static std::wstring AsciiToWide(const char* text);
-    static std::wstring AsciiToWide(const std::string& text);
+    static String WideToAscii(const wchar_t* text);
+    static String WideToAscii(const WideString& text);
+    static WideString AsciiToWide(const char* text);
+    static WideString AsciiToWide(const String& text);
 };

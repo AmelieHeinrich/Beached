@@ -6,6 +6,7 @@
 #pragma once
 
 #include <RHI/Device.hpp>
+#include <RHI/DescriptorHeap.hpp>
 
 class RHI
 {
@@ -16,4 +17,5 @@ public:
     ~RHI();
 private:
     Device::Ref mDevice;
+    DescriptorHeaps mDescriptorHeaps;
 };

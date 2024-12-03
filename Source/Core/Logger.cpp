@@ -13,7 +13,7 @@ Ref<spdlog::logger> Logger::sLogger;
 
 void Logger::Init()
 {
-    std::vector<spdlog::sink_ptr> logSinks;
+    Vector<spdlog::sink_ptr> logSinks;
     logSinks.emplace_back(MakeRef<spdlog::sinks::stdout_color_sink_mt>());
     logSinks.emplace_back(MakeRef<spdlog::sinks::basic_file_sink_mt>("beached.log", true));
 

@@ -11,7 +11,7 @@ LRESULT CALLBACK WindowCallback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lpara
     return ::DefWindowProcA(hwnd, msg, wparam, lparam);
 }
 
-Window::Window(UInt32 width, UInt32 height, const std::string& title)
+Window::Window(UInt32 width, UInt32 height, const String& title)
 {
     WNDCLASSA windowClass = {};
     windowClass.lpszClassName = "Beached Window Class";

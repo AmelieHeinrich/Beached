@@ -15,7 +15,7 @@ class Window
 public:
     using Ref = Ref<Window>;
 
-    Window(UInt32 width, UInt32 height, const std::string& title);
+    Window(UInt32 width, UInt32 height, const String& title);
     ~Window();
 
     bool IsOpen();

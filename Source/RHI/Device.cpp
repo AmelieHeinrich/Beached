@@ -43,7 +43,7 @@ Device::Device()
 #endif
 
     // Get adapter.
-    std::unordered_map<IDXGIAdapter1*, UInt64> adapterScores;
+    UnorderedMap<IDXGIAdapter1*, UInt64> adapterScores;
     for (UInt32 adapterIndex = 0;; adapterIndex++) {
         IDXGIAdapter1* adapter;
         if (FAILED(mFactory->EnumAdapterByGpuPreference(adapterIndex, DXGI_GPU_PREFERENCE_UNSPECIFIED, IID_PPV_ARGS(&adapter))))
@@ -52,7 +52,7 @@ Device::Device()
         adapterScores[adapter] = D3DUtils::CalculateAdapterScore(adapter);
     }
 
-    std::pair<IDXGIAdapter1*, UInt64> bestAdapter = { nullptr, 0 };
+    Pair<IDXGIAdapter1*, UInt64> bestAdapter = { nullptr, 0 };
     for (auto& pair : adapterScores) {
         DXGI_ADAPTER_DESC1 desc;
         pair.first->GetDesc1(&desc);
