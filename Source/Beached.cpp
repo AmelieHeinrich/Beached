@@ -14,7 +14,7 @@ Beached::Beached()
 {
     Logger::Init();
 
-    mWindow = MakeRef<Window>(1280, 720, "Beached");
+    mWindow = MakeRef<Window>(1440, 900, "Beached");
     mRHI = MakeRef<RHI>(mWindow);
 
     mRHI->Wait();

@@ -13,7 +13,7 @@ target("Beached")
     set_encodings("utf-8")
 
     if is_plat("windows") then
-        add_syslinks("user32", "gdi32", "kernel32", "d3d12", "dxgi")
+        add_syslinks("user32", "gdi32", "kernel32", "d3d12", "dxgi", "dxcompiler")
     end
 
     if is_mode("debug") then
@@ -33,5 +33,6 @@ target("Beached")
     end)
 
     add_files("Source/**.cpp")
-    add_includedirs("Source", "ThirdParty/spdlog/include", "ThirdParty/DirectX/include", "ThirdParty/imgui", "ThirdParty/imgui/backends")
+    add_linkdirs("ThirdParty/DXC/lib/x64")
+    add_includedirs("Source", "ThirdParty/spdlog/include", "ThirdParty/DirectX/include", "ThirdParty/imgui", "ThirdParty/imgui/backends", "ThirdParty/DXC/inc")
     add_deps("spdlog", "ImGui")
