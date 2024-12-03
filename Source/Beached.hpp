@@ -6,6 +6,7 @@
 #pragma once
 
 #include <Core/Window.hpp>
+#include <RHI/RHI.hpp>
 
 class Beached
 {
@@ -16,4 +17,5 @@ public:
     void Run();
 private:
     Window::Ref mWindow;
+    RHI::Ref mRHI;
 };

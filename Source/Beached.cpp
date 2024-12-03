@@ -12,8 +12,9 @@ Beached::Beached()
     Logger::Init();
 
     mWindow = MakeRef<Window>(1280, 720, "Beached <D3D12>");
+    mRHI = MakeRef<RHI>();
 
-    LOG_INFO("Starting Beached engine.");
+    LOG_INFO("Starting Beached");
 }
 
 Beached::~Beached()
