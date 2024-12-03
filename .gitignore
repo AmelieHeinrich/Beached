@@ -1,0 +1,9 @@
+# IDE
+.vscode
+
+# Build
+.xmake
+build
+
+# Engine
+imgui.ini
