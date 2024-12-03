@@ -12,6 +12,8 @@
 #include <array>
 #include <string>
 
+#define BIT(b) 1 << b
+
 typedef int16_t Int16;
 typedef uint16_t UInt16;
 typedef uint32_t UInt32;
