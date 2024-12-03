@@ -5,7 +5,12 @@
 
 #include <RHI/RHI.hpp>
 
+#include <imgui.h>
+#include <imgui_impl_win32.h>
+#include <imgui_impl_dx12.h>
+
 RHI::RHI(Window::Ref window)
+    : mWindow(window)
 {
     mDevice = MakeRef<Device>();
 
@@ -22,13 +27,38 @@ RHI::RHI(Window::Ref window)
     mFrameIndex = 0;
     for (int i = 0; i < FRAMES_IN_FLIGHT; i++) {
         mFrameValues[i] = 0;
-        mCommandBuffers[i] = MakeRef<CommandBuffer>(mDevice, mGraphicsQueue);
+        mCommandBuffers[i] = MakeRef<CommandBuffer>(mDevice, mGraphicsQueue, mDescriptorHeaps);
     }
+
+    mFontDescriptor = mDescriptorHeaps[DescriptorHeapType::ShaderResource]->Allocate();
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGui::StyleColorsLight();
+
+    ImGuiIO& IO = ImGui::GetIO();
+    IO.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    IO.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+    IO.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+    ImGui_ImplWin32_EnableDpiAwareness();
+    ImGui_ImplWin32_Init(window->GetHandle());
+    ImGui_ImplDX12_Init(mDevice->GetDevice(),
+                        FRAMES_IN_FLIGHT,
+                        DXGI_FORMAT_R8G8B8A8_UNORM,
+                        mDescriptorHeaps[DescriptorHeapType::RenderTarget]->GetHeap(),
+                        mFontDescriptor.CPU,
+                        mFontDescriptor.GPU);
 }
 
 RHI::~RHI()
 {
-    
+    Wait();
+
+    ImGui_ImplDX12_Shutdown();
+    ImGui_ImplWin32_Shutdown();
+    ImGui::DestroyContext();
+    mFontDescriptor.Parent->Free(mFontDescriptor);
 }
 
 void RHI::Wait()
@@ -50,6 +80,8 @@ Frame RHI::Begin()
     frame.Backbuffer = mSurface->GetBackbuffer(frame.FrameIndex);
     frame.BackbufferView = mSurface->GetBackbufferView(frame.FrameIndex);
     frame.CommandBuffer = mCommandBuffers[frame.FrameIndex];
+
+    mWindow->PollSize(frame.Width, frame.Height);
     
     mFrameIndex = frame.FrameIndex;
 

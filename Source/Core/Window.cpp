@@ -6,8 +6,13 @@
 #include <Core/Window.hpp>
 #include <Core/Assert.hpp>
 
+extern LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 LRESULT CALLBACK WindowCallback(HWND hwnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
+    if (ImGui_ImplWin32_WndProcHandler(hwnd, msg, wparam, lparam))
+        return 1;
+
     return ::DefWindowProcA(hwnd, msg, wparam, lparam);
 }
 

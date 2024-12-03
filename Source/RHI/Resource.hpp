@@ -32,7 +32,7 @@ public:
 protected:
     bool mShouldFree;
     Device::Ref mParentDevice;
-    ID3D12Resource* mResource;
+    ID3D12Resource* mResource = nullptr;
     UInt64 mSize;
     UInt64 mStride;
     Vector<ResourceTag> mTags;

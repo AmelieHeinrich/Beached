@@ -39,16 +39,16 @@ UInt64 D3DUtils::CalculateAdapterScore(IDXGIAdapter1* adapter)
     device->CheckFeatureSupport(D3D12_FEATURE_D3D12_OPTIONS21, &workGraphData, sizeof(workGraphData));
 
     if (raytracingData.RaytracingTier >= D3D12_RAYTRACING_TIER_1_1) {
-        resultScore += 1000;
+        resultScore += 10000;
     }
     if (VRSData.VariableShadingRateTier >= D3D12_VARIABLE_SHADING_RATE_TIER_1) {
-        resultScore += 1000;
+        resultScore += 10000;
     }
     if (meshShaderData.MeshShaderTier >= D3D12_MESH_SHADER_TIER_1) {
-        resultScore += 1000;
+        resultScore += 10000;
     }
     if (workGraphData.WorkGraphsTier >= D3D12_WORK_GRAPHS_TIER_1_0) {
-        resultScore += 1000;
+        resultScore += 10000;
     }
     device->Release();
 

@@ -34,6 +34,6 @@ public:
     ID3D12CommandQueue* GetQueue() { return mQueue; }
     QueueType GetType() { return mType; }
 private:
-    ID3D12CommandQueue* mQueue;
+    ID3D12CommandQueue* mQueue = nullptr;
     QueueType mType;
 };

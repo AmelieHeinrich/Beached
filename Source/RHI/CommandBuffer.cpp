@@ -7,8 +7,12 @@
 #include <RHI/Utilities.hpp>
 #include <Core/Assert.hpp>
 
-CommandBuffer::CommandBuffer(Device::Ref device, Queue::Ref queue, bool singleTime)
-    : mSingleTime(singleTime), mParentQueue(queue)
+#include <imgui.h>
+#include <imgui_impl_dx12.h>
+#include <imgui_impl_win32.h>
+
+CommandBuffer::CommandBuffer(Device::Ref device, Queue::Ref queue, DescriptorHeaps heaps, bool singleTime)
+    : mSingleTime(singleTime), mParentQueue(queue), mHeaps(heaps)
 {
     HRESULT result = device->GetDevice()->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE(queue->GetType()), IID_PPV_ARGS(&mAllocator));
     ASSERT(SUCCEEDED(result), "Failed to create command allocator!");
@@ -58,6 +62,18 @@ void CommandBuffer::Barrier(Texture::Ref texture, TextureLayout layout, UInt32 m
     texture->SetLayout(layout);
 }
 
+void CommandBuffer::SetRenderTargets(const Vector<View::Ref> targets, View::Ref depth)
+{
+    std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> cpus;
+    for (auto& target : targets) {
+        cpus.push_back(target->GetDescriptor().CPU);
+    }
+    D3D12_CPU_DESCRIPTOR_HANDLE depth_cpu;
+    if (depth) depth_cpu = depth->GetDescriptor().CPU;
+
+    mList->OMSetRenderTargets(cpus.size(), cpus.data(), false, depth ? &depth_cpu : nullptr);
+}
+
 void CommandBuffer::ClearRenderTarget(View::Ref view, float r, float g, float b)
 {
     float clear[] = { r, g, b, 1.0f };
@@ -67,4 +83,26 @@ void CommandBuffer::ClearRenderTarget(View::Ref view, float r, float g, float b)
 void CommandBuffer::End()
 {
     mList->Close();
+}
+
+void CommandBuffer::BeginGUI(int width, int height)
+{
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize.x = width;
+    io.DisplaySize.y = height;
+
+    ImGui_ImplDX12_NewFrame();
+    ImGui_ImplWin32_NewFrame();
+    ImGui::NewFrame();
+}
+
+void CommandBuffer::EndGUI()
+{
+    ImGuiIO& io = ImGui::GetIO();
+
+    ID3D12DescriptorHeap* pHeaps[] = { mHeaps[DescriptorHeapType::ShaderResource]->GetHeap(), mHeaps[DescriptorHeapType::Sampler]->GetHeap() };
+    mList->SetDescriptorHeaps(2, pHeaps);
+
+    ImGui::Render();
+    ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), mList);
 }

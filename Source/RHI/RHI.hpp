@@ -20,6 +20,9 @@ struct Frame
     Texture::Ref Backbuffer;
     View::Ref BackbufferView;
     UInt32 FrameIndex;
+
+    int Width;
+    int Height;
 };
 
 class RHI
@@ -37,6 +40,7 @@ public:
     void End();
     void Present(bool vsync);
 private:
+    Window::Ref mWindow;
     Device::Ref mDevice;
     Queue::Ref mGraphicsQueue;
     DescriptorHeaps mDescriptorHeaps;
@@ -46,4 +50,6 @@ private:
     Array<UInt64, FRAMES_IN_FLIGHT> mFrameValues;
     Array<CommandBuffer::Ref, FRAMES_IN_FLIGHT> mCommandBuffers;
     UInt32 mFrameIndex;
+
+    DescriptorHeap::Descriptor mFontDescriptor;
 };

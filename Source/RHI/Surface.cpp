@@ -40,7 +40,7 @@ Surface::Surface(Window::Ref window, Device::Ref device, DescriptorHeaps heaps, 
         desc.Format = TextureFormat::RGBA8;
         mBackbuffers[i] = MakeRef<Texture>(device, backbuffer, desc);
 
-        mBackbufferViews[i] = MakeRef<View>(device, heaps, mBackbuffers[i], ViewType::RenderTarget, ViewDimension::Texture, TextureFormat::RGBA8_sRGB);
+        mBackbufferViews[i] = MakeRef<View>(device, heaps, mBackbuffers[i], ViewType::RenderTarget, ViewDimension::Texture, TextureFormat::RGBA8);
     }
 }
 

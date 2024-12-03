@@ -74,29 +74,30 @@ Device::Device()
 
     // Create info queue.
     ID3D12InfoQueue* infoQueue = 0;
-    mDevice->QueryInterface(IID_PPV_ARGS(&infoQueue));
-    
-    infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE);
-    infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, TRUE);
-    
-    D3D12_MESSAGE_SEVERITY supressSeverities[] = {
-        D3D12_MESSAGE_SEVERITY_INFO
-    };
-    D3D12_MESSAGE_ID supressIDs[] = {
-        D3D12_MESSAGE_ID_CLEARRENDERTARGETVIEW_MISMATCHINGCLEARVALUE,
-        D3D12_MESSAGE_ID_CLEARDEPTHSTENCILVIEW_MISMATCHINGCLEARVALUE,
-        D3D12_MESSAGE_ID_MAP_INVALID_NULLRANGE,
-        D3D12_MESSAGE_ID_UNMAP_INVALID_NULLRANGE
-    };
-    
-    D3D12_INFO_QUEUE_FILTER filter = {0};
-    filter.DenyList.NumSeverities = ARRAYSIZE(supressSeverities);
-    filter.DenyList.pSeverityList = supressSeverities;
-    filter.DenyList.NumIDs = ARRAYSIZE(supressIDs);
-    filter.DenyList.pIDList = supressIDs;
-    
-    infoQueue->PushStorageFilter(&filter);
-    infoQueue->Release();
+    result = mDevice->QueryInterface(IID_PPV_ARGS(&infoQueue));
+    if (SUCCEEDED(result)) {
+        infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE);
+        infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, TRUE);
+
+        D3D12_MESSAGE_SEVERITY supressSeverities[] = {
+            D3D12_MESSAGE_SEVERITY_INFO
+        };
+        D3D12_MESSAGE_ID supressIDs[] = {
+            D3D12_MESSAGE_ID_CLEARRENDERTARGETVIEW_MISMATCHINGCLEARVALUE,
+            D3D12_MESSAGE_ID_CLEARDEPTHSTENCILVIEW_MISMATCHINGCLEARVALUE,
+            D3D12_MESSAGE_ID_MAP_INVALID_NULLRANGE,
+            D3D12_MESSAGE_ID_UNMAP_INVALID_NULLRANGE
+        };
+
+        D3D12_INFO_QUEUE_FILTER filter = {0};
+        filter.DenyList.NumSeverities = ARRAYSIZE(supressSeverities);
+        filter.DenyList.pSeverityList = supressSeverities;
+        filter.DenyList.NumIDs = ARRAYSIZE(supressIDs);
+        filter.DenyList.pIDList = supressIDs;
+
+        infoQueue->PushStorageFilter(&filter);
+        infoQueue->Release();
+    }
 }
 
 Device::~Device()

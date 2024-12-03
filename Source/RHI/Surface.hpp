@@ -24,7 +24,7 @@ public:
     Texture::Ref GetBackbuffer(UInt32 idx) { return mBackbuffers[idx]; }
     View::Ref GetBackbufferView(UInt32 idx) { return mBackbufferViews[idx]; }
 private:
-    IDXGISwapChain4* mSwapchain;
+    IDXGISwapChain4* mSwapchain = nullptr;
     Array<Texture::Ref, FRAMES_IN_FLIGHT> mBackbuffers;
     Array<View::Ref, FRAMES_IN_FLIGHT> mBackbufferViews;
 };

@@ -9,3 +9,8 @@ target("spdlog")
     add_includedirs("spdlog/include")
     set_encodings("utf-8")
     add_cxxflags("-DSPDLOG_COMPILED_LIB")
+
+target("ImGui")
+    set_kind("static")
+    add_files("imgui/*.cpp", "imgui/backends/imgui_impl_win32.cpp", "imgui/backends/imgui_impl_dx12.cpp")
+    add_includedirs("imgui/")

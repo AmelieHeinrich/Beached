@@ -52,7 +52,7 @@ public:
     ID3D12DescriptorHeap* GetHeap() { return mHeap; }
 private:
     DescriptorHeapType mType;
-    ID3D12DescriptorHeap* mHeap;
+    ID3D12DescriptorHeap* mHeap = nullptr;
 
     int mIncrementSize;
     UInt32 mHeapSize;

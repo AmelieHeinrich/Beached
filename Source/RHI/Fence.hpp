@@ -26,5 +26,5 @@ public:
     UInt64 GetValue() { return mValue; }
 private:
     UInt64 mValue;
-    ID3D12Fence* mFence;
+    ID3D12Fence* mFence = nullptr;
 };

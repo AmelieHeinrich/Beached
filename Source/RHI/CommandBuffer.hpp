@@ -13,19 +13,26 @@ class CommandBuffer
 public:
     using Ref = Ref<CommandBuffer>;
  
-    CommandBuffer(Device::Ref device, Queue::Ref queue, bool singleTime = false);
+    CommandBuffer(Device::Ref device, Queue::Ref queue, DescriptorHeaps heaps, bool singleTime = false);
     ~CommandBuffer();
 
     void Begin();
-    void Barrier(Texture::Ref texture, TextureLayout layout, UInt32 mip = VIEW_ALL_MIPS);
-    void ClearRenderTarget(View::Ref view, float r, float g, float b);
     void End();
+
+    void Barrier(Texture::Ref texture, TextureLayout layout, UInt32 mip = VIEW_ALL_MIPS);
+    
+    void SetRenderTargets(const Vector<View::Ref> targets, View::Ref depth);
+    void ClearRenderTarget(View::Ref view, float r, float g, float b);
+
+    void BeginGUI(int width, int height);
+    void EndGUI();
 
     ID3D12GraphicsCommandList10* GetList() { return mList; }
     operator ID3D12CommandList*() { return mList; }
 private:
     bool mSingleTime;
     Queue::Ref mParentQueue;
-    ID3D12CommandAllocator* mAllocator;
-    ID3D12GraphicsCommandList10* mList;
+    DescriptorHeaps mHeaps;
+    ID3D12CommandAllocator* mAllocator = nullptr;
+    ID3D12GraphicsCommandList10* mList = nullptr;
 };
