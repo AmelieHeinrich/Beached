@@ -18,14 +18,22 @@ Beached::Beached()
     mRHI = MakeRef<RHI>(mWindow);
 
     const float vertices[] = {
-        -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
+         0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
          0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-         0.0f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f
+        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f,
+        -0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 1.0f
+    };
+
+    const UInt32 indices[] = {
+        0, 1, 3,
+        1, 2, 3
     };
 
     mVertexBuffer = mRHI->CreateBuffer(sizeof(vertices), sizeof(float) * 6, BufferType::Vertex, "Vertex Buffer");
+    mIndexBuffer = mRHI->CreateBuffer(sizeof(indices), sizeof(UInt32), BufferType::Index, "Index Buffer");
 
     Uploader::EnqueueBufferUpload((void*)vertices, sizeof(vertices), mVertexBuffer);
+    Uploader::EnqueueBufferUpload((void*)indices, sizeof(indices), mIndexBuffer);
 
     GraphicsPipelineSpecs triangleSpecs;
     triangleSpecs.Fill = FillMode::Solid;
@@ -74,7 +82,8 @@ void Beached::Run()
         frame.CommandBuffer->SetViewport(0, 0, (float)width, (float)height);
         frame.CommandBuffer->SetGraphicsPipeline(mPipeline);
         frame.CommandBuffer->SetVertexBuffer(mVertexBuffer);
-        frame.CommandBuffer->Draw(3);
+        frame.CommandBuffer->SetIndexBuffer(mIndexBuffer);
+        frame.CommandBuffer->DrawIndexed(6);
 
         // UI
         frame.CommandBuffer->BeginGUI(width, height);

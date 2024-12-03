@@ -38,10 +38,12 @@ public:
     void SetGraphicsPipeline(GraphicsPipeline::Ref pipeline);
     void SetRenderTargets(const Vector<View::Ref> targets, View::Ref depth);
     void SetVertexBuffer(Buffer::Ref buffer);
+    void SetIndexBuffer(Buffer::Ref buffer);
     
     void ClearRenderTarget(View::Ref view, float r, float g, float b);
 
     void Draw(int vertexCount);
+    void DrawIndexed(int indexCount);
 
     void CopyBufferToBuffer(::Ref<Resource> dst, ::Ref<Resource> src);
 

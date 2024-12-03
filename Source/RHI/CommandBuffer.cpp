@@ -113,6 +113,11 @@ void CommandBuffer::SetVertexBuffer(Buffer::Ref buffer)
     mList->IASetVertexBuffers(0, 1, &buffer->mVBV);
 }
 
+void CommandBuffer::SetIndexBuffer(Buffer::Ref buffer)
+{
+    mList->IASetIndexBuffer(&buffer->mIBV);
+}
+
 void CommandBuffer::ClearRenderTarget(View::Ref view, float r, float g, float b)
 {
     float clear[] = { r, g, b, 1.0f };
@@ -122,6 +127,11 @@ void CommandBuffer::ClearRenderTarget(View::Ref view, float r, float g, float b)
 void CommandBuffer::Draw(int vertexCount)
 {
     mList->DrawInstanced(vertexCount, 1, 0, 0);
+}
+
+void CommandBuffer::DrawIndexed(int indexCount)
+{
+    mList->DrawIndexedInstanced(indexCount, 1, 0, 0, 0);
 }
 
 void CommandBuffer::CopyBufferToBuffer(::Ref<Resource> dst, ::Ref<Resource> src)

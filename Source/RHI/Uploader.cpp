@@ -34,9 +34,7 @@ void Uploader::Flush()
     CommandBuffer::Ref cmdBuffer = MakeRef<CommandBuffer>(sData.Device, sData.UploadQueue, sData.Heaps, true);
     cmdBuffer->Begin();
 
-    for (auto request : sData.Requests) {
-        UploadRequest request = sData.Requests.front();
-        
+    for (auto request : sData.Requests) {        
         switch (request.Type) {
             case UploadRequestType::BufferCPUToGPU: {
                 cmdBuffer->CopyBufferToBuffer(request.Resource, request.StagingBuffer);

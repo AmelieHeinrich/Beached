@@ -25,6 +25,7 @@ private:
     RHI::Ref mRHI;
 
     Buffer::Ref mVertexBuffer;
+    Buffer::Ref mIndexBuffer;
     GraphicsPipeline::Ref mPipeline;
 
     // UI settings
