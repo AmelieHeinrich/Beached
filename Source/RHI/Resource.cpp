@@ -9,13 +9,14 @@
 #include <Core/Assert.hpp>
 
 Resource::Resource(Device::Ref device)
-    : mParentDevice(device), mResource(nullptr), mSize(0), mStride(0)
+    : mParentDevice(device), mResource(nullptr), mSize(0), mStride(0), mShouldFree(true)
 {
 }
 
 Resource::~Resource()
 {
-    D3DUtils::Release(mResource);
+    if (mShouldFree)
+        D3DUtils::Release(mResource);
 }
 
 void Resource::Tag(ResourceTag tag)

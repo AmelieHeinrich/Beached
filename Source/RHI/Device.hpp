@@ -19,7 +19,7 @@ public:
     ~Device();
 
     ID3D12Device* GetDevice() { return mDevice; }
-
+    IDXGIFactory6* GetFactory() { return mFactory; }
 private:
     IDXGIFactory6* mFactory;
     IDXGIAdapter1* mAdapter;

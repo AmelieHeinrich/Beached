@@ -30,6 +30,7 @@ public:
     UInt64 GetStride() const { return mStride; }
     ID3D12Resource* GetResource() const { return mResource; }
 protected:
+    bool mShouldFree;
     Device::Ref mParentDevice;
     ID3D12Resource* mResource;
     UInt64 mSize;

@@ -8,7 +8,7 @@
 #include <Core/Assert.hpp>
 
 DescriptorHeap::DescriptorHeap(Device::Ref device, DescriptorHeapType type, UInt32 size)
-    : mType(type), mHeapSize(size)
+    : mType(type), mHeapSize(size), mShaderVisible(false)
 {
     D3D12_DESCRIPTOR_HEAP_DESC desc = {};
     desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE(type);

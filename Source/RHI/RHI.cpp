@@ -5,7 +5,7 @@
 
 #include <RHI/RHI.hpp>
 
-RHI::RHI()
+RHI::RHI(Window::Ref window)
 {
     mDevice = MakeRef<Device>();
 
@@ -15,6 +15,8 @@ RHI::RHI()
     mDescriptorHeaps[DescriptorHeapType::DepthTarget] = MakeRef<DescriptorHeap>(mDevice, DescriptorHeapType::DepthTarget, 2048);
     mDescriptorHeaps[DescriptorHeapType::ShaderResource] = MakeRef<DescriptorHeap>(mDevice, DescriptorHeapType::ShaderResource, 1'000'000);
     mDescriptorHeaps[DescriptorHeapType::Sampler] = MakeRef<DescriptorHeap>(mDevice, DescriptorHeapType::Sampler, 2048);
+
+    mSurface = MakeRef<Surface>(window, mDevice, mDescriptorHeaps, mGraphicsQueue);
 }
 
 RHI::~RHI()

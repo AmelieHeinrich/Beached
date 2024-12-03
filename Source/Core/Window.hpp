@@ -20,6 +20,9 @@ public:
 
     bool IsOpen();
     void PollEvents();
+    void PollSize(int& width, int& height);
+
+    HWND GetHandle() { return mWindow; }
 private:
     HWND mWindow;
 };

@@ -6,6 +6,13 @@
 #include <RHI/Texture.hpp>
 #include <Core/UTF.hpp>
 
+Texture::Texture(Device::Ref device, ID3D12Resource* resource, TextureDesc desc)
+    : Resource(device), mDesc(desc), mLayout(TextureLayout::Common)
+{
+    mShouldFree = false;
+    mResource = resource;
+}
+
 Texture::Texture(Device::Ref device, TextureDesc desc)
     : Resource(device), mDesc(desc), mLayout(TextureLayout::Common)
 {

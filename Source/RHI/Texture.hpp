@@ -49,6 +49,7 @@ class Texture : public Resource
 public:
     using Ref = Ref<Texture>;
 
+    Texture(Device::Ref device, ID3D12Resource* resource, TextureDesc desc);
     Texture(Device::Ref device, TextureDesc desc);
     ~Texture();
 

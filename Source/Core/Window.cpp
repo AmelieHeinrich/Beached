@@ -55,3 +55,11 @@ void Window::PollEvents()
         DispatchMessage(&message);
     }
 }
+
+void Window::PollSize(int& width, int& height)
+{
+    RECT rect;
+    GetClientRect(mWindow, &rect);
+    width = rect.right - rect.left;
+    height = rect.bottom - rect.top;
+}
