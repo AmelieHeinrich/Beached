@@ -10,6 +10,8 @@
 #include <Core/Logger.hpp>
 #include <Core/UTF.hpp>
 
+#include <unordered_map>
+
 extern "C"
 {
     __declspec(dllexport) DWORD NvOptimusEnablement = 0x00000001;
@@ -29,36 +31,29 @@ Device::Device()
     tempFactory->Release();
 
     // Get adapter.
-    // TODO(amelie): D3DUtils::CalculateAdapterScore
-    IDXGIAdapter1* adapter = nullptr;
-    for (UInt32 adapterIndex = 0; SUCCEEDED(mFactory->EnumAdapterByGpuPreference(adapterIndex, DXGI_GPU_PREFERENCE_HIGH_PERFORMANCE, IID_PPV_ARGS(&adapter))); adapterIndex++) {
-        DXGI_ADAPTER_DESC1 desc;
-        adapter->GetDesc1(&desc);
-
-        if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
-            continue;
-        
-        if (SUCCEEDED(D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL_11_0, __uuidof(ID3D12Device*), nullptr)))
+    std::unordered_map<IDXGIAdapter1*, UInt64> adapterScores;
+    for (UInt32 adapterIndex = 0;; adapterIndex++) {
+        IDXGIAdapter1* adapter;
+        if (FAILED(mFactory->EnumAdapterByGpuPreference(adapterIndex, DXGI_GPU_PREFERENCE_UNSPECIFIED, IID_PPV_ARGS(&adapter))))
             break;
+
+        adapterScores[adapter] = D3DUtils::CalculateAdapterScore(adapter);
     }
-    if (!adapter) {
-        for (UInt32 adapterIndex = 0; SUCCEEDED(mFactory->EnumAdapters1(adapterIndex, &adapter)); adapterIndex++) {
-            DXGI_ADAPTER_DESC1 desc;
-            adapter->GetDesc1(&desc);
 
-            if (desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE)
-                continue;
+    std::pair<IDXGIAdapter1*, UInt64> bestAdapter = { nullptr, 0 };
+    for (auto& pair : adapterScores) {
+        DXGI_ADAPTER_DESC1 desc;
+        pair.first->GetDesc1(&desc);
 
-            if (SUCCEEDED(D3D12CreateDevice(adapter, D3D_FEATURE_LEVEL_11_0, __uuidof(ID3D12Device*), nullptr)))
-                break;
+        if (pair.second > bestAdapter.second) {
+            bestAdapter = pair;
         }
+        LOG_DEBUG("Found GPU {0} with score {1}", UTF::WideToAscii(desc.Description), pair.second);
     }
-    ASSERT(adapter, "Failed to find suitable Direct3D 12 adapter.");
-    mAdapter = adapter;
+    mAdapter = bestAdapter.first;
 
     DXGI_ADAPTER_DESC1 desc;
     mAdapter->GetDesc1(&desc);
-
     LOG_INFO("Selecting GPU {0}", UTF::WideToAscii(desc.Description));
 }
 

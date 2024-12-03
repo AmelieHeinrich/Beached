@@ -5,10 +5,13 @@
 
 #pragma once
 
-#include <Windows.h>
+#include <Agility/d3d12.h>
+#include <dxgi1_6.h>
+#include <Core/Common.hpp>
 
 class D3DUtils
 {
 public:
     static void Release(IUnknown* object);
+    static UInt64 CalculateAdapterScore(IDXGIAdapter1* adapter);
 };
