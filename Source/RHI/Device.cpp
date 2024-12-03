@@ -69,7 +69,7 @@ Device::Device()
     LOG_INFO("Selecting GPU {0}", UTF::WideToAscii(desc.Description));
 
     // Create device.
-    result = D3D12CreateDevice(mAdapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&mDevice));
+    result = D3D12CreateDevice(mAdapter, D3D_FEATURE_LEVEL_12_0, IID_PPV_ARGS(&mDevice));
     ASSERT(SUCCEEDED(result), "Failed to create D3D12 device!");
 
     // Create info queue.

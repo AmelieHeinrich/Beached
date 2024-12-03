@@ -17,6 +17,17 @@ Beached::Beached()
     mWindow = MakeRef<Window>(1440, 900, "Beached");
     mRHI = MakeRef<RHI>(mWindow);
 
+    GraphicsPipelineSpecs triangleSpecs;
+    triangleSpecs.Fill = FillMode::Solid;
+    triangleSpecs.Cull = CullMode::None;
+    triangleSpecs.Formats.push_back(TextureFormat::RGBA8);
+    triangleSpecs.DepthEnabled = false;
+    triangleSpecs.Bytecodes[ShaderType::Vertex] = ShaderCompiler::Compile("Assets/Shaders/StreamedTriangle/Vertex.hlsl", "VSMain", ShaderType::Vertex);
+    triangleSpecs.Bytecodes[ShaderType::Fragment] = ShaderCompiler::Compile("Assets/Shaders/StreamedTriangle/Fragment.hlsl", "PSMain", ShaderType::Fragment);
+    triangleSpecs.Signature = mRHI->CreateRootSignature();
+
+    mPipeline = mRHI->CreateGraphicsPipeline(triangleSpecs);
+
     mRHI->Wait();
     LOG_INFO("Starting Beached");
 }
@@ -31,6 +42,9 @@ void Beached::Run()
     while (mWindow->IsOpen()) {
         mWindow->PollEvents();
 
+        int width, height;
+        mWindow->PollSize(width, height);
+
         if (ImGui::IsKeyPressed(ImGuiKey_F1, false)) {
             mUI = !mUI;
         }
@@ -41,13 +55,22 @@ void Beached::Run()
         frame.CommandBuffer->Barrier(frame.Backbuffer, TextureLayout::ColorWrite);
         frame.CommandBuffer->ClearRenderTarget(frame.BackbufferView, 0.0f, 0.0f, 0.0f);
         frame.CommandBuffer->SetRenderTargets({ frame.BackbufferView }, nullptr);
-        frame.CommandBuffer->BeginGUI(frame.Width, frame.Height);
+       
+        // Triangle
+        frame.CommandBuffer->SetTopology(Topology::TriangleList);
+        frame.CommandBuffer->SetViewport(0, 0, (float)width, (float)height);
+        frame.CommandBuffer->SetGraphicsPipeline(mPipeline);
+        frame.CommandBuffer->Draw(3);
+
+        // UI
+        frame.CommandBuffer->BeginGUI(width, height);
         if (mUI) {
             UI();
         } else {
             Overlay();
         }
         frame.CommandBuffer->EndGUI();
+        
         frame.CommandBuffer->Barrier(frame.Backbuffer, TextureLayout::Present);
         frame.CommandBuffer->End();
         
@@ -55,6 +78,7 @@ void Beached::Run()
         mRHI->End();
         mRHI->Present(false);
     }
+    mRHI->Wait();
 }
 
 void Beached::Overlay()

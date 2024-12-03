@@ -13,6 +13,7 @@
 #include <RHI/Fence.hpp>
 #include <RHI/Surface.hpp>
 #include <RHI/CommandBuffer.hpp>
+#include <RHI/GraphicsPipeline.hpp>
 
 struct Frame
 {
@@ -20,9 +21,6 @@ struct Frame
     Texture::Ref Backbuffer;
     View::Ref BackbufferView;
     UInt32 FrameIndex;
-
-    int Width;
-    int Height;
 };
 
 class RHI
@@ -39,6 +37,10 @@ public:
     Frame Begin();
     void End();
     void Present(bool vsync);
+
+    RootSignature::Ref CreateRootSignature();
+    RootSignature::Ref CreateRootSignature(const Vector<RootType>& entries, UInt64 pushConstantSize = 0);
+    GraphicsPipeline::Ref CreateGraphicsPipeline(GraphicsPipelineSpecs& specs);
 private:
     Window::Ref mWindow;
     Device::Ref mDevice;

@@ -80,8 +80,6 @@ Frame RHI::Begin()
     frame.Backbuffer = mSurface->GetBackbuffer(frame.FrameIndex);
     frame.BackbufferView = mSurface->GetBackbufferView(frame.FrameIndex);
     frame.CommandBuffer = mCommandBuffers[frame.FrameIndex];
-
-    mWindow->PollSize(frame.Width, frame.Height);
     
     mFrameIndex = frame.FrameIndex;
 
@@ -102,4 +100,19 @@ void RHI::End()
 void RHI::Present(bool vsync)
 {
     mSurface->Present(vsync);
+}
+
+RootSignature::Ref RHI::CreateRootSignature()
+{
+    return MakeRef<RootSignature>(mDevice);
+}
+
+RootSignature::Ref RHI::CreateRootSignature(const Vector<RootType>& entries, UInt64 pushConstantSize)
+{
+    return MakeRef<RootSignature>(mDevice, entries, pushConstantSize);
+}
+
+GraphicsPipeline::Ref RHI::CreateGraphicsPipeline(GraphicsPipelineSpecs& specs)
+{
+    return MakeRef<GraphicsPipeline>(mDevice, specs);
 }

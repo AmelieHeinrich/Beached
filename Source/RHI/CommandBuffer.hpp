@@ -7,6 +7,16 @@
 
 #include <RHI/Queue.hpp>
 #include <RHI/View.hpp>
+#include <RHI/GraphicsPipeline.hpp>
+
+enum class Topology
+{
+    LineList = D3D_PRIMITIVE_TOPOLOGY_LINELIST,
+    LineStrip = D3D_PRIMITIVE_TOPOLOGY_LINESTRIP,
+    PointList = D3D_PRIMITIVE_TOPOLOGY_POINTLIST,
+    TriangleList = D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST,
+    TriangleStrip = D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP
+};
 
 class CommandBuffer
 {
@@ -21,8 +31,14 @@ public:
 
     void Barrier(Texture::Ref texture, TextureLayout layout, UInt32 mip = VIEW_ALL_MIPS);
     
+    void SetViewport(float x, float y, float width, float height);
+    void SetTopology(Topology topology);
+    void SetGraphicsPipeline(GraphicsPipeline::Ref pipeline);
     void SetRenderTargets(const Vector<View::Ref> targets, View::Ref depth);
+    
     void ClearRenderTarget(View::Ref view, float r, float g, float b);
+
+    void Draw(int vertexCount);
 
     void BeginGUI(int width, int height);
     void EndGUI();

@@ -25,6 +25,6 @@ VertexOut VSMain(uint VID : SV_VertexID)
 {
     VertexOut Output = (VertexOut)0;
     Output.Position = float4(VERTICES[VID], 1.0);
-    Output.Color = float4(COLORS[VID], 1.0);
+    Output.Color = COLORS[VID];
     return Output;
 }

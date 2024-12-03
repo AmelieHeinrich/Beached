@@ -3,6 +3,8 @@
 // > Create Time: 2024-12-03 10:30:38
 //
 
+#pragma once
+
 #include <RHI/Device.hpp>
 #include <RHI/Resource.hpp>
 

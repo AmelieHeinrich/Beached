@@ -21,6 +21,7 @@ private:
 
     Window::Ref mWindow;
     RHI::Ref mRHI;
+    GraphicsPipeline::Ref mPipeline;
 
     // UI settings
     bool mUI = false;

@@ -62,6 +62,40 @@ void CommandBuffer::Barrier(Texture::Ref texture, TextureLayout layout, UInt32 m
     texture->SetLayout(layout);
 }
 
+void CommandBuffer::SetViewport(float x, float y, float width, float height)
+{
+    D3D12_VIEWPORT Viewport = {};
+    Viewport.Width = width;
+    Viewport.Height = height;
+    Viewport.MinDepth = 0.0f;
+    Viewport.MaxDepth = 1.0f;
+    Viewport.TopLeftX = x;
+    Viewport.TopLeftY = y;
+
+    D3D12_RECT Rect = {};
+    Rect.right = width;
+    Rect.bottom = height;
+    Rect.top = 0.0f;
+    Rect.left = 0.0f;
+
+    if (Rect.right < 0 || Rect.bottom < 0)
+        return;
+
+    mList->RSSetViewports(1, &Viewport);
+    mList->RSSetScissorRects(1, &Rect);
+}
+
+void CommandBuffer::SetTopology(Topology topology)
+{
+    mList->IASetPrimitiveTopology(D3D12_PRIMITIVE_TOPOLOGY(topology));
+}
+
+void CommandBuffer::SetGraphicsPipeline(GraphicsPipeline::Ref pipeline)
+{
+    mList->SetPipelineState(pipeline->GetPipeline());
+    mList->SetGraphicsRootSignature(pipeline->GetRootSignature()->GetSignature());
+}
+
 void CommandBuffer::SetRenderTargets(const Vector<View::Ref> targets, View::Ref depth)
 {
     std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> cpus;
@@ -78,6 +112,11 @@ void CommandBuffer::ClearRenderTarget(View::Ref view, float r, float g, float b)
 {
     float clear[] = { r, g, b, 1.0f };
     mList->ClearRenderTargetView(view->GetDescriptor().CPU, clear, 0, nullptr);
+}
+
+void CommandBuffer::Draw(int vertexCount)
+{
+    mList->DrawInstanced(vertexCount, 1, 0, 0);
 }
 
 void CommandBuffer::End()

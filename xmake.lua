@@ -13,7 +13,7 @@ target("Beached")
     set_encodings("utf-8")
 
     if is_plat("windows") then
-        add_syslinks("user32", "gdi32", "kernel32", "d3d12", "dxgi", "dxcompiler")
+        add_syslinks("user32", "gdi32", "kernel32", "d3d12", "dxgi", "ThirdParty/DXC/lib/dxcompiler.lib")
     end
 
     if is_mode("debug") then
@@ -29,10 +29,13 @@ target("Beached")
 
     -- Copy DLLs in build folder
     before_link(function (target)
+        if not os.exists("$(buildir)/$(plat)/$(arch)/$(mode)/Assets/") then
+            os.mkdir("$(buildir)/$(plat)/$(arch)/$(mode)/Assets/")
+        end
         os.cp("Binaries/*", "$(buildir)/$(plat)/$(arch)/$(mode)/")
+        os.cp("Assets/*", "$(buildir)/$(plat)/$(arch)/$(mode)/Assets/")
     end)
 
     add_files("Source/**.cpp")
-    add_linkdirs("ThirdParty/DXC/lib/x64")
-    add_includedirs("Source", "ThirdParty/spdlog/include", "ThirdParty/DirectX/include", "ThirdParty/imgui", "ThirdParty/imgui/backends", "ThirdParty/DXC/inc")
+    add_includedirs("Source", "ThirdParty/spdlog/include", "ThirdParty/DirectX/include", "ThirdParty/imgui", "ThirdParty/imgui/backends", "ThirdParty/DXC/Include")
     add_deps("spdlog", "ImGui")
