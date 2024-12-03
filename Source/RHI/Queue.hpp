@@ -8,6 +8,7 @@
 #include <RHI/Device.hpp>
 
 class Fence;
+class CommandBuffer;
 
 enum class QueueType
 {
@@ -28,6 +29,7 @@ public:
 
     void Wait(::Ref<Fence> fence, UInt64 value);
     void Signal(::Ref<Fence> fence, UInt64 value);
+    void Submit(const Vector<::Ref<CommandBuffer>>& buffers);
 
     ID3D12CommandQueue* GetQueue() { return mQueue; }
     QueueType GetType() { return mType; }

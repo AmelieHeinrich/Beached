@@ -17,9 +17,57 @@ RHI::RHI(Window::Ref window)
     mDescriptorHeaps[DescriptorHeapType::Sampler] = MakeRef<DescriptorHeap>(mDevice, DescriptorHeapType::Sampler, 2048);
 
     mSurface = MakeRef<Surface>(window, mDevice, mDescriptorHeaps, mGraphicsQueue);
+
+    mFrameFence = MakeRef<Fence>(mDevice);
+    mFrameIndex = 0;
+    for (int i = 0; i < FRAMES_IN_FLIGHT; i++) {
+        mFrameValues[i] = 0;
+        mCommandBuffers[i] = MakeRef<CommandBuffer>(mDevice, mGraphicsQueue);
+    }
 }
 
 RHI::~RHI()
 {
     
+}
+
+void RHI::Wait()
+{
+    mGraphicsQueue->Signal(mFrameFence, mFrameValues[mFrameIndex]);
+    mFrameFence->Wait(mFrameValues[mFrameIndex]);
+    mFrameValues[mFrameIndex]++;
+}
+
+void RHI::Submit(const Vector<CommandBuffer::Ref> buffers)
+{
+    mGraphicsQueue->Submit(buffers);
+}
+
+Frame RHI::Begin()
+{
+    Frame frame;
+    frame.FrameIndex = mSurface->GetBackbufferIndex();
+    frame.Backbuffer = mSurface->GetBackbuffer(frame.FrameIndex);
+    frame.BackbufferView = mSurface->GetBackbufferView(frame.FrameIndex);
+    frame.CommandBuffer = mCommandBuffers[frame.FrameIndex];
+    
+    mFrameIndex = frame.FrameIndex;
+
+    return frame;
+}
+
+void RHI::End()
+{
+    const UInt64 fenceValue = mFrameValues[mFrameIndex];
+    mGraphicsQueue->Signal(mFrameFence, fenceValue);
+
+    if (mFrameFence->GetCompletedValue() < mFrameValues[mFrameIndex]) {
+        mFrameFence->Wait(mFrameValues[mFrameIndex]);
+    }
+    mFrameValues[mFrameIndex] = fenceValue + 1;
+}
+
+void RHI::Present(bool vsync)
+{
+    mSurface->Present(vsync);
 }

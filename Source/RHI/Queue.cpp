@@ -6,6 +6,7 @@
 #include <RHI/Queue.hpp>
 #include <RHI/Utilities.hpp>
 #include <RHI/Fence.hpp>
+#include <RHI/CommandBuffer.hpp>
 
 #include <Core/Assert.hpp>
 
@@ -32,4 +33,14 @@ void Queue::Wait(::Ref<Fence> fence, UInt64 value)
 void Queue::Signal(::Ref<Fence> fence, UInt64 value)
 {
     mQueue->Signal(fence->GetFence(), value);
+}
+
+void Queue::Submit(const Vector<::Ref<CommandBuffer>>& buffers)
+{
+    std::vector<ID3D12CommandList*> lists;
+    for (auto& buffer : buffers) {
+        lists.push_back(buffer->GetList());
+    }
+
+    mQueue->ExecuteCommandLists(lists.size(), lists.data());
 }

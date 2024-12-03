@@ -26,5 +26,15 @@ void Beached::Run()
 {
     while (mWindow->IsOpen()) {
         mWindow->PollEvents();
+
+        Frame frame = mRHI->Begin();
+        frame.CommandBuffer->Begin();
+        frame.CommandBuffer->Barrier(frame.Backbuffer, TextureLayout::ColorWrite);
+        frame.CommandBuffer->ClearRenderTarget(frame.BackbufferView, 0.3f, 0.8f, 0.1f);
+        frame.CommandBuffer->Barrier(frame.Backbuffer, TextureLayout::Present);
+        frame.CommandBuffer->End();
+        mRHI->Submit({ frame.CommandBuffer });
+        mRHI->End();
+        mRHI->Present(false);
     }
 }

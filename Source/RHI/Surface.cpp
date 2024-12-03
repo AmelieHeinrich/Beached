@@ -48,3 +48,8 @@ Surface::~Surface()
 {
     D3DUtils::Release(mSwapchain);
 }
+
+void Surface::Present(bool vsync)
+{
+    mSwapchain->Present(vsync ? 1 : 0, vsync ? 0 : DXGI_PRESENT_ALLOW_TEARING);
+}

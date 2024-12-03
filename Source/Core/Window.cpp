@@ -22,7 +22,7 @@ Window::Window(UInt32 width, UInt32 height, const String& title)
     mWindow = CreateWindowA(
         windowClass.lpszClassName,
         title.data(),
-        WS_OVERLAPPEDWINDOW,
+        WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU,
         CW_USEDEFAULT,
         CW_USEDEFAULT,
         width,

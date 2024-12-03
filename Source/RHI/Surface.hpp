@@ -18,6 +18,11 @@ public:
     Surface(Window::Ref window, Device::Ref device, DescriptorHeaps heaps, Queue::Ref queue);
     ~Surface();
 
+    void Present(bool vsync);
+
+    UInt32 GetBackbufferIndex() { return mSwapchain->GetCurrentBackBufferIndex(); }
+    Texture::Ref GetBackbuffer(UInt32 idx) { return mBackbuffers[idx]; }
+    View::Ref GetBackbufferView(UInt32 idx) { return mBackbufferViews[idx]; }
 private:
     IDXGISwapChain4* mSwapchain;
     Array<Texture::Ref, FRAMES_IN_FLIGHT> mBackbuffers;
