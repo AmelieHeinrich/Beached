@@ -7,6 +7,8 @@
 
 #include <RHI/Device.hpp>
 #include <RHI/DescriptorHeap.hpp>
+#include <RHI/Queue.hpp>
+#include <RHI/Fence.hpp>
 
 class RHI
 {
@@ -17,5 +19,6 @@ public:
     ~RHI();
 private:
     Device::Ref mDevice;
+    Queue::Ref mGraphicsQueue;
     DescriptorHeaps mDescriptorHeaps;
 };
