@@ -6,13 +6,15 @@
 #include <Beached.hpp>
 
 #include <Core/Logger.hpp>
+#include <UI/Helpers.hpp>
+
 #include <imgui.h>
 
 Beached::Beached()
 {
     Logger::Init();
 
-    mWindow = MakeRef<Window>(1280, 720, "Beached <D3D12>");
+    mWindow = MakeRef<Window>(1280, 720, "Beached");
     mRHI = MakeRef<RHI>(mWindow);
 
     mRHI->Wait();
@@ -29,6 +31,10 @@ void Beached::Run()
     while (mWindow->IsOpen()) {
         mWindow->PollEvents();
 
+        if (ImGui::IsKeyPressed(ImGuiKey_F1, false)) {
+            mUI = !mUI;
+        }
+
         Frame frame = mRHI->Begin();
         
         frame.CommandBuffer->Begin();
@@ -36,7 +42,11 @@ void Beached::Run()
         frame.CommandBuffer->ClearRenderTarget(frame.BackbufferView, 0.0f, 0.0f, 0.0f);
         frame.CommandBuffer->SetRenderTargets({ frame.BackbufferView }, nullptr);
         frame.CommandBuffer->BeginGUI(frame.Width, frame.Height);
-        ImGui::ShowDemoWindow();
+        if (mUI) {
+            UI();
+        } else {
+            Overlay();
+        }
         frame.CommandBuffer->EndGUI();
         frame.CommandBuffer->Barrier(frame.Backbuffer, TextureLayout::Present);
         frame.CommandBuffer->End();
@@ -45,4 +55,30 @@ void Beached::Run()
         mRHI->End();
         mRHI->Present(false);
     }
+}
+
+void Beached::Overlay()
+{
+    UI::BeginCornerOverlay();
+    ImGui::Text("Debug Menu: F1");
+    ImGui::End();
+}
+
+void Beached::UI()
+{
+    if (ImGui::BeginMainMenuBar()) {
+        if (ImGui::BeginMenu("Window")) {
+            if (ImGui::MenuItem("Quit")) {
+                // todo
+            }
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMainMenuBar();
+    }
+
+    UI::BeginCornerOverlay();
+    ImGui::Text("Version 0.0.1");
+    ImGui::Text("Renderer: Direct3D 12");
+    ImGui::End();
 }

@@ -16,6 +16,12 @@ public:
 
     void Run();
 private:
+    void Overlay();
+    void UI();
+
     Window::Ref mWindow;
     RHI::Ref mRHI;
+
+    // UI settings
+    bool mUI = false;
 };
