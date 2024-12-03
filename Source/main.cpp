@@ -3,10 +3,11 @@
 // > Create Time: 2024-12-03 05:17:36
 //
 
-#include <iostream>
+#include <Beached.hpp>
 
 int main(void)
 {
-    std::cout << "Hello, world!" << std::endl;
+    Beached beached;
+    beached.Run();
     return 0;
 }
