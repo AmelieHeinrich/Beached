@@ -41,7 +41,7 @@ void CommandBuffer::Begin()
     // TODO(amelie): set descriptor heaps
 }
 
-void CommandBuffer::Barrier(Texture::Ref texture, TextureLayout layout, UInt32 mip)
+void CommandBuffer::Barrier(Texture::Ref texture, ResourceLayout layout, UInt32 mip)
 {
     D3D12_RESOURCE_BARRIER Barrier = {};
     Barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;

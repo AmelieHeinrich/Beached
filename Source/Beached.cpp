@@ -52,7 +52,7 @@ void Beached::Run()
         Frame frame = mRHI->Begin();
         
         frame.CommandBuffer->Begin();
-        frame.CommandBuffer->Barrier(frame.Backbuffer, TextureLayout::ColorWrite);
+        frame.CommandBuffer->Barrier(frame.Backbuffer, ResourceLayout::ColorWrite);
         frame.CommandBuffer->ClearRenderTarget(frame.BackbufferView, 0.0f, 0.0f, 0.0f);
         frame.CommandBuffer->SetRenderTargets({ frame.BackbufferView }, nullptr);
        
@@ -71,7 +71,7 @@ void Beached::Run()
         }
         frame.CommandBuffer->EndGUI();
         
-        frame.CommandBuffer->Barrier(frame.Backbuffer, TextureLayout::Present);
+        frame.CommandBuffer->Barrier(frame.Backbuffer, ResourceLayout::Present);
         frame.CommandBuffer->End();
         
         mRHI->Submit({ frame.CommandBuffer });

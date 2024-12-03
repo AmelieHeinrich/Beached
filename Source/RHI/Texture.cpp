@@ -7,14 +7,14 @@
 #include <Core/UTF.hpp>
 
 Texture::Texture(Device::Ref device, ID3D12Resource* resource, TextureDesc desc)
-    : Resource(device), mDesc(desc), mLayout(TextureLayout::Common)
+    : Resource(device), mDesc(desc)
 {
     mShouldFree = false;
     mResource = resource;
 }
 
 Texture::Texture(Device::Ref device, TextureDesc desc)
-    : Resource(device), mDesc(desc), mLayout(TextureLayout::Common)
+    : Resource(device), mDesc(desc)
 {
     D3D12_HEAP_PROPERTIES heapProperties = {};
     heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
@@ -39,7 +39,7 @@ Texture::Texture(Device::Ref device, TextureDesc desc)
         resourceDesc.Flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
     
     CreateResource(&heapProperties, &resourceDesc, D3D12_RESOURCE_STATE_COMMON);
-    mResource->SetName(UTF::AsciiToWide(desc.Name).data());
+    SetName(desc.Name);
 }
 
 Texture::~Texture()

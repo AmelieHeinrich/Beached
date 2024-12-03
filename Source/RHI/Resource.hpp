@@ -9,6 +9,19 @@
 
 // We go through a parent Resource class so it's easier to tag/track them later down the line.
 
+enum class ResourceLayout
+{
+    Common = D3D12_RESOURCE_STATE_COMMON,
+    Shader = D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE,
+    Storage = D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+    DepthWrite = D3D12_RESOURCE_STATE_DEPTH_WRITE,
+    ColorWrite = D3D12_RESOURCE_STATE_RENDER_TARGET,
+    CopySource = D3D12_RESOURCE_STATE_COPY_SOURCE,
+    CopyDest = D3D12_RESOURCE_STATE_COPY_DEST,
+    Present = D3D12_RESOURCE_STATE_PRESENT,
+    GenericRead = D3D12_RESOURCE_STATE_GENERIC_READ
+};
+
 enum class ResourceTag
 {
     ModelGeometry,
@@ -24,11 +37,16 @@ public:
     Resource(Device::Ref device);
     ~Resource();
 
+    void SetName(const String& string);
     void Tag(ResourceTag tag);
 
     UInt64 GetSize() const { return mSize; }
     UInt64 GetStride() const { return mStride; }
     ID3D12Resource* GetResource() const { return mResource; }
+    UInt64 GetAddress() { return mResource->GetGPUVirtualAddress(); }
+
+    ResourceLayout GetLayout() { return mLayout; };
+    void SetLayout(ResourceLayout layout) { mLayout = layout; }
 protected:
     bool mShouldFree;
     Device::Ref mParentDevice;
@@ -36,6 +54,7 @@ protected:
     UInt64 mSize;
     UInt64 mStride;
     Vector<ResourceTag> mTags;
+    ResourceLayout mLayout;
 
     void CreateResource(D3D12_HEAP_PROPERTIES* heapProps, D3D12_RESOURCE_DESC* resourceDesc, D3D12_RESOURCE_STATES state);
 };

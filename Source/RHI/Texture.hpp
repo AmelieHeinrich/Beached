@@ -23,18 +23,6 @@ enum class TextureUsage
     ShaderResource = BIT(4)
 };
 
-enum class TextureLayout
-{
-    Common = D3D12_RESOURCE_STATE_COMMON,
-    Shader = D3D12_RESOURCE_STATE_ALL_SHADER_RESOURCE,
-    Storage = D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
-    DepthWrite = D3D12_RESOURCE_STATE_DEPTH_WRITE,
-    ColorWrite = D3D12_RESOURCE_STATE_RENDER_TARGET,
-    CopySource = D3D12_RESOURCE_STATE_COPY_SOURCE,
-    CopyDest = D3D12_RESOURCE_STATE_COPY_DEST,
-    Present = D3D12_RESOURCE_STATE_PRESENT
-};
-
 struct TextureDesc
 {
     String Name;
@@ -56,12 +44,8 @@ public:
     ~Texture();
 
     TextureDesc GetDesc() const { return mDesc; }
-
-    TextureLayout GetLayout() const { return mLayout; }
-    void SetLayout(TextureLayout layout) { mLayout = layout; }
 private:
     TextureDesc mDesc;
-    TextureLayout mLayout;
 };
 
 inline constexpr bool operator&(TextureUsage x, TextureUsage y)

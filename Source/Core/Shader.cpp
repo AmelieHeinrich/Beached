@@ -6,6 +6,7 @@
 #include <Core/Shader.hpp>
 #include <Core/File.hpp>
 #include <Core/Logger.hpp>
+#include <Core/Assert.hpp>
 #include <RHI/Utilities.hpp>
 
 #include <atlbase.h>
@@ -58,26 +59,14 @@ Shader ShaderCompiler::Compile(const String& path, const String& entry, ShaderTy
 
     IDxcUtils* pUtils = nullptr;
     IDxcCompiler* pCompiler = nullptr;
-    if (!SUCCEEDED(DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&pUtils)))) {
-        LOG_ERROR("DXC: Failed to create DXC utils instance!");
-        return { false };
-    }
-    if (!SUCCEEDED(DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&pCompiler)))) {
-        LOG_ERROR("DXC: Failed to create DXC compiler instance!");
-        return { false };
-    }
+    ASSERT(SUCCEEDED(DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&pUtils))), "Failed to create DXC utils!");
+    ASSERT(SUCCEEDED(DxcCreateInstance(CLSID_DxcCompiler, IID_PPV_ARGS(&pCompiler))), "Failed too create DXC compiler!");
 
     IDxcIncludeHandler* pIncludeHandler = nullptr;
-    if (!SUCCEEDED(pUtils->CreateDefaultIncludeHandler(&pIncludeHandler))) {
-        LOG_ERROR("DXC: Failed to create default include handler!");
-        return { false };
-    }
+    ASSERT(SUCCEEDED(pUtils->CreateDefaultIncludeHandler(&pIncludeHandler)), "Failed to create default include handler!");
 
     IDxcBlobEncoding* pSourceBlob = nullptr;
-    if (!SUCCEEDED(pUtils->CreateBlob(source, wrappedSource.size(), 0, &pSourceBlob))) {
-        LOG_ERROR("DXC: Failed to create output blob!");
-        return { false };
-    }
+    ASSERT(SUCCEEDED(pUtils->CreateBlob(source, wrappedSource.size(), 0, &pSourceBlob)), "Failed to create source blob!");
 
     LPCWSTR pArgs[] = {
         L"-Zi",
@@ -89,10 +78,7 @@ Shader ShaderCompiler::Compile(const String& path, const String& entry, ShaderTy
     };
 
     IDxcOperationResult* pResult = nullptr;
-    if (!SUCCEEDED(pCompiler->Compile(pSourceBlob, L"Shader", wideEntry, wideTarget, pArgs, ARRAYSIZE(pArgs), nullptr, 0, pIncludeHandler, &pResult))) {
-        LOG_ERROR("[DXC] DXC: Failed to compile shader!");
-        return { false };
-    }
+    ASSERT(SUCCEEDED(pCompiler->Compile(pSourceBlob, L"Shader", wideEntry, wideTarget, pArgs, ARRAYSIZE(pArgs), nullptr, 0, pIncludeHandler, &pResult)), "Failed to create result blob!");
 
     IDxcBlobEncoding* pErrors = nullptr;
     pResult->GetErrorBuffer(&pErrors);

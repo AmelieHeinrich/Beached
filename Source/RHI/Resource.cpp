@@ -6,10 +6,11 @@
 #include <RHI/Resource.hpp>
 #include <RHI/Utilities.hpp>
 
+#include <Core/UTF.hpp>
 #include <Core/Assert.hpp>
 
 Resource::Resource(Device::Ref device)
-    : mParentDevice(device), mResource(nullptr), mSize(0), mStride(0), mShouldFree(true)
+    : mParentDevice(device), mResource(nullptr), mSize(0), mStride(0), mShouldFree(true), mLayout(ResourceLayout::Common)
 {
 }
 
@@ -17,6 +18,11 @@ Resource::~Resource()
 {
     if (mShouldFree)
         D3DUtils::Release(mResource);
+}
+
+void Resource::SetName(const String& string)
+{
+    mResource->SetName(UTF::AsciiToWide(string).data());
 }
 
 void Resource::Tag(ResourceTag tag)
