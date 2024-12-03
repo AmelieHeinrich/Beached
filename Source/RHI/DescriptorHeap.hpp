@@ -20,8 +20,34 @@ class DescriptorHeap
 public:
     using Ref = Ref<DescriptorHeap>;
 
+    struct Descriptor
+    {
+        bool Valid = false;
+        int Index = -1;
+        DescriptorHeap* Parent = nullptr;
+
+        D3D12_CPU_DESCRIPTOR_HANDLE CPU;
+        D3D12_GPU_DESCRIPTOR_HANDLE GPU;
+        
+        Descriptor() = default;
+        Descriptor(DescriptorHeap* heap, int index)
+            : Parent(heap), Index(index), Valid(true)
+        {
+            CPU = Parent->mHeap->GetCPUDescriptorHandleForHeapStart();
+            CPU.ptr += index * Parent->mIncrementSize;
+
+            if (Parent->mShaderVisible) {
+                GPU = Parent->mHeap->GetGPUDescriptorHandleForHeapStart();
+                GPU.ptr += index * Parent->mIncrementSize;
+            }
+        }
+    };
+
     DescriptorHeap(Device::Ref device, DescriptorHeapType type, UInt32 size);
     ~DescriptorHeap();
+
+    Descriptor Allocate();
+    void Free(Descriptor& descriptor);
 
     ID3D12DescriptorHeap* GetHeap() { return mHeap; }
 private:

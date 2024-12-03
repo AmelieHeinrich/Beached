@@ -24,9 +24,32 @@ DescriptorHeap::DescriptorHeap(Device::Ref device, DescriptorHeapType type, UInt
     ASSERT(SUCCEEDED(result), "Failed to create descriptor heap!");
 
     mLookupTable.resize(size, false);
+    mIncrementSize = device->GetDevice()->GetDescriptorHandleIncrementSize(desc.Type);
 }
 
 DescriptorHeap::~DescriptorHeap()
 {
     D3DUtils::Release(mHeap);
+}
+
+DescriptorHeap::Descriptor DescriptorHeap::Allocate()
+{
+    int index = -1;
+    for (UInt64 i = 0; i < mLookupTable.size(); i++) {
+        if (mLookupTable[i] == false) {
+            mLookupTable[i] = true;
+            index = i;
+            break;
+        }
+    }
+    ASSERT(index != -1, "Descriptor heap is full!");
+
+    return DescriptorHeap::Descriptor(this, index);
+}
+
+void DescriptorHeap::Free(DescriptorHeap::Descriptor& descriptor)
+{
+    if (!descriptor.Valid)
+        return;
+    mLookupTable[descriptor.Index] = false;
 }
