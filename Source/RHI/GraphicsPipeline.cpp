@@ -13,8 +13,12 @@ GraphicsPipeline::GraphicsPipeline(Device::Ref device, GraphicsPipelineSpecs& sp
     Shader& vertexBytecode = specs.Bytecodes[ShaderType::Vertex];
     Shader& fragmentBytecode = specs.Bytecodes[ShaderType::Fragment];
 
-    std::vector<D3D12_INPUT_ELEMENT_DESC> InputElementDescs;
-    std::vector<std::string> InputElementSemanticNames;
+    ID3D12ShaderReflection* pVertexReflection = ShaderCompiler::Reflect(vertexBytecode);
+    D3D12_SHADER_DESC vertexDesc;
+    pVertexReflection->GetDesc(&vertexDesc);
+
+    Vector<D3D12_INPUT_ELEMENT_DESC> InputElementDescs;
+    Vector<std::string> InputElementSemanticNames;
 
     D3D12_GRAPHICS_PIPELINE_STATE_DESC Desc = {};
     Desc.VS.pShaderBytecode = vertexBytecode.Bytecode.data();
@@ -47,6 +51,54 @@ GraphicsPipeline::GraphicsPipeline(Device::Ref device, GraphicsPipelineSpecs& sp
         Desc.DSVFormat = DXGI_FORMAT(specs.DepthFormat);
     }
     Desc.SampleDesc.Count = 1;
+
+    InputElementSemanticNames.reserve(vertexDesc.InputParameters);
+    InputElementDescs.reserve(vertexDesc.InputParameters);
+
+    for (int ParameterIndex = 0; ParameterIndex < vertexDesc.InputParameters; ParameterIndex++)
+    {
+        D3D12_SIGNATURE_PARAMETER_DESC ParameterDesc = {};
+        pVertexReflection->GetInputParameterDesc(ParameterIndex, &ParameterDesc);
+
+        InputElementSemanticNames.push_back(ParameterDesc.SemanticName);
+
+        D3D12_INPUT_ELEMENT_DESC InputElement = {};
+        InputElement.SemanticName = InputElementSemanticNames.back().c_str();
+        InputElement.SemanticIndex = ParameterDesc.SemanticIndex;
+        InputElement.InputSlot = 0;
+        InputElement.AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT;
+        InputElement.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
+        InputElement.InstanceDataStepRate = 0;
+
+        if (ParameterDesc.Mask == 1)
+        {
+            if (ParameterDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) InputElement.Format = DXGI_FORMAT_R32_UINT;
+            else if (ParameterDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) InputElement.Format = DXGI_FORMAT_R32_SINT;
+            else if (ParameterDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) InputElement.Format = DXGI_FORMAT_R32_FLOAT;
+        }
+        else if (ParameterDesc.Mask <= 3)
+        {
+            if (ParameterDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) InputElement.Format = DXGI_FORMAT_R32G32_UINT;
+            else if (ParameterDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) InputElement.Format = DXGI_FORMAT_R32G32_SINT;
+            else if (ParameterDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) InputElement.Format = DXGI_FORMAT_R32G32_FLOAT;
+        }
+        else if (ParameterDesc.Mask <= 7)
+        {
+            if (ParameterDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) InputElement.Format = DXGI_FORMAT_R32G32B32_UINT;
+            else if (ParameterDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) InputElement.Format = DXGI_FORMAT_R32G32B32_SINT;
+            else if (ParameterDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) InputElement.Format = DXGI_FORMAT_R32G32B32_FLOAT;
+        }
+        else if (ParameterDesc.Mask <= 15)
+        {
+            if (ParameterDesc.ComponentType == D3D_REGISTER_COMPONENT_UINT32) InputElement.Format = DXGI_FORMAT_R32G32B32A32_UINT;
+            else if (ParameterDesc.ComponentType == D3D_REGISTER_COMPONENT_SINT32) InputElement.Format = DXGI_FORMAT_R32G32B32A32_SINT;
+            else if (ParameterDesc.ComponentType == D3D_REGISTER_COMPONENT_FLOAT32) InputElement.Format = DXGI_FORMAT_R32G32B32A32_FLOAT;
+        }
+
+        InputElementDescs.push_back(InputElement);
+    }
+    Desc.InputLayout.pInputElementDescs = InputElementDescs.data();
+    Desc.InputLayout.NumElements = static_cast<uint32_t>(InputElementDescs.size());
 
     if (specs.Signature) {
         Desc.pRootSignature = specs.Signature->GetSignature();

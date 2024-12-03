@@ -8,6 +8,8 @@
 #include <RHI/Queue.hpp>
 #include <RHI/View.hpp>
 #include <RHI/GraphicsPipeline.hpp>
+#include <RHI/Resource.hpp>
+#include <RHI/Buffer.hpp>
 
 enum class Topology
 {
@@ -35,10 +37,13 @@ public:
     void SetTopology(Topology topology);
     void SetGraphicsPipeline(GraphicsPipeline::Ref pipeline);
     void SetRenderTargets(const Vector<View::Ref> targets, View::Ref depth);
+    void SetVertexBuffer(Buffer::Ref buffer);
     
     void ClearRenderTarget(View::Ref view, float r, float g, float b);
 
     void Draw(int vertexCount);
+
+    void CopyBufferToBuffer(::Ref<Resource> dst, ::Ref<Resource> src);
 
     void BeginGUI(int width, int height);
     void EndGUI();

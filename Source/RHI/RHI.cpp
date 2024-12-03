@@ -4,6 +4,7 @@
 //
 
 #include <RHI/RHI.hpp>
+#include <RHI/Uploader.hpp>
 
 #include <imgui.h>
 #include <imgui_impl_win32.h>
@@ -29,6 +30,8 @@ RHI::RHI(Window::Ref window)
         mFrameValues[i] = 0;
         mCommandBuffers[i] = MakeRef<CommandBuffer>(mDevice, mGraphicsQueue, mDescriptorHeaps);
     }
+
+    Uploader::Init(mDevice, mDescriptorHeaps, mGraphicsQueue);
 
     mFontDescriptor = mDescriptorHeaps[DescriptorHeapType::ShaderResource]->Allocate();
 
@@ -115,4 +118,9 @@ RootSignature::Ref RHI::CreateRootSignature(const Vector<RootType>& entries, UIn
 GraphicsPipeline::Ref RHI::CreateGraphicsPipeline(GraphicsPipelineSpecs& specs)
 {
     return MakeRef<GraphicsPipeline>(mDevice, specs);
+}
+
+Buffer::Ref RHI::CreateBuffer(UInt64 size, UInt64 stride, BufferType type, const String& name)
+{
+    return MakeRef<Buffer>(mDevice, mDescriptorHeaps, size, stride, type, name);
 }

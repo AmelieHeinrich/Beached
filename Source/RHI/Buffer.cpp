@@ -13,7 +13,7 @@ Buffer::Buffer(Device::Ref device, DescriptorHeaps heaps, UInt64 size, UInt64 st
     mSize = size;
     mStride = stride;
 
-    D3D12_HEAP_PROPERTIES heapProperties;
+    D3D12_HEAP_PROPERTIES heapProperties = {};
     switch (type) {
         case BufferType::Readback:
             heapProperties.Type = D3D12_HEAP_TYPE_READBACK;

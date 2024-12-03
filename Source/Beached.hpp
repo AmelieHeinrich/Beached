@@ -6,7 +6,9 @@
 #pragma once
 
 #include <Core/Window.hpp>
+
 #include <RHI/RHI.hpp>
+#include <RHI/Uploader.hpp>
 
 class Beached
 {
@@ -21,6 +23,8 @@ private:
 
     Window::Ref mWindow;
     RHI::Ref mRHI;
+
+    Buffer::Ref mVertexBuffer;
     GraphicsPipeline::Ref mPipeline;
 
     // UI settings

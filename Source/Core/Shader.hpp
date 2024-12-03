@@ -6,6 +6,7 @@
 #pragma once
 
 #include <Core/Common.hpp>
+#include <Agility/d3d12shader.h>
 
 enum class ShaderType
 {
@@ -30,4 +31,5 @@ class ShaderCompiler
 {
 public:
     static Shader Compile(const String& path, const String& entry, ShaderType type);
+    static ID3D12ShaderReflection* Reflect(Shader shader);
 };

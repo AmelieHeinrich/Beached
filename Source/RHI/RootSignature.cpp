@@ -13,6 +13,7 @@ RootSignature::RootSignature(Device::Ref device)
     D3D12_ROOT_SIGNATURE_DESC RootSignatureDesc = {};
     RootSignatureDesc.NumParameters = 0;
     RootSignatureDesc.pParameters = nullptr;
+    RootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
     ID3DBlob* pRootSignatureBlob;
     ID3DBlob* pErrorBlob;

@@ -11,6 +11,7 @@
 #include <vector>
 #include <array>
 #include <string>
+#include <queue>
 
 #define BIT(b) 1 << b
 
@@ -38,6 +39,9 @@ using Vector = std::vector<T>;
 
 template<typename T, UInt64 Size>
 using Array = std::array<T, Size>;
+
+template<typename T>
+using QueueArray = std::queue<T>;
 
 template<typename Key, typename Value>
 using UnorderedMap = std::unordered_map<Key, Value>;

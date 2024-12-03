@@ -34,6 +34,8 @@ public:
     void Map(int start, int end, void **data);
     void Unmap(int start, int end);
 private:
+    friend class CommandBuffer;
+
     DescriptorHeaps mHeaps;
     BufferType mType;
 

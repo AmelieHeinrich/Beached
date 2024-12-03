@@ -112,3 +112,19 @@ Shader ShaderCompiler::Compile(const String& path, const String& entry, ShaderTy
     D3DUtils::Release(pUtils);
     return result;
 }
+
+ID3D12ShaderReflection* ShaderCompiler::Reflect(Shader shader)
+{
+    ID3D12ShaderReflection* pReflection = nullptr;
+    
+    IDxcUtils* pUtils = nullptr;
+    DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&pUtils));
+    
+    DxcBuffer ShaderBuffer = {};
+    ShaderBuffer.Ptr = shader.Bytecode.data();
+    ShaderBuffer.Size = shader.Bytecode.size();
+    
+    ASSERT(SUCCEEDED(pUtils->CreateReflection(&ShaderBuffer, IID_PPV_ARGS(&pReflection))), "Failed to get shader reflection!");
+    pUtils->Release();
+    return pReflection;
+}

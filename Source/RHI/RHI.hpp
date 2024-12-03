@@ -14,6 +14,7 @@
 #include <RHI/Surface.hpp>
 #include <RHI/CommandBuffer.hpp>
 #include <RHI/GraphicsPipeline.hpp>
+#include <RHI/Buffer.hpp>
 
 struct Frame
 {
@@ -41,6 +42,7 @@ public:
     RootSignature::Ref CreateRootSignature();
     RootSignature::Ref CreateRootSignature(const Vector<RootType>& entries, UInt64 pushConstantSize = 0);
     GraphicsPipeline::Ref CreateGraphicsPipeline(GraphicsPipelineSpecs& specs);
+    Buffer::Ref CreateBuffer(UInt64 size, UInt64 stride, BufferType type, const String& name = "Buffer");
 private:
     Window::Ref mWindow;
     Device::Ref mDevice;

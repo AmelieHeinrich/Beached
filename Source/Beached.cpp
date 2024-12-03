@@ -17,18 +17,31 @@ Beached::Beached()
     mWindow = MakeRef<Window>(1440, 900, "Beached");
     mRHI = MakeRef<RHI>(mWindow);
 
+    const float vertices[] = {
+        -0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
+         0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
+         0.0f,  0.5f, 0.0f, 0.0f, 0.0f, 1.0f
+    };
+
+    mVertexBuffer = mRHI->CreateBuffer(sizeof(vertices), sizeof(float) * 6, BufferType::Vertex, "Vertex Buffer");
+
+    Uploader::EnqueueBufferUpload((void*)vertices, sizeof(vertices), mVertexBuffer);
+
     GraphicsPipelineSpecs triangleSpecs;
     triangleSpecs.Fill = FillMode::Solid;
     triangleSpecs.Cull = CullMode::None;
     triangleSpecs.Formats.push_back(TextureFormat::RGBA8);
     triangleSpecs.DepthEnabled = false;
-    triangleSpecs.Bytecodes[ShaderType::Vertex] = ShaderCompiler::Compile("Assets/Shaders/StreamedTriangle/Vertex.hlsl", "VSMain", ShaderType::Vertex);
-    triangleSpecs.Bytecodes[ShaderType::Fragment] = ShaderCompiler::Compile("Assets/Shaders/StreamedTriangle/Fragment.hlsl", "PSMain", ShaderType::Fragment);
+    triangleSpecs.Bytecodes[ShaderType::Vertex] = ShaderCompiler::Compile("Assets/Shaders/Triangle/Vertex.hlsl", "VSMain", ShaderType::Vertex);
+    triangleSpecs.Bytecodes[ShaderType::Fragment] = ShaderCompiler::Compile("Assets/Shaders/Triangle/Fragment.hlsl", "PSMain", ShaderType::Fragment);
     triangleSpecs.Signature = mRHI->CreateRootSignature();
 
     mPipeline = mRHI->CreateGraphicsPipeline(triangleSpecs);
 
+    Uploader::Flush();
     mRHI->Wait();
+    Uploader::ClearRequests();
+
     LOG_INFO("Starting Beached");
 }
 
@@ -60,6 +73,7 @@ void Beached::Run()
         frame.CommandBuffer->SetTopology(Topology::TriangleList);
         frame.CommandBuffer->SetViewport(0, 0, (float)width, (float)height);
         frame.CommandBuffer->SetGraphicsPipeline(mPipeline);
+        frame.CommandBuffer->SetVertexBuffer(mVertexBuffer);
         frame.CommandBuffer->Draw(3);
 
         // UI
