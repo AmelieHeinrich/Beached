@@ -19,6 +19,7 @@ target("Beached")
     if is_mode("debug") then
         set_symbols("debug")
         set_optimize("none")
+        add_defines("BEACHED_DEBUG")
     end
     if is_mode("release") then
         set_symbols("hidden")

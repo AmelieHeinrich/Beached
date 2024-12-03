@@ -23,12 +23,24 @@ extern "C"
 
 Device::Device()
 {
-    // Create factory
+    // Create factory.
     IDXGIFactory1* tempFactory;
     HRESULT result = CreateDXGIFactory1(IID_PPV_ARGS(&tempFactory));
     ASSERT(SUCCEEDED(result), "Failed to create DXGI factory!");
     tempFactory->QueryInterface(IID_PPV_ARGS(&mFactory));
     tempFactory->Release();
+
+    // Create debug interface.
+#if defined(BEACHED_DEBUG)
+    ID3D12Debug* debug;
+    result = D3D12GetDebugInterface(IID_PPV_ARGS(&debug));
+    ASSERT(SUCCEEDED(result), "Failed to get debug interface!");
+    debug->QueryInterface(IID_PPV_ARGS(&mDebug));
+    debug->Release();
+
+    mDebug->EnableDebugLayer();
+    mDebug->SetEnableGPUBasedValidation(true);
+#endif
 
     // Get adapter.
     std::unordered_map<IDXGIAdapter1*, UInt64> adapterScores;
@@ -55,10 +67,42 @@ Device::Device()
     DXGI_ADAPTER_DESC1 desc;
     mAdapter->GetDesc1(&desc);
     LOG_INFO("Selecting GPU {0}", UTF::WideToAscii(desc.Description));
+
+    // Create device.
+    result = D3D12CreateDevice(mAdapter, D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&mDevice));
+    ASSERT(SUCCEEDED(result), "Failed to create D3D12 device!");
+
+    // Create info queue.
+    ID3D12InfoQueue* infoQueue = 0;
+    mDevice->QueryInterface(IID_PPV_ARGS(&infoQueue));
+    
+    infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE);
+    infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, TRUE);
+    
+    D3D12_MESSAGE_SEVERITY supressSeverities[] = {
+        D3D12_MESSAGE_SEVERITY_INFO
+    };
+    D3D12_MESSAGE_ID supressIDs[] = {
+        D3D12_MESSAGE_ID_CLEARRENDERTARGETVIEW_MISMATCHINGCLEARVALUE,
+        D3D12_MESSAGE_ID_CLEARDEPTHSTENCILVIEW_MISMATCHINGCLEARVALUE,
+        D3D12_MESSAGE_ID_MAP_INVALID_NULLRANGE,
+        D3D12_MESSAGE_ID_UNMAP_INVALID_NULLRANGE
+    };
+    
+    D3D12_INFO_QUEUE_FILTER filter = {0};
+    filter.DenyList.NumSeverities = ARRAYSIZE(supressSeverities);
+    filter.DenyList.pSeverityList = supressSeverities;
+    filter.DenyList.NumIDs = ARRAYSIZE(supressIDs);
+    filter.DenyList.pIDList = supressIDs;
+    
+    infoQueue->PushStorageFilter(&filter);
+    infoQueue->Release();
 }
 
 Device::~Device()
 {
+    D3DUtils::Release(mDevice);
     D3DUtils::Release(mAdapter);
+    D3DUtils::Release(mDebug);
     D3DUtils::Release(mFactory);
 }

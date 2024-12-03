@@ -20,4 +20,6 @@ public:
 private:
     IDXGIFactory6* mFactory;
     IDXGIAdapter1* mAdapter;
+    ID3D12Device* mDevice;
+    ID3D12Debug1* mDebug;
 };
