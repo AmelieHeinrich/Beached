@@ -11,6 +11,7 @@
 
 #include <RHI/RHI.hpp>
 #include <RHI/Uploader.hpp>
+#include <RHI/Sampler.hpp>
 
 class Beached
 {
@@ -33,6 +34,9 @@ private:
     Buffer::Ref mVertexBuffer;
     Buffer::Ref mIndexBuffer;
     Array<Buffer::Ref, FRAMES_IN_FLIGHT> mConstantBuffer;
+    Texture::Ref mTexture;
+    View::Ref mTextureView;
+    Sampler::Ref mSampler;
     GraphicsPipeline::Ref mPipeline;
 
     // UI settings

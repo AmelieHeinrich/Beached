@@ -16,7 +16,7 @@ class Uploader
 {
 public:
     static void Init(Device::Ref device, DescriptorHeaps heaps, Queue::Ref queue);
-    static void EnqueueTextureUpload(void* data, Image image, Ref<Resource> buffer);
+    static void EnqueueTextureUpload(Image image, Ref<Resource> buffer);
     static void EnqueueBufferUpload(void* data, UInt64 size, Ref<Resource> buffer);
     static void Flush();
     static void ClearRequests();

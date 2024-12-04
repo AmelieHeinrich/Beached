@@ -39,8 +39,23 @@ Beached::Beached()
         mConstantBuffer[i]->BuildCBV();
     }
 
+    Image image;
+    image.Load("Assets/Textures/texture.jpg");
+
+    TextureDesc desc = {};
+    desc.Width = image.Width;
+    desc.Height = image.Height;
+    desc.Levels = 1;
+    desc.Depth = 1;
+    desc.Usage = TextureUsage::ShaderResource;
+    desc.Name = "Albedo Texture";
+    desc.Format = TextureFormat::RGBA8;
+    mTexture = mRHI->CreateTexture(desc);
+    mTextureView = mRHI->CreateView(mTexture, ViewType::ShaderResource);
+
     Uploader::EnqueueBufferUpload((void*)vertices, sizeof(vertices), mVertexBuffer);
     Uploader::EnqueueBufferUpload((void*)indices, sizeof(indices), mIndexBuffer);
+    Uploader::EnqueueTextureUpload(image, mTexture);
 
     GraphicsPipelineSpecs triangleSpecs;
     triangleSpecs.Fill = FillMode::Solid;
@@ -49,7 +64,9 @@ Beached::Beached()
     triangleSpecs.DepthEnabled = false;
     triangleSpecs.Bytecodes[ShaderType::Vertex] = ShaderCompiler::Compile("Assets/Shaders/Triangle/Vertex.hlsl", "VSMain", ShaderType::Vertex);
     triangleSpecs.Bytecodes[ShaderType::Fragment] = ShaderCompiler::Compile("Assets/Shaders/Triangle/Fragment.hlsl", "PSMain", ShaderType::Fragment);
-    triangleSpecs.Signature = mRHI->CreateRootSignature({ RootType::PushConstant }, sizeof(int));
+    triangleSpecs.Signature = mRHI->CreateRootSignature({ RootType::PushConstant }, sizeof(int) * 3);
+
+    mSampler = mRHI->CreateSampler(SamplerAddress::Wrap, SamplerFilter::Linear);
 
     mPipeline = mRHI->CreateGraphicsPipeline(triangleSpecs);
 
@@ -99,12 +116,18 @@ void Beached::Run()
         Int32 cbv = mConstantBuffer[frame.FrameIndex]->CBV();
 
         // Triangle
+        int resources[] = {
+            mConstantBuffer[frame.FrameIndex]->CBV(),
+            mTextureView->GetDescriptor().Index,
+            mSampler->BindlesssSampler()
+        };
+
         frame.CommandBuffer->SetTopology(Topology::TriangleList);
         frame.CommandBuffer->SetViewport(0, 0, (float)width, (float)height);
         frame.CommandBuffer->SetGraphicsPipeline(mPipeline);
         frame.CommandBuffer->SetVertexBuffer(mVertexBuffer);
         frame.CommandBuffer->SetIndexBuffer(mIndexBuffer);
-        frame.CommandBuffer->GraphicsPushConstants(&cbv, sizeof(int), 0);
+        frame.CommandBuffer->GraphicsPushConstants(resources, sizeof(int) * 3, 0);
         frame.CommandBuffer->DrawIndexed(6);
 
         // UI

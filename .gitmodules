@@ -11,3 +11,6 @@
 [submodule "ThirdParty/stb"]
 	path = ThirdParty/stb
 	url = https://github.com/nothings/stb
+[submodule "ThirdParty/CGLTF"]
+	path = ThirdParty/CGLTF
+	url = https://github.com/jkuhlmann/cgltf/

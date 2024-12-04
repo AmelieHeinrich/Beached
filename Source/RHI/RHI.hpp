@@ -15,6 +15,8 @@
 #include <RHI/CommandBuffer.hpp>
 #include <RHI/GraphicsPipeline.hpp>
 #include <RHI/Buffer.hpp>
+#include <RHI/Texture.hpp>
+#include <RHI/Sampler.hpp>
 
 struct Frame
 {
@@ -43,6 +45,9 @@ public:
     RootSignature::Ref CreateRootSignature(const Vector<RootType>& entries, UInt64 pushConstantSize = 0);
     GraphicsPipeline::Ref CreateGraphicsPipeline(GraphicsPipelineSpecs& specs);
     Buffer::Ref CreateBuffer(UInt64 size, UInt64 stride, BufferType type, const String& name = "Buffer");
+    Texture::Ref CreateTexture(TextureDesc desc);
+    View::Ref CreateView(::Ref<Resource> resource, ViewType type, ViewDimension dimension = ViewDimension::Texture, TextureFormat format = TextureFormat::Unknown, UInt64 mip = VIEW_ALL_MIPS, UInt64 depthSlice = 0);
+    Sampler::Ref CreateSampler(SamplerAddress address, SamplerFilter filter, bool mips = false, int anisotropyLevel = 4);
 private:
     Window::Ref mWindow;
     Device::Ref mDevice;

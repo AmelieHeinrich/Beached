@@ -24,6 +24,8 @@ struct Camera
 struct Settings
 {
     int CameraIndex;
+    int TextureIndex;
+    int SamplerIndex;
 };
 
 ConstantBuffer<Settings> PushConstants : register(b0);

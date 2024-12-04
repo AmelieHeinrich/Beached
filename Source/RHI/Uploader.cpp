@@ -4,6 +4,7 @@
 //
 
 #include <RHI/Uploader.hpp>
+#include <Core/Logger.hpp>
 
 Uploader::Data Uploader::sData;
 
@@ -14,7 +15,7 @@ void Uploader::Init(Device::Ref device, DescriptorHeaps heaps, Queue::Ref queue)
     sData.UploadQueue = queue;
 }
 
-void Uploader::EnqueueTextureUpload(void* data, Image image, Ref<Resource> buffer)
+void Uploader::EnqueueTextureUpload(Image image, Ref<Resource> buffer)
 {
     UploadRequest request;
     request.Type = UploadRequestType::TextureToGPU;
@@ -24,7 +25,7 @@ void Uploader::EnqueueTextureUpload(void* data, Image image, Ref<Resource> buffe
     
         void* mapped;
         request.StagingBuffer->Map(0, 0, &mapped);
-        memcpy(mapped, data, image.Width * image.Height * 4);
+        memcpy(mapped, image.Pixels.data(), image.Pixels.size());
         request.StagingBuffer->Unmap(0, 0);
     }
 
@@ -51,6 +52,7 @@ void Uploader::Flush()
     CommandBuffer::Ref cmdBuffer = MakeRef<CommandBuffer>(sData.Device, sData.UploadQueue, sData.Heaps, true);
     cmdBuffer->Begin();
 
+    LOG_DEBUG("Flushing {0} upload requests", sData.Requests.size());
     for (auto request : sData.Requests) {        
         switch (request.Type) {
             case UploadRequestType::BufferCPUToGPU: {

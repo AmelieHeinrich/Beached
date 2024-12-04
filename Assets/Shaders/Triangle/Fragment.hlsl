@@ -9,7 +9,19 @@ struct FragmentIn
     float2 UV : TEXCOORD;
 };
 
+struct Settings
+{
+    int CameraIndex;
+    int TextureIndex;
+    int SamplerIndex;
+};
+
+ConstantBuffer<Settings> PushConstants : register(b0);
+
 float4 PSMain(FragmentIn Input) : SV_Target
 {
-    return float4(Input.UV, 0.0, 1.0);
+    Texture2D Albedo = ResourceDescriptorHeap[PushConstants.TextureIndex];
+    SamplerState Sampler = SamplerDescriptorHeap[PushConstants.SamplerIndex];
+
+    return Albedo.Sample(Sampler, Input.UV);
 }

@@ -124,3 +124,18 @@ Buffer::Ref RHI::CreateBuffer(UInt64 size, UInt64 stride, BufferType type, const
 {
     return MakeRef<Buffer>(mDevice, mDescriptorHeaps, size, stride, type, name);
 }
+
+Texture::Ref RHI::CreateTexture(TextureDesc desc)
+{
+    return MakeRef<Texture>(mDevice, desc);
+}
+
+View::Ref RHI::CreateView(::Ref<Resource> resource, ViewType type, ViewDimension dimension, TextureFormat format, UInt64 mip, UInt64 depthSlice)
+{
+    return MakeRef<View>(mDevice, mDescriptorHeaps, resource, type, dimension, format, mip, depthSlice);
+}
+
+Sampler::Ref RHI::CreateSampler(SamplerAddress address, SamplerFilter filter, bool mips, int anisotropyLevel)
+{
+    return MakeRef<Sampler>(mDevice, mDescriptorHeaps, address, filter, mips, anisotropyLevel);
+}
