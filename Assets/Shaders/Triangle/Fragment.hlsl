@@ -6,10 +6,10 @@
 struct FragmentIn
 {
     float4 Position : SV_Position;
-    float3 Color : COLOR;
+    float2 UV : TEXCOORD;
 };
 
 float4 PSMain(FragmentIn Input) : SV_Target
 {
-    return float4(Input.Color, 1.0);
+    return float4(Input.UV, 0.0, 1.0);
 }

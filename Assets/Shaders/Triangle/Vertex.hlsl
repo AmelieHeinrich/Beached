@@ -6,13 +6,13 @@
 struct VertexIn
 {
     float3 Position : POSITION;
-    float3 Color : COLOR;
+    float2 UV : TEXCOORD;
 };
 
 struct VertexOut
 {
     float4 Position : SV_Position;
-    float3 Color : COLOR;
+    float2 UV : TEXCOORD;
 };
 
 struct Camera
@@ -36,6 +36,6 @@ VertexOut VSMain(VertexIn Input)
     Output.Position = float4(Input.Position, 1.0);
     Output.Position = mul(Cam.View, Output.Position);
     Output.Position = mul(Cam.Projection, Output.Position);
-    Output.Color = Input.Color;
+    Output.UV = Input.UV;
     return Output;
 }

@@ -20,10 +20,10 @@ Beached::Beached()
     mRHI = MakeRef<RHI>(mWindow);
 
     const float vertices[] = {
-         0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
-         0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,
-        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f, 1.0f,
-        -0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 1.0f
+         0.5f,  0.5f, 0.0f, 1.0f, 1.0f,
+         0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
+        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
+        -0.5f,  0.5f, 0.0f, 0.0f, 1.0f
     };
 
     const UInt32 indices[] = {
@@ -31,7 +31,7 @@ Beached::Beached()
         1, 2, 3
     };
 
-    mVertexBuffer = mRHI->CreateBuffer(sizeof(vertices), sizeof(float) * 6, BufferType::Vertex, "Vertex Buffer");
+    mVertexBuffer = mRHI->CreateBuffer(sizeof(vertices), sizeof(float) * 5, BufferType::Vertex, "Vertex Buffer");
     mIndexBuffer = mRHI->CreateBuffer(sizeof(indices), sizeof(UInt32), BufferType::Index, "Index Buffer");
     
     for (int i = 0; i < FRAMES_IN_FLIGHT; i++) {

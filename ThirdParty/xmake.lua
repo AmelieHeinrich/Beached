@@ -14,3 +14,7 @@ target("ImGui")
     set_kind("static")
     add_files("imgui/*.cpp", "imgui/backends/imgui_impl_win32.cpp", "imgui/backends/imgui_impl_dx12.cpp")
     add_includedirs("imgui/")
+
+target("STB")
+    set_kind("static")
+    add_files("stb.c")

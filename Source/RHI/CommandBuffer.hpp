@@ -48,6 +48,7 @@ public:
     void DrawIndexed(int indexCount);
 
     void CopyBufferToBuffer(::Ref<Resource> dst, ::Ref<Resource> src);
+    void CopyBufferToTexture(::Ref<Resource> dst, ::Ref<Resource> src);
 
     void BeginGUI(int width, int height);
     void EndGUI();
@@ -56,6 +57,7 @@ public:
     operator ID3D12CommandList*() { return mList; }
 private:
     bool mSingleTime;
+    Device::Ref mDevice;
     Queue::Ref mParentQueue;
     DescriptorHeaps mHeaps;
     ID3D12CommandAllocator* mAllocator = nullptr;

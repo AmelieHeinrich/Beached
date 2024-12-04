@@ -14,6 +14,23 @@ void Uploader::Init(Device::Ref device, DescriptorHeaps heaps, Queue::Ref queue)
     sData.UploadQueue = queue;
 }
 
+void Uploader::EnqueueTextureUpload(void* data, Image image, Ref<Resource> buffer)
+{
+    UploadRequest request;
+    request.Type = UploadRequestType::TextureToGPU;
+    request.Resource = buffer;
+    if (!image.Compressed) {
+        request.StagingBuffer = MakeRef<Buffer>(sData.Device, sData.Heaps, image.Width * image.Height * 4, 0, BufferType::Copy, "Staging Buffer");
+    
+        void* mapped;
+        request.StagingBuffer->Map(0, 0, &mapped);
+        memcpy(mapped, data, image.Width * image.Height * 4);
+        request.StagingBuffer->Unmap(0, 0);
+    }
+
+    sData.Requests.push_back(request);
+}
+
 void Uploader::EnqueueBufferUpload(void* data, UInt64 size, Ref<Resource> buffer)
 {
     UploadRequest request;
@@ -40,7 +57,8 @@ void Uploader::Flush()
                 cmdBuffer->CopyBufferToBuffer(request.Resource, request.StagingBuffer);
                 break;
             }
-            default: {
+            case UploadRequestType::TextureToGPU: {
+                cmdBuffer->CopyBufferToTexture(request.Resource, request.StagingBuffer);
                 break;
             }
         }

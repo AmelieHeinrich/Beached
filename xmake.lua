@@ -37,5 +37,5 @@ target("Beached")
     end)
 
     add_files("Source/**.cpp")
-    add_includedirs("Source", "ThirdParty/spdlog/include", "ThirdParty/DirectX/include", "ThirdParty/imgui", "ThirdParty/imgui/backends", "ThirdParty/DXC/Include", "ThirdParty/glm")
-    add_deps("spdlog", "ImGui")
+    add_includedirs("Source", "ThirdParty", "ThirdParty/spdlog/include", "ThirdParty/DirectX/include", "ThirdParty/imgui", "ThirdParty/imgui/backends", "ThirdParty/DXC/Include", "ThirdParty/glm")
+    add_deps("spdlog", "ImGui", "STB")

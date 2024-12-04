@@ -12,7 +12,7 @@
 #include <imgui_impl_win32.h>
 
 CommandBuffer::CommandBuffer(Device::Ref device, Queue::Ref queue, DescriptorHeaps heaps, bool singleTime)
-    : mSingleTime(singleTime), mParentQueue(queue), mHeaps(heaps)
+    : mSingleTime(singleTime), mParentQueue(queue), mHeaps(heaps), mDevice(device)
 {
     HRESULT result = device->GetDevice()->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE(queue->GetType()), IID_PPV_ARGS(&mAllocator));
     ASSERT(SUCCEEDED(result), "Failed to create command allocator!");
@@ -146,6 +146,32 @@ void CommandBuffer::DrawIndexed(int indexCount)
 void CommandBuffer::CopyBufferToBuffer(::Ref<Resource> dst, ::Ref<Resource> src)
 {
     mList->CopyResource(dst->GetResource(), src->GetResource());
+}
+
+void CommandBuffer::CopyBufferToTexture(::Ref<Resource> dst, ::Ref<Resource> src)
+{
+    D3D12_RESOURCE_DESC desc = dst->GetResource()->GetDesc();
+
+    Vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> footprints(desc.MipLevels);
+    Vector<UInt32> num_rows(desc.MipLevels);
+    Vector<UInt64> row_sizes(desc.MipLevels);
+    UInt64 totalSize = 0;
+
+    mDevice->GetDevice()->GetCopyableFootprints(&desc, 0, desc.MipLevels, 0, footprints.data(), num_rows.data(), row_sizes.data(), &totalSize);
+
+    for (uint32_t i = 0; i < desc.MipLevels; i++) {
+        D3D12_TEXTURE_COPY_LOCATION srcCopy = {};
+        srcCopy.pResource = src->GetResource();
+        srcCopy.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
+        srcCopy.PlacedFootprint = footprints[i];
+
+        D3D12_TEXTURE_COPY_LOCATION dstCopy = {};
+        dstCopy.pResource = dst->GetResource();
+        dstCopy.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
+        dstCopy.SubresourceIndex = i;
+
+        mList->CopyTextureRegion(&dstCopy, 0, 0, 0, &srcCopy, nullptr);
+    }
 }
 
 void CommandBuffer::End()
