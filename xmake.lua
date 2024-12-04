@@ -38,4 +38,5 @@ target("Beached")
 
     add_files("Source/**.cpp")
     add_includedirs("Source", "ThirdParty", "ThirdParty/spdlog/include", "ThirdParty/DirectX/include", "ThirdParty/imgui", "ThirdParty/imgui/backends", "ThirdParty/DXC/Include", "ThirdParty/glm")
-    add_deps("spdlog", "ImGui", "STB")
+    add_deps("spdlog", "ImGui", "STB", "CGLTF")
+    add_defines("GLM_ENABLE_EXPERIMENTAL")

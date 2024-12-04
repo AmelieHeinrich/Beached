@@ -7,6 +7,9 @@
 
 #include <Core/Window.hpp>
 #include <Core/Timer.hpp>
+
+#include <Asset/GLTF.hpp>
+
 #include <World/Camera.hpp>
 
 #include <RHI/RHI.hpp>
@@ -31,11 +34,12 @@ private:
     Timer mTimer;
     float mLastFrame;
 
-    Buffer::Ref mVertexBuffer;
-    Buffer::Ref mIndexBuffer;
+    GLTF mModel;
     Array<Buffer::Ref, FRAMES_IN_FLIGHT> mConstantBuffer;
-    Texture::Ref mTexture;
-    View::Ref mTextureView;
+
+    Texture::Ref mDepth;
+    View::Ref mDepthView;
+
     Sampler::Ref mSampler;
     GraphicsPipeline::Ref mPipeline;
 

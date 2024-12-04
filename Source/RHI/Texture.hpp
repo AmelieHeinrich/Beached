@@ -12,7 +12,8 @@ enum class TextureFormat
 {
     Unknown = DXGI_FORMAT_UNKNOWN,
     RGBA8 = DXGI_FORMAT_R8G8B8A8_UNORM,
-    RGBA8_sRGB = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB
+    RGBA8_sRGB = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB,
+    Depth32 = DXGI_FORMAT_D32_FLOAT
 };
 
 enum class TextureUsage
@@ -50,7 +51,7 @@ private:
 
 inline constexpr bool operator&(TextureUsage x, TextureUsage y)
 {
-    return (static_cast<UInt32>(x) & static_cast<UInt32>(y) == 0);
+    return static_cast<UInt32>(x) & static_cast<UInt32>(y);
 }
 
 inline constexpr TextureUsage operator|(TextureUsage x, TextureUsage y)

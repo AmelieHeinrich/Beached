@@ -127,6 +127,11 @@ void CommandBuffer::GraphicsPushConstants(const void *data, UInt32 size, int ind
     mList->SetGraphicsRoot32BitConstants(index, size / 4, data, 0);
 }
 
+void CommandBuffer::ClearDepth(View::Ref view)
+{
+    mList->ClearDepthStencilView(view->GetDescriptor().CPU, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
+}
+
 void CommandBuffer::ClearRenderTarget(View::Ref view, float r, float g, float b)
 {
     float clear[] = { r, g, b, 1.0f };

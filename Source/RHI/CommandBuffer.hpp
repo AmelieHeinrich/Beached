@@ -42,6 +42,7 @@ public:
 
     void GraphicsPushConstants(const void *data, UInt32 size, int index);
 
+    void ClearDepth(View::Ref view);
     void ClearRenderTarget(View::Ref view, float r, float g, float b);
 
     void Draw(int vertexCount);

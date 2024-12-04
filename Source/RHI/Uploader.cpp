@@ -20,14 +20,27 @@ void Uploader::EnqueueTextureUpload(Image image, Ref<Resource> buffer)
     UploadRequest request;
     request.Type = UploadRequestType::TextureToGPU;
     request.Resource = buffer;
-    if (!image.Compressed) {
-        request.StagingBuffer = MakeRef<Buffer>(sData.Device, sData.Heaps, image.Width * image.Height * 4, 0, BufferType::Copy, "Staging Buffer");
     
-        void* mapped;
-        request.StagingBuffer->Map(0, 0, &mapped);
-        memcpy(mapped, image.Pixels.data(), image.Pixels.size());
-        request.StagingBuffer->Unmap(0, 0);
+    D3D12_RESOURCE_DESC desc = buffer->GetResource()->GetDesc();
+    std::vector<D3D12_PLACED_SUBRESOURCE_FOOTPRINT> footprints(desc.MipLevels);
+    std::vector<UInt32> num_rows(desc.MipLevels);
+    std::vector<UInt64> row_sizes(desc.MipLevels);
+    uint64_t totalSize = 0;
+
+    sData.Device->GetDevice()->GetCopyableFootprints(&desc, 0, desc.MipLevels, 0, footprints.data(), num_rows.data(), row_sizes.data(), &totalSize);
+    request.StagingBuffer = MakeRef<Buffer>(sData.Device, sData.Heaps, totalSize, 0, BufferType::Copy, "Staging Buffer");
+
+    UInt8 *pixels = reinterpret_cast<UInt8*>(image.Pixels.data());    
+    UInt8* mapped;
+    request.StagingBuffer->Map(0, 0, (void**)&mapped);
+    for (int i = 0; i < desc.MipLevels; i++) {
+        for (int j = 0; j < num_rows[i]; j++) {
+            memcpy(mapped, pixels, row_sizes[i]);
+            mapped += footprints[i].Footprint.RowPitch;
+            pixels += row_sizes[i];
+        }
     }
+    request.StagingBuffer->Unmap(0, 0);
 
     sData.Requests.push_back(request);
 }

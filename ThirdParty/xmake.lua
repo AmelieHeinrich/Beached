@@ -18,3 +18,7 @@ target("ImGui")
 target("STB")
     set_kind("static")
     add_files("stb.c")
+
+target("CGLTF")
+    set_kind("static")
+    add_files("cgltf.c")

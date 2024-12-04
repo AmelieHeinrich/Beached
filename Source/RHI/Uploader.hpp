@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <Core/Image.hpp>
+#include <Asset/Image.hpp>
 
 #include <RHI/CommandBuffer.hpp>
 #include <RHI/Resource.hpp>

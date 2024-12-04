@@ -21,9 +21,15 @@ struct Camera
     column_major float4x4 Projection;
 };
 
+struct Model
+{
+    column_major float4x4 Transform;
+};
+
 struct Settings
 {
     int CameraIndex;
+    int ModelIndex;
     int TextureIndex;
     int SamplerIndex;
 };
@@ -33,9 +39,11 @@ ConstantBuffer<Settings> PushConstants : register(b0);
 VertexOut VSMain(VertexIn Input)
 {
     ConstantBuffer<Camera> Cam = ResourceDescriptorHeap[PushConstants.CameraIndex];
+    ConstantBuffer<Model> Instance = ResourceDescriptorHeap[PushConstants.ModelIndex];
 
     VertexOut Output = (VertexOut)0;
     Output.Position = float4(Input.Position, 1.0);
+    Output.Position = mul(Instance.Transform, Output.Position);
     Output.Position = mul(Cam.View, Output.Position);
     Output.Position = mul(Cam.Projection, Output.Position);
     Output.UV = Input.UV;

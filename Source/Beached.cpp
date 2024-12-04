@@ -19,56 +19,42 @@ Beached::Beached()
     mWindow = MakeRef<Window>(1440, 900, "Beached");
     mRHI = MakeRef<RHI>(mWindow);
 
-    const float vertices[] = {
-         0.5f,  0.5f, 0.0f, 1.0f, 1.0f,
-         0.5f, -0.5f, 0.0f, 1.0f, 0.0f,
-        -0.5f, -0.5f, 0.0f, 0.0f, 0.0f,
-        -0.5f,  0.5f, 0.0f, 0.0f, 1.0f
-    };
+    int width, height;
+    mWindow->PollSize(width, height);
 
-    const UInt32 indices[] = {
-        0, 1, 3,
-        1, 2, 3
-    };
-
-    mVertexBuffer = mRHI->CreateBuffer(sizeof(vertices), sizeof(float) * 5, BufferType::Vertex, "Vertex Buffer");
-    mIndexBuffer = mRHI->CreateBuffer(sizeof(indices), sizeof(UInt32), BufferType::Index, "Index Buffer");
-    
-    for (int i = 0; i < FRAMES_IN_FLIGHT; i++) {
-        mConstantBuffer[i] = mRHI->CreateBuffer(256, 0, BufferType::Constant, "Constant Buffer");
-        mConstantBuffer[i]->BuildCBV();
-    }
-
-    Image image;
-    image.Load("Assets/Textures/texture.jpg");
-
-    TextureDesc desc = {};
-    desc.Width = image.Width;
-    desc.Height = image.Height;
-    desc.Levels = 1;
-    desc.Depth = 1;
-    desc.Usage = TextureUsage::ShaderResource;
-    desc.Name = "Albedo Texture";
-    desc.Format = TextureFormat::RGBA8;
-    mTexture = mRHI->CreateTexture(desc);
-    mTextureView = mRHI->CreateView(mTexture, ViewType::ShaderResource);
-
-    Uploader::EnqueueBufferUpload((void*)vertices, sizeof(vertices), mVertexBuffer);
-    Uploader::EnqueueBufferUpload((void*)indices, sizeof(indices), mIndexBuffer);
-    Uploader::EnqueueTextureUpload(image, mTexture);
+    mModel.Load(mRHI, "Assets/Models/Sponza/Sponza.gltf");
 
     GraphicsPipelineSpecs triangleSpecs;
     triangleSpecs.Fill = FillMode::Solid;
     triangleSpecs.Cull = CullMode::None;
+    triangleSpecs.Depth = DepthOperation::Less;
+    triangleSpecs.CCW = false;
+    triangleSpecs.DepthEnabled = true;
+    triangleSpecs.DepthFormat = TextureFormat::Depth32;
     triangleSpecs.Formats.push_back(TextureFormat::RGBA8);
-    triangleSpecs.DepthEnabled = false;
+    triangleSpecs.DepthEnabled = true;
     triangleSpecs.Bytecodes[ShaderType::Vertex] = ShaderCompiler::Compile("Assets/Shaders/Triangle/Vertex.hlsl", "VSMain", ShaderType::Vertex);
     triangleSpecs.Bytecodes[ShaderType::Fragment] = ShaderCompiler::Compile("Assets/Shaders/Triangle/Fragment.hlsl", "PSMain", ShaderType::Fragment);
-    triangleSpecs.Signature = mRHI->CreateRootSignature({ RootType::PushConstant }, sizeof(int) * 3);
+    triangleSpecs.Signature = mRHI->CreateRootSignature({ RootType::PushConstant }, sizeof(int) * 4);
 
     mSampler = mRHI->CreateSampler(SamplerAddress::Wrap, SamplerFilter::Linear);
-
     mPipeline = mRHI->CreateGraphicsPipeline(triangleSpecs);
+
+    for (int i = 0; i < FRAMES_IN_FLIGHT; i++) {
+        mConstantBuffer[i] = mRHI->CreateBuffer(256, 0, BufferType::Constant, "CBV");
+        mConstantBuffer[i]->BuildCBV();
+    }
+
+    TextureDesc depthDesc;
+    depthDesc.Width = width;
+    depthDesc.Height = height;
+    depthDesc.Levels = 1;
+    depthDesc.Format = TextureFormat::Depth32;
+    depthDesc.Usage = TextureUsage::DepthTarget;
+    depthDesc.Depth = 1;
+    depthDesc.Name = "Depth Buffer";
+    mDepth = mRHI->CreateTexture(depthDesc);
+    mDepthView = mRHI->CreateView(mDepth, ViewType::DepthTarget);
 
     Uploader::Flush();
     mRHI->Wait();
@@ -105,32 +91,53 @@ void Beached::Run()
         
         frame.CommandBuffer->Begin();
         frame.CommandBuffer->Barrier(frame.Backbuffer, ResourceLayout::ColorWrite);
+        frame.CommandBuffer->Barrier(mDepth, ResourceLayout::DepthWrite);
         frame.CommandBuffer->ClearRenderTarget(frame.BackbufferView, 0.0f, 0.0f, 0.0f);
-        frame.CommandBuffer->SetRenderTargets({ frame.BackbufferView }, nullptr);
+        frame.CommandBuffer->ClearDepth(mDepthView);
+        frame.CommandBuffer->SetRenderTargets({ frame.BackbufferView }, mDepthView);
        
         glm::mat4 uploads[] = {
             mCamera.View(),
             mCamera.Projection()
         };
         mConstantBuffer[frame.FrameIndex]->CopyMapped(uploads, sizeof(uploads));
-        Int32 cbv = mConstantBuffer[frame.FrameIndex]->CBV();
 
-        // Triangle
-        int resources[] = {
-            mConstantBuffer[frame.FrameIndex]->CBV(),
-            mTextureView->GetDescriptor().Index,
-            mSampler->BindlesssSampler()
+        // Renderer
+        std::function<void(Frame frame, GLTFNode*, GLTF* model, glm::mat4 transform)> drawNode = [&](Frame frame, GLTFNode* node, GLTF* model, glm::mat4 transform) {
+            if (!node->Children.empty()) {
+                for (GLTFNode* child : node->Children) {
+                    drawNode(frame, child, model, transform);
+                }
+            }
+
+            for (GLTFPrimitive primitive : node->Primitives) {
+                GLTFMaterial material = model->Materials[primitive.MaterialIndex];
+                glm::mat4 globalTransform = transform * node->Transform * (node->Parent ? node->Parent->Transform : glm::mat4(1.0f));
+            
+                node->ModelBuffer[frame.FrameIndex]->CopyMapped(glm::value_ptr(globalTransform), sizeof(glm::mat4));
+
+                int resources[] = {
+                    mConstantBuffer[frame.FrameIndex]->CBV(),
+                    node->ModelBuffer[frame.FrameIndex]->CBV(),
+                    material.AlbedoView->GetDescriptor().Index,
+                    mSampler->BindlesssSampler()
+                };
+
+                frame.CommandBuffer->GraphicsPushConstants(resources, sizeof(resources), 0);
+                frame.CommandBuffer->SetVertexBuffer(primitive.VertexBuffer);
+                frame.CommandBuffer->SetIndexBuffer(primitive.IndexBuffer);
+                frame.CommandBuffer->DrawIndexed(primitive.IndexCount);
+            }
         };
 
         frame.CommandBuffer->SetTopology(Topology::TriangleList);
         frame.CommandBuffer->SetViewport(0, 0, (float)width, (float)height);
         frame.CommandBuffer->SetGraphicsPipeline(mPipeline);
-        frame.CommandBuffer->SetVertexBuffer(mVertexBuffer);
-        frame.CommandBuffer->SetIndexBuffer(mIndexBuffer);
-        frame.CommandBuffer->GraphicsPushConstants(resources, sizeof(int) * 3, 0);
-        frame.CommandBuffer->DrawIndexed(6);
+        drawNode(frame, mModel.Root, &mModel, glm::mat4(1.0f));
 
         // UI
+        ImGuiIO& io = ImGui::GetIO();
+
         frame.CommandBuffer->BeginGUI(width, height);
         if (mUI) {
             UI();
@@ -146,7 +153,8 @@ void Beached::Run()
         mRHI->End();
         mRHI->Present(false);
 
-        mCamera.Update(dt, width, height);
+        if (!io.WantCaptureMouse)
+            mCamera.Update(dt, width, height);
     }
     mRHI->Wait();
 }
