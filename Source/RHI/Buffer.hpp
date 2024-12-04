@@ -33,15 +33,20 @@ public:
 
     void Map(int start, int end, void **data);
     void Unmap(int start, int end);
+    void CopyMapped(void *data, UInt64 size);
+
+    Int32 CBV() { return mCBV.Index; }
+    Int32 UAV() { return mUAV.Index; }
+    Int32 SRV() { return mSRV.Index; }
 private:
     friend class CommandBuffer;
 
     DescriptorHeaps mHeaps;
     BufferType mType;
 
-    DescriptorHeap::Descriptor mCBV;
-    DescriptorHeap::Descriptor mSRV;
-    DescriptorHeap::Descriptor mUAV;
+    DescriptorHeap::Descriptor mCBV = {};
+    DescriptorHeap::Descriptor mSRV = {};
+    DescriptorHeap::Descriptor mUAV = {};
 
     D3D12_VERTEX_BUFFER_VIEW mVBV;
     D3D12_INDEX_BUFFER_VIEW mIBV;

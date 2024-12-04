@@ -105,7 +105,6 @@ void Buffer::BuildSRV()
     srv.Buffer.StructureByteStride = mStride;
     if (mSRV.Valid == false)
         mSRV = mHeaps[DescriptorHeapType::ShaderResource]->Allocate();
-
     mParentDevice->GetDevice()->CreateShaderResourceView(mResource, &srv, mSRV.CPU);
 }
 
@@ -133,4 +132,12 @@ void Buffer::Unmap(int start, int end)
     } else {
         mResource->Unmap(0, nullptr);
     }
+}
+
+void Buffer::CopyMapped(void *data, UInt64 size)
+{
+    void* mapped;
+    Map(0, 0, &mapped);
+    memcpy(mapped, data, size);
+    Unmap(0, 0);
 }

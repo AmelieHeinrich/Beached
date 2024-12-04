@@ -38,7 +38,11 @@ void CommandBuffer::Begin()
         mList->Reset(mAllocator, nullptr);
     }
 
-    // TODO(amelie): set descriptor heaps
+    ID3D12DescriptorHeap* heaps[] = {
+        mHeaps[DescriptorHeapType::ShaderResource]->GetHeap(),
+        mHeaps[DescriptorHeapType::Sampler]->GetHeap()
+    };
+    mList->SetDescriptorHeaps(2, heaps);
 }
 
 void CommandBuffer::Barrier(Texture::Ref texture, ResourceLayout layout, UInt32 mip)
@@ -116,6 +120,11 @@ void CommandBuffer::SetVertexBuffer(Buffer::Ref buffer)
 void CommandBuffer::SetIndexBuffer(Buffer::Ref buffer)
 {
     mList->IASetIndexBuffer(&buffer->mIBV);
+}
+
+void CommandBuffer::GraphicsPushConstants(const void *data, UInt32 size, int index)
+{
+    mList->SetGraphicsRoot32BitConstants(index, size / 4, data, 0);
 }
 
 void CommandBuffer::ClearRenderTarget(View::Ref view, float r, float g, float b)

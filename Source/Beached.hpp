@@ -6,6 +6,8 @@
 #pragma once
 
 #include <Core/Window.hpp>
+#include <Core/Timer.hpp>
+#include <World/Camera.hpp>
 
 #include <RHI/RHI.hpp>
 #include <RHI/Uploader.hpp>
@@ -24,8 +26,13 @@ private:
     Window::Ref mWindow;
     RHI::Ref mRHI;
 
+    Camera mCamera;
+    Timer mTimer;
+    float mLastFrame;
+
     Buffer::Ref mVertexBuffer;
     Buffer::Ref mIndexBuffer;
+    Array<Buffer::Ref, FRAMES_IN_FLIGHT> mConstantBuffer;
     GraphicsPipeline::Ref mPipeline;
 
     // UI settings

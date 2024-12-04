@@ -39,7 +39,9 @@ public:
     void SetRenderTargets(const Vector<View::Ref> targets, View::Ref depth);
     void SetVertexBuffer(Buffer::Ref buffer);
     void SetIndexBuffer(Buffer::Ref buffer);
-    
+
+    void GraphicsPushConstants(const void *data, UInt32 size, int index);
+
     void ClearRenderTarget(View::Ref view, float r, float g, float b);
 
     void Draw(int vertexCount);

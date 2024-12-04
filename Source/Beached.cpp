@@ -9,6 +9,8 @@
 #include <UI/Helpers.hpp>
 
 #include <imgui.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 Beached::Beached()
 {
@@ -31,6 +33,11 @@ Beached::Beached()
 
     mVertexBuffer = mRHI->CreateBuffer(sizeof(vertices), sizeof(float) * 6, BufferType::Vertex, "Vertex Buffer");
     mIndexBuffer = mRHI->CreateBuffer(sizeof(indices), sizeof(UInt32), BufferType::Index, "Index Buffer");
+    
+    for (int i = 0; i < FRAMES_IN_FLIGHT; i++) {
+        mConstantBuffer[i] = mRHI->CreateBuffer(256, 0, BufferType::Constant, "Constant Buffer");
+        mConstantBuffer[i]->BuildCBV();
+    }
 
     Uploader::EnqueueBufferUpload((void*)vertices, sizeof(vertices), mVertexBuffer);
     Uploader::EnqueueBufferUpload((void*)indices, sizeof(indices), mIndexBuffer);
@@ -42,7 +49,7 @@ Beached::Beached()
     triangleSpecs.DepthEnabled = false;
     triangleSpecs.Bytecodes[ShaderType::Vertex] = ShaderCompiler::Compile("Assets/Shaders/Triangle/Vertex.hlsl", "VSMain", ShaderType::Vertex);
     triangleSpecs.Bytecodes[ShaderType::Fragment] = ShaderCompiler::Compile("Assets/Shaders/Triangle/Fragment.hlsl", "PSMain", ShaderType::Fragment);
-    triangleSpecs.Signature = mRHI->CreateRootSignature();
+    triangleSpecs.Signature = mRHI->CreateRootSignature({ RootType::PushConstant }, sizeof(int));
 
     mPipeline = mRHI->CreateGraphicsPipeline(triangleSpecs);
 
@@ -61,10 +68,17 @@ Beached::~Beached()
 void Beached::Run()
 {
     while (mWindow->IsOpen()) {
+        float time = mTimer.GetElapsed();
+        float dt = time - mLastFrame;
+        mLastFrame = time;
+        dt /= 1000.0f;
+        
         mWindow->PollEvents();
 
         int width, height;
         mWindow->PollSize(width, height);
+
+        mCamera.Begin();
 
         if (ImGui::IsKeyPressed(ImGuiKey_F1, false)) {
             mUI = !mUI;
@@ -77,12 +91,20 @@ void Beached::Run()
         frame.CommandBuffer->ClearRenderTarget(frame.BackbufferView, 0.0f, 0.0f, 0.0f);
         frame.CommandBuffer->SetRenderTargets({ frame.BackbufferView }, nullptr);
        
+        glm::mat4 uploads[] = {
+            mCamera.View(),
+            mCamera.Projection()
+        };
+        mConstantBuffer[frame.FrameIndex]->CopyMapped(uploads, sizeof(uploads));
+        Int32 cbv = mConstantBuffer[frame.FrameIndex]->CBV();
+
         // Triangle
         frame.CommandBuffer->SetTopology(Topology::TriangleList);
         frame.CommandBuffer->SetViewport(0, 0, (float)width, (float)height);
         frame.CommandBuffer->SetGraphicsPipeline(mPipeline);
         frame.CommandBuffer->SetVertexBuffer(mVertexBuffer);
         frame.CommandBuffer->SetIndexBuffer(mIndexBuffer);
+        frame.CommandBuffer->GraphicsPushConstants(&cbv, sizeof(int), 0);
         frame.CommandBuffer->DrawIndexed(6);
 
         // UI
@@ -100,6 +122,8 @@ void Beached::Run()
         mRHI->Submit({ frame.CommandBuffer });
         mRHI->End();
         mRHI->Present(false);
+
+        mCamera.Update(dt, width, height);
     }
     mRHI->Wait();
 }
