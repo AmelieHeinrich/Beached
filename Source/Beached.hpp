@@ -8,7 +8,7 @@
 #include <Core/Window.hpp>
 #include <Core/Timer.hpp>
 
-#include <Asset/GLTF.hpp>
+#include <Asset/AssetManager.hpp>
 
 #include <World/Camera.hpp>
 
@@ -34,7 +34,7 @@ private:
     Timer mTimer;
     float mLastFrame;
 
-    GLTF mModel;
+    Asset::Handle mModel;
     Array<Buffer::Ref, FRAMES_IN_FLIGHT> mConstantBuffer;
 
     Texture::Ref mDepth;

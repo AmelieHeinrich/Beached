@@ -4,6 +4,7 @@
 //
 
 #include <Asset/GLTF.hpp>
+#include <Asset/AssetManager.hpp>
 #include <Core/Assert.hpp>
 #include <RHI/Uploader.hpp>
 
@@ -180,21 +181,8 @@ void GLTF::ProcessPrimitive(cgltf_primitive *primitive, GLTFNode *node)
     if (material && material->pbr_metallic_roughness.base_color_texture.texture) {
         std::string path = Directory + '/' + std::string(material->pbr_metallic_roughness.base_color_texture.texture->image->uri);
     
-        Image image;
-        image.Load(path);
-
-        TextureDesc desc;
-        desc.Width = image.Width;
-        desc.Height = image.Height;
-        desc.Depth = 1;
-        desc.Levels = 1;
-        desc.Format = TextureFormat::RGBA8;
-        desc.Usage = TextureUsage::ShaderResource;
-        outMaterial.Albedo = mRHI->CreateTexture(desc);
-
-        Uploader::EnqueueTextureUpload(image, outMaterial.Albedo);
-
-        outMaterial.AlbedoView = mRHI->CreateView(outMaterial.Albedo, ViewType::ShaderResource);
+        outMaterial.Albedo = AssetManager::Get(path, ResourceType::Texture);
+        outMaterial.AlbedoView = mRHI->CreateView(outMaterial.Albedo->Texture, ViewType::ShaderResource);
     }
 
     VertexCount += out.VertexCount;

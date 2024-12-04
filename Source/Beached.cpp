@@ -18,11 +18,9 @@ Beached::Beached()
 
     mWindow = MakeRef<Window>(1440, 900, "Beached");
     mRHI = MakeRef<RHI>(mWindow);
+    AssetManager::Init(mRHI);
 
-    int width, height;
-    mWindow->PollSize(width, height);
-
-    mModel.Load(mRHI, "Assets/Models/Sponza/Sponza.gltf");
+    mModel = AssetManager::Get("Assets/Models/Sponza/Sponza.gltf", ResourceType::GLTF);
 
     GraphicsPipelineSpecs triangleSpecs;
     triangleSpecs.Fill = FillMode::Solid;
@@ -44,6 +42,9 @@ Beached::Beached()
         mConstantBuffer[i] = mRHI->CreateBuffer(256, 0, BufferType::Constant, "CBV");
         mConstantBuffer[i]->BuildCBV();
     }
+
+    int width, height;
+    mWindow->PollSize(width, height);
 
     TextureDesc depthDesc;
     depthDesc.Width = width;
@@ -133,7 +134,7 @@ void Beached::Run()
         frame.CommandBuffer->SetTopology(Topology::TriangleList);
         frame.CommandBuffer->SetViewport(0, 0, (float)width, (float)height);
         frame.CommandBuffer->SetGraphicsPipeline(mPipeline);
-        drawNode(frame, mModel.Root, &mModel, glm::mat4(1.0f));
+        drawNode(frame, mModel->Model.Root, &mModel->Model, glm::mat4(1.0f));
 
         // UI
         ImGuiIO& io = ImGui::GetIO();

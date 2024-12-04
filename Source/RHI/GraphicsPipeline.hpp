@@ -7,7 +7,7 @@
 
 #include <RHI/RootSignature.hpp>
 #include <RHI/Texture.hpp>
-#include <Core/Shader.hpp>
+#include <Asset/Shader.hpp>
 
 enum class FillMode
 {

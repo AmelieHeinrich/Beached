@@ -11,6 +11,8 @@
 #include <cgltf/cgltf.h>
 #include <glm/glm.hpp>
 
+class Asset;
+
 struct Vertex
 {
     glm::vec3 Position;
@@ -19,7 +21,7 @@ struct Vertex
 
 struct GLTFMaterial
 {
-    Texture::Ref Albedo;
+    Ref<Asset> Albedo;
     View::Ref AlbedoView;
 };
 
