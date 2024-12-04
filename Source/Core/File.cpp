@@ -5,6 +5,7 @@
 
 #include <Core/File.hpp>
 #include <Core/Logger.hpp>
+#include <Core/Assert.hpp>
 
 #include <sys/stat.h>
 #include <fstream>
@@ -122,6 +123,17 @@ String File::ReadFile(const String& path)
     return String(buffer);
 }
 
+void File::ReadBytes(const String& path, void *data, UInt64 size)
+{
+    HANDLE handle = CreateFileA(path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (!handle) {
+        LOG_ERROR("File {0} does not exist and cannot be read!", path);
+    }
+    int bytesRead = 0;
+    ::ReadFile(handle, data, size, reinterpret_cast<LPDWORD>(&bytesRead), nullptr);
+    CloseHandle(handle);
+}
+
 void *File::ReadBytes(const String& path)
 {
     HANDLE handle = CreateFileA(path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
@@ -139,4 +151,26 @@ void *File::ReadBytes(const String& path)
     ::ReadFile(handle, reinterpret_cast<LPVOID>(buffer), size, reinterpret_cast<LPDWORD>(&bytesRead), nullptr);
     CloseHandle(handle);
     return buffer;
+}
+
+void File::WriteBytes(const String& path, const void* data, UInt64 size)
+{
+    HANDLE handle = CreateFileA(path.c_str(), GENERIC_WRITE, FILE_SHARE_WRITE, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    ASSERT(handle, "Failed to create file for writing!");
+    int bytesWritten = 0;
+    ::WriteFile(handle, reinterpret_cast<LPCVOID>(data), size, reinterpret_cast<LPDWORD>(&bytesWritten), nullptr);
+    CloseHandle(handle);
+}
+
+File::Filetime File::GetLastModified(const String& path)
+{
+    HANDLE handle = CreateFileA(path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+    FILETIME temp;
+    GetFileTime(handle, nullptr, nullptr, &temp);
+    CloseHandle(handle);
+
+    File::Filetime result;
+    result.High = temp.dwHighDateTime;
+    result.Low = temp.dwLowDateTime;
+    return result;
 }

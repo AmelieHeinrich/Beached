@@ -181,7 +181,7 @@ void GLTF::ProcessPrimitive(cgltf_primitive *primitive, GLTFNode *node)
     if (material && material->pbr_metallic_roughness.base_color_texture.texture) {
         std::string path = Directory + '/' + std::string(material->pbr_metallic_roughness.base_color_texture.texture->image->uri);
     
-        outMaterial.Albedo = AssetManager::Get(path, ResourceType::Texture);
+        outMaterial.Albedo = AssetManager::Get(path, AssetType::Texture);
         outMaterial.AlbedoView = mRHI->CreateView(outMaterial.Albedo->Texture, ViewType::ShaderResource);
     }
 

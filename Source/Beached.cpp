@@ -7,6 +7,7 @@
 
 #include <Core/Logger.hpp>
 #include <UI/Helpers.hpp>
+#include <Asset/AssetCacher.hpp>
 
 #include <imgui.h>
 #include <glm/glm.hpp>
@@ -18,9 +19,14 @@ Beached::Beached()
 
     mWindow = MakeRef<Window>(1440, 900, "Beached");
     mRHI = MakeRef<RHI>(mWindow);
+    
     AssetManager::Init(mRHI);
+    AssetCacher::Init("Assets");
 
-    mModel = AssetManager::Get("Assets/Models/Sponza/Sponza.gltf", ResourceType::GLTF);
+    mModel = AssetManager::Get("Assets/Models/Sponza/Sponza.gltf", AssetType::GLTF);
+
+    Asset::Handle vertexShader = AssetManager::Get("Assets/Shaders/Triangle/Vertex.hlsl", AssetType::Shader);
+    Asset::Handle fragmentShader = AssetManager::Get("Assets/Shaders/Triangle/Fragment.hlsl", AssetType::Shader);
 
     GraphicsPipelineSpecs triangleSpecs;
     triangleSpecs.Fill = FillMode::Solid;
@@ -31,12 +37,15 @@ Beached::Beached()
     triangleSpecs.DepthFormat = TextureFormat::Depth32;
     triangleSpecs.Formats.push_back(TextureFormat::RGBA8);
     triangleSpecs.DepthEnabled = true;
-    triangleSpecs.Bytecodes[ShaderType::Vertex] = ShaderCompiler::Compile("Assets/Shaders/Triangle/Vertex.hlsl", "VSMain", ShaderType::Vertex);
-    triangleSpecs.Bytecodes[ShaderType::Fragment] = ShaderCompiler::Compile("Assets/Shaders/Triangle/Fragment.hlsl", "PSMain", ShaderType::Fragment);
+    triangleSpecs.Bytecodes[ShaderType::Vertex] = vertexShader->Shader;
+    triangleSpecs.Bytecodes[ShaderType::Fragment] = fragmentShader->Shader;
     triangleSpecs.Signature = mRHI->CreateRootSignature({ RootType::PushConstant }, sizeof(int) * 4);
 
-    mSampler = mRHI->CreateSampler(SamplerAddress::Wrap, SamplerFilter::Linear);
     mPipeline = mRHI->CreateGraphicsPipeline(triangleSpecs);
+    mSampler = mRHI->CreateSampler(SamplerAddress::Wrap, SamplerFilter::Linear, true);
+
+    AssetManager::Free(vertexShader);
+    AssetManager::Free(fragmentShader);
 
     for (int i = 0; i < FRAMES_IN_FLIGHT; i++) {
         mConstantBuffer[i] = mRHI->CreateBuffer(256, 0, BufferType::Constant, "CBV");

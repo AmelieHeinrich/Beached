@@ -13,7 +13,7 @@ target("Beached")
     set_encodings("utf-8")
 
     if is_plat("windows") then
-        add_syslinks("user32", "gdi32", "kernel32", "d3d12", "dxgi", "ThirdParty/DXC/lib/dxcompiler.lib")
+        add_syslinks("user32", "gdi32", "kernel32", "d3d12", "dxgi", "ThirdParty/DXC/lib/dxcompiler.lib", "ThirdParty/nvtt/lib64/nvtt30205.lib")
     end
 
     if is_mode("debug") then
@@ -37,6 +37,14 @@ target("Beached")
     end)
 
     add_files("Source/**.cpp")
-    add_includedirs("Source", "ThirdParty", "ThirdParty/spdlog/include", "ThirdParty/DirectX/include", "ThirdParty/imgui", "ThirdParty/imgui/backends", "ThirdParty/DXC/Include", "ThirdParty/glm")
+    add_includedirs("Source",
+                    "ThirdParty/",
+                    "ThirdParty/spdlog/include",
+                    "ThirdParty/DirectX/include",
+                    "ThirdParty/imgui",
+                    "ThirdParty/imgui/backends",
+                    "ThirdParty/DXC/Include",
+                    "ThirdParty/glm",
+                    "ThirdParty/nvtt/")
     add_deps("spdlog", "ImGui", "STB", "CGLTF")
     add_defines("GLM_ENABLE_EXPERIMENTAL")

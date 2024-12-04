@@ -10,6 +10,7 @@
 
 enum class ShaderType
 {
+    None,
     Vertex,
     Fragment,
     Compute,

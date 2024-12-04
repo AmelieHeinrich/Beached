@@ -10,6 +10,20 @@
 class File
 {
 public:
+    struct Filetime
+    {
+        UInt32 Low;
+        UInt32 High;
+
+        bool operator==(const Filetime& other) {
+            return (Low == other.Low) && (High == other.High);
+        }
+
+        bool operator!=(const Filetime& other) {
+            return !(*this == other);
+        }
+    };
+
     static bool Exists(const String& path);
     static bool IsDirectory(const String& path);
     
@@ -24,5 +38,9 @@ public:
 
     static int32_t GetFileSize(const String& path);
     static String ReadFile(const String& path);
+    static void ReadBytes(const String& path, void *data, UInt64 size);
     static void *ReadBytes(const String& path);
+    static void WriteBytes(const String& path, const void* data, UInt64 size);
+
+    static Filetime GetLastModified(const String& path);
 };

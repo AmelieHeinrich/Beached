@@ -9,3 +9,4 @@ build
 # Engine
 imgui.ini
 beached.log
+.cache

@@ -4,6 +4,8 @@
 //
 
 #include <Asset/AssetManager.hpp>
+#include <Asset/AssetCacher.hpp>
+
 #include <Core/Logger.hpp>
 #include <RHI/Uploader.hpp>
 
@@ -19,7 +21,7 @@ void AssetManager::Clean()
     sData.mAssets.clear();
 }
 
-Asset::Handle AssetManager::Get(const String& path, ResourceType type)
+Asset::Handle AssetManager::Get(const String& path, AssetType type)
 {
     if (sData.mAssets.count(path) > 0) {
         sData.mAssets[path]->RefCount++;
@@ -32,25 +34,52 @@ Asset::Handle AssetManager::Get(const String& path, ResourceType type)
     asset->Path = path;
 
     switch (type) {
-        case ResourceType::GLTF: {
+        case AssetType::GLTF: {
+            LOG_DEBUG("Loading GLTF {0}", path);
             asset->Model.Load(sData.mRHI, path);
             break;
         }
-        case ResourceType::Texture: {
-            Image image;
-            image.Load(path);
+        case AssetType::Texture: {
+            LOG_DEBUG("Loading texture {0}", path);
 
-            TextureDesc desc;
-            desc.Width = image.Width;
-            desc.Height = image.Height;
-            desc.Levels = image.Levels;
-            desc.Depth = 1;
-            desc.Name = path;
-            desc.Format = image.Compressed ? TextureFormat::RGBA8 : TextureFormat::RGBA8;
-            desc.Usage = TextureUsage::ShaderResource;
-            asset->Texture = sData.mRHI->CreateTexture(desc);
+            if (AssetCacher::IsCached(path)) {
+                AssetFile file = AssetCacher::ReadAsset(path);
+                
+                TextureDesc desc;
+                desc.Width = file.Header.TextureHeader.Width;
+                desc.Height = file.Header.TextureHeader.Height;
+                desc.Levels = file.Header.TextureHeader.Levels;
+                desc.Depth = 1;
+                desc.Name = path;
+                desc.Format = TextureFormat::BC7;
+                desc.Usage = TextureUsage::ShaderResource;
+                asset->Texture = sData.mRHI->CreateTexture(desc);
 
-            Uploader::EnqueueTextureUpload(image, asset->Texture);
+                Uploader::EnqueueTextureUpload(file.Bytes, asset->Texture);
+            } else {
+                Image image;
+                image.Load(path);
+
+                TextureDesc desc;
+                desc.Width = image.Width;
+                desc.Height = image.Height;
+                desc.Levels = image.Levels;
+                desc.Depth = 1;
+                desc.Name = path;
+                desc.Format = TextureFormat::RGBA8;
+                desc.Usage = TextureUsage::ShaderResource;
+                asset->Texture = sData.mRHI->CreateTexture(desc);
+            
+                Uploader::EnqueueTextureUpload(image, asset->Texture);
+            }
+            break;
+        }
+        case AssetType::Shader: {
+            AssetFile file = AssetCacher::ReadAsset(path);
+
+            asset->Shader.Type = file.Header.ShaderHeader.Type;
+            asset->Shader.Bytecode.resize(file.Bytes.size());
+            memcpy(asset->Shader.Bytecode.data(), file.Bytes.data(), file.Bytes.size());
             break;
         }
     }
@@ -63,6 +92,7 @@ void AssetManager::Free(Asset::Handle handle)
 {
     sData.mAssets[handle->Path]->RefCount--;
     if (sData.mAssets[handle->Path]->RefCount == 0) {
+        LOG_DEBUG("Freeing asset {0}", handle->Path);
         sData.mAssets[handle->Path].reset();
         sData.mAssets.erase(handle->Path);
     }

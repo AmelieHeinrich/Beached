@@ -7,23 +7,27 @@
 
 #include <Asset/GLTF.hpp>
 #include <Asset/Image.hpp>
+#include <Asset/Shader.hpp>
 
 #include <RHI/RHI.hpp>
 
-enum class ResourceType
+enum class AssetType
 {
+    None,
     GLTF,
     Texture,
+    Shader,
     EnvironmentMap
 };
 
 struct Asset
 {
     String Path;
-    ResourceType Type;
+    AssetType Type;
 
     GLTF Model;
     Texture::Ref Texture;
+    Shader Shader;
 
     UInt32 RefCount;
 
@@ -36,7 +40,7 @@ public:
     static void Init(RHI::Ref rhi);
     static void Clean();
 
-    static Asset::Handle Get(const String& path, ResourceType type);
+    static Asset::Handle Get(const String& path, AssetType type);
     static void Free(Asset::Handle handle);
 private:
     static struct Data
