@@ -78,7 +78,7 @@ void RHI::Submit(const Vector<CommandBuffer::Ref> buffers)
 
 Frame RHI::Begin()
 {
-    Frame frame;
+    Frame frame = {};
     frame.FrameIndex = mSurface->GetBackbufferIndex();
     frame.Backbuffer = mSurface->GetBackbuffer(frame.FrameIndex);
     frame.BackbufferView = mSurface->GetBackbufferView(frame.FrameIndex);

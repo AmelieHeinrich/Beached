@@ -10,3 +10,6 @@ build
 imgui.ini
 beached.log
 .cache
+
+# Big models
+Assets/Models/Bistro

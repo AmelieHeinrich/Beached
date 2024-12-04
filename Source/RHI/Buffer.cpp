@@ -6,6 +6,7 @@
 #include <RHI/Buffer.hpp>
 #include <RHI/Utilities.hpp>
 #include <Core/Assert.hpp>
+#include <Core/Logger.hpp>
 
 Buffer::Buffer(Device::Ref device, DescriptorHeaps heaps, UInt64 size, UInt64 stride, BufferType type, const String& name)
     : Resource(device), mType(type), mHeaps(heaps)
@@ -115,9 +116,13 @@ void Buffer::Map(int start, int end, void **data)
     range.End = end;
 
     if (range.End > range.Begin) {
-        mResource->Map(0, &range, data);
+        if (FAILED(mResource->Map(0, &range, data))) {
+            LOG_ERROR("Failed to map buffer!");
+        }
     } else {
-        mResource->Map(0, nullptr, data);
+        if (FAILED(mResource->Map(0, nullptr, data))) {
+            LOG_ERROR("Failed to map buffer!");
+        }
     }
 }
 
@@ -136,8 +141,10 @@ void Buffer::Unmap(int start, int end)
 
 void Buffer::CopyMapped(void *data, UInt64 size)
 {
-    void* mapped;
+    void* mapped = nullptr;
     Map(0, 0, &mapped);
-    memcpy(mapped, data, size);
+    if (mapped) {
+        memcpy(mapped, data, size);
+    }
     Unmap(0, 0);
 }

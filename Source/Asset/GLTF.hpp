@@ -40,10 +40,10 @@ struct GLTFNode
     Vector<GLTFPrimitive> Primitives;
     Array<Buffer::Ref, FRAMES_IN_FLIGHT> ModelBuffer;
 
-    String Name;
+    String Name = "";
     glm::mat4 Transform;
-    GLTFNode* Parent;
-    Vector<GLTFNode*> Children;
+    GLTFNode* Parent = nullptr;
+    Vector<GLTFNode*> Children = {};
 
     GLTFNode() = default;
 };
@@ -54,7 +54,7 @@ public:
     String Path;
     String Directory;
 
-    GLTFNode* Root;
+    GLTFNode* Root = nullptr;
     Vector<GLTFMaterial> Materials;
 
     UInt32 VertexCount = 0;

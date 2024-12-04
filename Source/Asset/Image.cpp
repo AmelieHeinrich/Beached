@@ -10,8 +10,6 @@
 
 void Image::Load(const String& path)
 {
-    stbi_set_flip_vertically_on_load(true);
-
     int channels = 0;
     stbi_uc* buffer = stbi_load(path.c_str(), &Width, &Height, &channels, STBI_rgb_alpha);
     if (!buffer) {

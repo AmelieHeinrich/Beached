@@ -23,54 +23,58 @@ Beached::Beached()
     AssetManager::Init(mRHI);
     AssetCacher::Init("Assets");
 
-    mModel = AssetManager::Get("Assets/Models/Sponza/Sponza.gltf", AssetType::GLTF);
+    // Loading and setup
+    Timer startupTimer;
+    {
+        mModel = AssetManager::Get("Assets/Models/Bistro/Bistro.gltf", AssetType::GLTF);
 
-    Asset::Handle vertexShader = AssetManager::Get("Assets/Shaders/Triangle/Vertex.hlsl", AssetType::Shader);
-    Asset::Handle fragmentShader = AssetManager::Get("Assets/Shaders/Triangle/Fragment.hlsl", AssetType::Shader);
+        Asset::Handle vertexShader = AssetManager::Get("Assets/Shaders/Triangle/Vertex.hlsl", AssetType::Shader);
+        Asset::Handle fragmentShader = AssetManager::Get("Assets/Shaders/Triangle/Fragment.hlsl", AssetType::Shader);
 
-    GraphicsPipelineSpecs triangleSpecs;
-    triangleSpecs.Fill = FillMode::Solid;
-    triangleSpecs.Cull = CullMode::None;
-    triangleSpecs.Depth = DepthOperation::Less;
-    triangleSpecs.CCW = false;
-    triangleSpecs.DepthEnabled = true;
-    triangleSpecs.DepthFormat = TextureFormat::Depth32;
-    triangleSpecs.Formats.push_back(TextureFormat::RGBA8);
-    triangleSpecs.DepthEnabled = true;
-    triangleSpecs.Bytecodes[ShaderType::Vertex] = vertexShader->Shader;
-    triangleSpecs.Bytecodes[ShaderType::Fragment] = fragmentShader->Shader;
-    triangleSpecs.Signature = mRHI->CreateRootSignature({ RootType::PushConstant }, sizeof(int) * 4);
+        GraphicsPipelineSpecs triangleSpecs;
+        triangleSpecs.Fill = FillMode::Solid;
+        triangleSpecs.Cull = CullMode::None;
+        triangleSpecs.Depth = DepthOperation::Less;
+        triangleSpecs.CCW = false;
+        triangleSpecs.DepthEnabled = true;
+        triangleSpecs.DepthFormat = TextureFormat::Depth32;
+        triangleSpecs.Formats.push_back(TextureFormat::RGBA8);
+        triangleSpecs.DepthEnabled = true;
+        triangleSpecs.Bytecodes[ShaderType::Vertex] = vertexShader->Shader;
+        triangleSpecs.Bytecodes[ShaderType::Fragment] = fragmentShader->Shader;
+        triangleSpecs.Signature = mRHI->CreateRootSignature({ RootType::PushConstant }, sizeof(int) * 4);
 
-    mPipeline = mRHI->CreateGraphicsPipeline(triangleSpecs);
-    mSampler = mRHI->CreateSampler(SamplerAddress::Wrap, SamplerFilter::Linear, true);
+        mPipeline = mRHI->CreateGraphicsPipeline(triangleSpecs);
+        mSampler = mRHI->CreateSampler(SamplerAddress::Wrap, SamplerFilter::Linear, true);
 
-    AssetManager::Free(vertexShader);
-    AssetManager::Free(fragmentShader);
+        AssetManager::Free(vertexShader);
+        AssetManager::Free(fragmentShader);
 
-    for (int i = 0; i < FRAMES_IN_FLIGHT; i++) {
-        mConstantBuffer[i] = mRHI->CreateBuffer(256, 0, BufferType::Constant, "CBV");
-        mConstantBuffer[i]->BuildCBV();
+        for (int i = 0; i < FRAMES_IN_FLIGHT; i++) {
+            mConstantBuffer[i] = mRHI->CreateBuffer(256, 0, BufferType::Constant, "CBV");
+            mConstantBuffer[i]->BuildCBV();
+        }
+
+        int width, height;
+        mWindow->PollSize(width, height);
+
+        TextureDesc depthDesc;
+        depthDesc.Width = width;
+        depthDesc.Height = height;
+        depthDesc.Levels = 1;
+        depthDesc.Format = TextureFormat::Depth32;
+        depthDesc.Usage = TextureUsage::DepthTarget;
+        depthDesc.Depth = 1;
+        depthDesc.Name = "Depth Buffer";
+        mDepth = mRHI->CreateTexture(depthDesc);
+        mDepthView = mRHI->CreateView(mDepth, ViewType::DepthTarget);
+
+        Uploader::Flush();
+        mRHI->Wait();
+        Uploader::ClearRequests();
     }
 
-    int width, height;
-    mWindow->PollSize(width, height);
-
-    TextureDesc depthDesc;
-    depthDesc.Width = width;
-    depthDesc.Height = height;
-    depthDesc.Levels = 1;
-    depthDesc.Format = TextureFormat::Depth32;
-    depthDesc.Usage = TextureUsage::DepthTarget;
-    depthDesc.Depth = 1;
-    depthDesc.Name = "Depth Buffer";
-    mDepth = mRHI->CreateTexture(depthDesc);
-    mDepthView = mRHI->CreateView(mDepth, ViewType::DepthTarget);
-
-    Uploader::Flush();
-    mRHI->Wait();
-    Uploader::ClearRequests();
-
-    LOG_INFO("Starting Beached");
+    LOG_INFO("Starting renderer. Startup took {0} seconds", TO_SECONDS(startupTimer.GetElapsed()));
 }
 
 Beached::~Beached()

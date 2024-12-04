@@ -43,6 +43,8 @@ public:
 
     static AssetFile ReadAsset(const String& path);
 private:
+    friend class AssetManager;
+
     static struct Data
     {
         nvtt::Context mContext;

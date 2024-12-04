@@ -24,5 +24,8 @@ float4 PSMain(FragmentIn Input) : SV_Target
     Texture2D Albedo = ResourceDescriptorHeap[PushConstants.TextureIndex];
     SamplerState Sampler = SamplerDescriptorHeap[PushConstants.SamplerIndex];
 
-    return Albedo.Sample(Sampler, Input.UV);
+    float4 Color = Albedo.Sample(Sampler, Input.UV);
+    if (Color.a < 0.1)
+        discard;
+    return Color;
 }

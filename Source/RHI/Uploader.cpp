@@ -5,6 +5,7 @@
 
 #include <RHI/Uploader.hpp>
 #include <Core/Logger.hpp>
+#include <Core/Timer.hpp>
 
 Uploader::Data Uploader::sData;
 
@@ -17,6 +18,8 @@ void Uploader::Init(Device::Ref device, DescriptorHeaps heaps, Queue::Ref queue)
 
 void Uploader::EnqueueTextureUpload(Vector<UInt8> buffer, Ref<Resource> texture)
 {
+    sData.TextureRequests++;
+
     UploadRequest request;
     request.Type = UploadRequestType::TextureToGPU;
     request.Resource = texture;
@@ -47,6 +50,8 @@ void Uploader::EnqueueTextureUpload(Vector<UInt8> buffer, Ref<Resource> texture)
 
 void Uploader::EnqueueTextureUpload(Image image, Ref<Resource> buffer)
 {
+    sData.TextureRequests++;
+
     UploadRequest request;
     request.Type = UploadRequestType::TextureToGPU;
     request.Resource = buffer;
@@ -77,6 +82,7 @@ void Uploader::EnqueueTextureUpload(Image image, Ref<Resource> buffer)
 
 void Uploader::EnqueueBufferUpload(void* data, UInt64 size, Ref<Resource> buffer)
 {
+    sData.BufferRequests++;
     UploadRequest request;
     request.Type = UploadRequestType::BufferCPUToGPU;
     request.Resource = buffer;
@@ -95,7 +101,7 @@ void Uploader::Flush()
     CommandBuffer::Ref cmdBuffer = MakeRef<CommandBuffer>(sData.Device, sData.UploadQueue, sData.Heaps, true);
     cmdBuffer->Begin();
 
-    LOG_DEBUG("Flushing {0} upload requests", sData.Requests.size());
+    LOG_INFO("Flushing {0} upload requests ({1} buffer uploads, {2} texture uploads)", sData.Requests.size(), sData.BufferRequests, sData.TextureRequests);
     for (auto request : sData.Requests) {        
         switch (request.Type) {
             case UploadRequestType::BufferCPUToGPU: {
@@ -116,6 +122,8 @@ void Uploader::Flush()
 
 void Uploader::ClearRequests()
 {
+    sData.BufferRequests = 0;
+    sData.TextureRequests = 0;
     sData.Requests.clear();
     sData.CmdBuffer.reset();
 }

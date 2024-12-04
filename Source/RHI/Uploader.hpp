@@ -44,5 +44,8 @@ private:
         Queue::Ref UploadQueue;
         CommandBuffer::Ref CmdBuffer;
         Vector<UploadRequest> Requests;
+
+        int TextureRequests;
+        int BufferRequests;
     } sData;
 };

@@ -42,7 +42,7 @@ Asset::Handle AssetManager::Get(const String& path, AssetType type)
         case AssetType::Texture: {
             LOG_DEBUG("Loading texture {0}", path);
 
-            if (AssetCacher::IsCached(path)) {
+            if (AssetCacher::IsCached(path) && true) {
                 AssetFile file = AssetCacher::ReadAsset(path);
                 
                 TextureDesc desc;
@@ -75,11 +75,17 @@ Asset::Handle AssetManager::Get(const String& path, AssetType type)
             break;
         }
         case AssetType::Shader: {
-            AssetFile file = AssetCacher::ReadAsset(path);
+            LOG_DEBUG("Loading shader {0}", path);
 
-            asset->Shader.Type = file.Header.ShaderHeader.Type;
-            asset->Shader.Bytecode.resize(file.Bytes.size());
-            memcpy(asset->Shader.Bytecode.data(), file.Bytes.data(), file.Bytes.size());
+            if (AssetCacher::IsCached(path) && true) {
+                AssetFile file = AssetCacher::ReadAsset(path);
+                asset->Shader.Type = file.Header.ShaderHeader.Type;
+                asset->Shader.Bytecode.resize(file.Bytes.size());
+                memcpy(asset->Shader.Bytecode.data(), file.Bytes.data(), file.Bytes.size());
+            } else {
+                ShaderType type = AssetCacher::GetShaderTypeFromPath(path);
+                asset->Shader = ShaderCompiler::Compile(path, AssetCacher::GetEntryPointFromShaderType(type), type);
+            }
             break;
         }
     }
