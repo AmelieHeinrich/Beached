@@ -34,6 +34,7 @@ void GLTF::Load(RHI::Ref rhi,const String& path)
     for (int i = 0; i < scene->nodes_count; i++) {
         Root->Children[i] = new GLTFNode;
         Root->Children[i]->Parent = Root;
+        Root->Children[i]->Transform = glm::mat4(1.0f);
 
         ProcessNode(scene->nodes[i], Root->Children[i]);
     }
@@ -83,7 +84,6 @@ void GLTF::ProcessNode(cgltf_node *node, GLTFNode *mnode)
         localTransform *= translationMatrix * rotationMatrix * scaleMatrix;
     }
 
-    glm::mat4 parentTransform = mnode->Parent ? mnode->Parent->Transform : glm::mat4(1.0f);
     mnode->Name = node->name ? node->name : "Unnamed Node " + std::to_string(rand());
     mnode->Transform = localTransform;
 
