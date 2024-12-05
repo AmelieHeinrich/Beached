@@ -26,7 +26,7 @@ Beached::Beached()
     // Loading and setup
     Timer startupTimer;
     {
-        mModel = AssetManager::Get("Assets/Models/Sponza/Sponza.gltf", AssetType::GLTF);
+        mModel = AssetManager::Get("Assets/Models/Bistro/Bistro.gltf", AssetType::GLTF);
 
         Asset::Handle vertexShader = AssetManager::Get("Assets/Shaders/Triangle/Vertex.hlsl", AssetType::Shader);
         Asset::Handle fragmentShader = AssetManager::Get("Assets/Shaders/Triangle/Fragment.hlsl", AssetType::Shader);
@@ -118,10 +118,14 @@ void Beached::Run()
 
         // Renderer
         std::function<void(Frame frame, GLTFNode*, GLTF* model, glm::mat4 transform)> drawNode = [&](Frame frame, GLTFNode* node, GLTF* model, glm::mat4 transform) {
+            if (!node) {
+                return;
+            }
+
+            glm::mat4 globalTransform = transform * node->Transform;
             for (GLTFPrimitive primitive : node->Primitives) {
                 GLTFMaterial material = model->Materials[primitive.MaterialIndex];
-                glm::mat4 globalTransform = transform * node->Transform * (node->Parent ? node->Parent->Transform : glm::mat4(1.0f));
-            
+
                 node->ModelBuffer[frame.FrameIndex]->CopyMapped(glm::value_ptr(globalTransform), sizeof(glm::mat4));
 
                 int resources[] = {
@@ -139,7 +143,7 @@ void Beached::Run()
 
             if (!node->Children.empty()) {
                 for (GLTFNode* child : node->Children) {
-                    drawNode(frame, child, model, transform);
+                    drawNode(frame, child, model, globalTransform);
                 }
             }
         };

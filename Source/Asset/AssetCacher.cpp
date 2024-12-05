@@ -236,7 +236,7 @@ void AssetCacher::CacheAsset(const String& normalPath)
 
     switch (type) {
         case AssetType::Texture: {
-            LOG_DEBUG("Caching texture {0}", normalPath);
+            LOG_INFO("Caching texture {0}", normalPath);
 
             nvtt::Surface image;
             if (!image.load(normalPath.c_str())) {
@@ -263,8 +263,6 @@ void AssetCacher::CacheAsset(const String& normalPath)
                     LOG_ERROR("Failed to compress texture!");
                 }
 
-                if (i == mipCount - 1) break;
-
                 // Prepare the next mip:
                 image.toLinearFromSrgb();
                 image.premultiplyAlpha();
@@ -282,7 +280,7 @@ void AssetCacher::CacheAsset(const String& normalPath)
             if (type == ShaderType::None)
                 return;
             
-            LOG_DEBUG("Caching shader {0}", normalPath);
+            LOG_INFO("Caching shader {0}", normalPath);
             Shader shader = ShaderCompiler::Compile(normalPath, GetEntryPointFromShaderType(type), type);
             file.Bytes.resize(shader.Bytecode.size());
             memcpy(file.Bytes.data(), shader.Bytecode.data(), shader.Bytecode.size());
