@@ -86,6 +86,8 @@ Frame RHI::Begin()
     
     mFrameIndex = frame.FrameIndex;
 
+    mWindow->PollSize(frame.Width, frame.Height);
+
     return frame;
 }
 

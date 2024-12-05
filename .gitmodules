@@ -14,3 +14,6 @@
 [submodule "ThirdParty/CGLTF"]
 	path = ThirdParty/CGLTF
 	url = https://github.com/jkuhlmann/cgltf/
+[submodule "ThirdParty/TOML++"]
+	path = ThirdParty/TOML++
+	url = https://github.com/marzer/tomlplusplus

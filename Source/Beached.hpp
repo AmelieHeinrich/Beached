@@ -11,10 +11,13 @@
 #include <Asset/AssetManager.hpp>
 
 #include <World/Camera.hpp>
+#include <World/Scene.hpp>
 
 #include <RHI/RHI.hpp>
 #include <RHI/Uploader.hpp>
 #include <RHI/Sampler.hpp>
+
+#include <Renderer/Renderer.hpp>
 
 class Beached
 {
@@ -29,19 +32,11 @@ private:
 
     Window::Ref mWindow;
     RHI::Ref mRHI;
+    Renderer::Ref mRenderer;
 
-    Camera mCamera;
     Timer mTimer;
     float mLastFrame;
-
-    Asset::Handle mModel;
-    Array<Buffer::Ref, FRAMES_IN_FLIGHT> mConstantBuffer;
-
-    Texture::Ref mDepth;
-    View::Ref mDepthView;
-
-    Sampler::Ref mSampler;
-    GraphicsPipeline::Ref mPipeline;
+    Scene mScene;
 
     // UI settings
     bool mUI = false;

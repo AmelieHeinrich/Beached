@@ -43,7 +43,7 @@ View::View(Device::Ref device, DescriptorHeaps heaps, ::Ref<Resource> resource, 
         if (dimension == ViewDimension::Texture) {
             TextureDesc texture = static_cast<Texture*>(resource.get())->GetDesc();
             desc.Format = format == TextureFormat::Unknown ? DXGI_FORMAT(texture.Format) : DXGI_FORMAT(format);
-            desc.Texture2D.MipSlice = mip == VIEW_ALL_MIPS ? texture.Levels : 1;
+            desc.Texture2D.MipSlice = mip == VIEW_ALL_MIPS ? 0 : mip;
             desc.Texture2D.PlaneSlice = 0;
         } else {
             desc.Buffer.FirstElement = 0;

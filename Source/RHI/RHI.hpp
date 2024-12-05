@@ -24,6 +24,9 @@ struct Frame
     Texture::Ref Backbuffer;
     View::Ref BackbufferView;
     UInt32 FrameIndex;
+
+    Int32 Width;
+    Int32 Height;
 };
 
 class RHI

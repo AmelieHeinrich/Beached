@@ -58,7 +58,7 @@ void CommandBuffer::Barrier(Texture::Ref texture, ResourceLayout layout, UInt32 
         Barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
         Barrier.UAV.pResource = texture->GetResource();
     } else {
-        if (Barrier.Transition.StateBefore == Barrier.Transition.StateAfter)
+        if (texture->GetLayout() == layout)
             return;
     }
     

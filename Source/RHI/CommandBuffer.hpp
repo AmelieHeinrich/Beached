@@ -48,6 +48,7 @@ public:
     void Draw(int vertexCount);
     void DrawIndexed(int indexCount);
 
+    void CopyTextureToTexture(::Ref<Resource> dst, ::Ref<Resource> src) { CopyBufferToBuffer(dst, src); } // It's all buffers anyway innit?
     void CopyBufferToBuffer(::Ref<Resource> dst, ::Ref<Resource> src);
     void CopyBufferToTexture(::Ref<Resource> dst, ::Ref<Resource> src);
 

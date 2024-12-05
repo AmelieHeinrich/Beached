@@ -22,3 +22,8 @@ target("STB")
 target("CGLTF")
     set_kind("static")
     add_files("cgltf.c")
+
+target("TOML++")
+    set_kind("static")
+    add_files("toml.cpp")
+    set_languages("c++17")

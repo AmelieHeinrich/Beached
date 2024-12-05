@@ -18,8 +18,8 @@ public:
     void Begin();
     void Update(float dt, int width, int height);
 
-    glm::mat4 View() { return mView; }
-    glm::mat4 Projection() { return mProjection; }
+    glm::mat4 View() const { return mView; }
+    glm::mat4 Projection() const { return mProjection; }
 private:
     glm::mat4 mView = glm::mat4(1.0f);
     glm::mat4 mProjection = glm::mat4(1.0f);
