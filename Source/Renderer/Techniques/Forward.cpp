@@ -10,8 +10,8 @@
 Forward::Forward(RHI::Ref rhi)
     : RenderPass(rhi)
 {
-    Asset::Handle vertexShader = AssetManager::Get("Assets/Shaders/Triangle/Vertex.hlsl", AssetType::Shader);
-    Asset::Handle fragmentShader = AssetManager::Get("Assets/Shaders/Triangle/Fragment.hlsl", AssetType::Shader);
+    Asset::Handle vertexShader = AssetManager::Get("Assets/Shaders/Forward/Vertex.hlsl", AssetType::Shader);
+    Asset::Handle fragmentShader = AssetManager::Get("Assets/Shaders/Forward/Fragment.hlsl", AssetType::Shader);
     
     GraphicsPipelineSpecs triangleSpecs;
     triangleSpecs.Fill = FillMode::Solid;

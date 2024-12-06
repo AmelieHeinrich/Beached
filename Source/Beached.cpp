@@ -30,7 +30,7 @@ Beached::Beached()
         mRenderer = MakeRef<Renderer>(mRHI);
 
         // Loading and setup
-        mScene.Models.push_back(AssetManager::Get("Assets/Models/Sponza/Sponza.gltf", AssetType::GLTF));
+        mScene.Models.push_back(AssetManager::Get("Assets/Models/DamagedHelmet/DamagedHelmet.gltf", AssetType::GLTF));
 
         Uploader::Flush();
         mRHI->Wait();
