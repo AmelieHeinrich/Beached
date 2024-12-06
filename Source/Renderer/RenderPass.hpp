@@ -14,10 +14,8 @@ class RenderPass
 public:
     using Ref = Ref<RenderPass>;
 
-    RenderPass(RHI::Ref rhi)
-        : mRHI(rhi)
-    {
-    }
+    RenderPass(RHI::Ref rhi);
+    ~RenderPass() = default;
 
     virtual void Render(const Frame& frame, const Scene& scene) = 0;
     virtual void UI() = 0;

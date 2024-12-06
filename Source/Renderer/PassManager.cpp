@@ -7,18 +7,7 @@
 #include <Core/Logger.hpp>
 #include <TOML++/toml.hpp>
 
-#include <iostream>
-
 UnorderedMap<String, Ref<RenderPassIO>> PassManager::sPassIOs;
-
-TextureFormat StringToFormat(const String& format)
-{
-    if (format == "RGBA8")
-        return TextureFormat::RGBA8;
-    if (format == "D32")
-        return TextureFormat::Depth32;
-    return TextureFormat::Unknown;
-}
 
 void PassManager::Init(RHI::Ref rhi, Window::Ref window)
 {
@@ -47,7 +36,7 @@ void PassManager::Init(RHI::Ref rhi, Window::Ref window)
                 io->Desc.Height = texHeight == 0 ? height : texHeight;
                 io->Desc.Depth = 1;
                 io->Desc.Levels = 1;
-                io->Desc.Format = StringToFormat(format);
+                io->Desc.Format = Texture::StringToFormat(format);
                 if (usage == "Render") {
                     io->Desc.Usage = TextureUsage::RenderTarget | TextureUsage::Storage | TextureUsage::ShaderResource;
                 } else {
@@ -71,6 +60,7 @@ void PassManager::Init(RHI::Ref rhi, Window::Ref window)
                     io->RingBuffer[i] = rhi->CreateBuffer(size, 0, BufferType::Constant, name);
                     io->RingBuffer[i]->BuildCBV();
                 }
+                LOG_INFO("Creating PassIO {0} (Size = {1})", name, size);
             }
 
             sPassIOs[name] = io;

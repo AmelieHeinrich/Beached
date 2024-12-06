@@ -46,3 +46,12 @@ Texture::~Texture()
 {
     // Everything will automatically be cleaned up by Resource::~Resource().
 }
+
+TextureFormat Texture::StringToFormat(const String& format)
+{
+    if (format == "RGBA8")
+        return TextureFormat::RGBA8;
+    if (format == "D32")
+        return TextureFormat::Depth32;
+    return TextureFormat::Unknown;
+}

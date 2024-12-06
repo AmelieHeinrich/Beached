@@ -46,6 +46,8 @@ public:
     ~Texture();
 
     TextureDesc GetDesc() const { return mDesc; }
+
+    static TextureFormat StringToFormat(const String& format);
 private:
     TextureDesc mDesc;
 };
