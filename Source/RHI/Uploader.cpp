@@ -14,6 +14,10 @@ void Uploader::Init(Device::Ref device, DescriptorHeaps heaps, Queue::Ref queue)
     sData.Device = device;
     sData.Heaps = heaps;
     sData.UploadQueue = queue;
+    sData.CmdBuffer = nullptr;
+    sData.BufferRequests = 0;
+    sData.TextureRequests = 0;
+    sData.Requests.clear();
 }
 
 void Uploader::EnqueueTextureUpload(Vector<UInt8> buffer, Ref<Resource> texture)
@@ -98,32 +102,37 @@ void Uploader::EnqueueBufferUpload(void* data, UInt64 size, Ref<Resource> buffer
 
 void Uploader::Flush()
 {
-    CommandBuffer::Ref cmdBuffer = MakeRef<CommandBuffer>(sData.Device, sData.UploadQueue, sData.Heaps, true);
-    cmdBuffer->Begin();
+    sData.CmdBuffer = MakeRef<CommandBuffer>(sData.Device, sData.UploadQueue, sData.Heaps, true);
+    sData.CmdBuffer->Begin();
 
     LOG_INFO("Flushing {0} upload requests ({1} buffer uploads, {2} texture uploads)", sData.Requests.size(), sData.BufferRequests, sData.TextureRequests);
     for (auto request : sData.Requests) {        
         switch (request.Type) {
             case UploadRequestType::BufferCPUToGPU: {
-                cmdBuffer->CopyBufferToBuffer(request.Resource, request.StagingBuffer);
+                sData.CmdBuffer->CopyBufferToBuffer(request.Resource, request.StagingBuffer);
                 break;
             }
             case UploadRequestType::TextureToGPU: {
-                cmdBuffer->CopyBufferToTexture(request.Resource, request.StagingBuffer);
+                sData.CmdBuffer->CopyBufferToTexture(request.Resource, request.StagingBuffer);
                 break;
             }
         }
     }
 
-    cmdBuffer->End();
-    sData.UploadQueue->Submit({ cmdBuffer });
-    sData.CmdBuffer = cmdBuffer;
+    sData.CmdBuffer->End();
+    sData.UploadQueue->Submit({ sData.CmdBuffer });
 }
 
 void Uploader::ClearRequests()
 {
     sData.BufferRequests = 0;
     sData.TextureRequests = 0;
+    for (auto request : sData.Requests) {
+        request.Resource = nullptr;
+        request.StagingBuffer.reset();
+    }
+    if (sData.CmdBuffer) {
+        sData.CmdBuffer.reset();
+    }
     sData.Requests.clear();
-    sData.CmdBuffer.reset();
 }
