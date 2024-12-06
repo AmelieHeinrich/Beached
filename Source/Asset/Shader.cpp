@@ -10,7 +10,6 @@
 #include <Core/Assert.hpp>
 #include <RHI/Utilities.hpp>
 
-#include <atlbase.h>
 #include <DXC/dxcapi.h>
 #include <wrl/client.h>
 
@@ -18,28 +17,28 @@ const char* GetProfileFromType(ShaderType type)
 {
     switch (type) {
         case ShaderType::Vertex: {
-            return "vs_6_8";
+            return "vs_6_7";
         }
         case ShaderType::Fragment: {
-            return "ps_6_8";
+            return "ps_6_7";
         }
         case ShaderType::Compute: {
-            return "cs_6_8";
+            return "cs_6_7";
         }
         case ShaderType::Hull: {
-            return "hs_6_8";
+            return "hs_6_7";
         }
         case ShaderType::Domain: {
-            return "ds_6_8";
+            return "ds_6_7";
         }
         case ShaderType::Mesh: {
-            return "ms_6_8";
+            return "ms_6_7";
         }
         case ShaderType::Amplification: {
-            return "as_6_8";
+            return "as_6_7";
         }
         case ShaderType::Library: {
-            return "lib_6_8";
+            return "lib_6_7";
         }
     }
     return "???";

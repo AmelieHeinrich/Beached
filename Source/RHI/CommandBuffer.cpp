@@ -106,7 +106,7 @@ void CommandBuffer::SetRenderTargets(const Vector<View::Ref> targets, View::Ref 
     for (auto& target : targets) {
         cpus.push_back(target->GetDescriptor().CPU);
     }
-    D3D12_CPU_DESCRIPTOR_HANDLE depth_cpu;
+    D3D12_CPU_DESCRIPTOR_HANDLE depth_cpu = {};
     if (depth) depth_cpu = depth->GetDescriptor().CPU;
 
     mList->OMSetRenderTargets(cpus.size(), cpus.data(), false, depth ? &depth_cpu : nullptr);

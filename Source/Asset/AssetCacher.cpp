@@ -236,17 +236,25 @@ void AssetCacher::CacheAsset(const String& normalPath)
 
     switch (type) {
         case AssetType::Texture: {
-            LOG_INFO("Caching texture {0}", normalPath);
-
             nvtt::Surface image;
             if (!image.load(normalPath.c_str())) {
                 LOG_ERROR("Failed to load texture {0}", normalPath);
+                return;
+            }
+
+            int imageWidth = image.width();
+            int imageHeight = image.height();
+            if (imageWidth != imageHeight) {
+                LOG_WARN("Image {0} cannot be compressed due to dimensions that are not squares of 2.", normalPath);
+                return;
             }
             int mipCount = image.countMipmaps();
+            int finalMipCount = mipCount - 2; // (Remove mip 2x2 and 1x1)
 
-            file.Header.TextureHeader.Width = image.width();
-            file.Header.TextureHeader.Height = image.height();
-            file.Header.TextureHeader.Levels = mipCount;
+            file.Header.TextureHeader.Width = imageWidth;
+            file.Header.TextureHeader.Height = imageHeight;
+            file.Header.TextureHeader.Levels = finalMipCount;
+            LOG_INFO("Caching texture {0} ({1}, {2}, {3})", normalPath, imageWidth, imageHeight, finalMipCount);
 
             TextureWriter writer(&file.Bytes);
             NVTTErrorHandler errorHandler;
@@ -258,7 +266,7 @@ void AssetCacher::CacheAsset(const String& normalPath)
             nvtt::CompressionOptions compressionOptions;
             compressionOptions.setFormat(nvtt::Format::Format_BC7);
 
-            for (int i = 0; i < mipCount; i++) {
+            for (int i = 0; i < finalMipCount; i++) {
                 if (!sData.mContext.compress(image, 0, i, compressionOptions, outputOptions)) {
                     LOG_ERROR("Failed to compress texture!");
                 }
