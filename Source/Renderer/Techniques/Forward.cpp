@@ -87,9 +87,6 @@ void Forward::Render(const Frame& frame, const Scene& scene)
     for (auto& model : scene.Models) {
         drawNode(frame, model->Model.Root, &model->Model, glm::mat4(1.0f));
     }
-
-    frame.CommandBuffer->Barrier(depth->Texture, ResourceLayout::Shader);
-    frame.CommandBuffer->Barrier(color->Texture, ResourceLayout::Shader);
 }
 
 void Forward::UI()

@@ -71,6 +71,7 @@ void Beached::Run()
         // UI
         {
             frame.CommandBuffer->Barrier(frame.Backbuffer, ResourceLayout::ColorWrite);
+            frame.CommandBuffer->SetRenderTargets({ frame.BackbufferView }, nullptr);
             frame.CommandBuffer->BeginGUI(frame.Width, frame.Height);
             if (mUI) {
                 UI();
