@@ -10,13 +10,16 @@
 // A RenderPassIO is basically a resource that is shared between passes (a color buffer or a shadow map for instance).
 struct RenderPassIO
 {
+    // Texture
     TextureDesc Desc;
-
     Texture::Ref Texture;
     View::Ref RenderTargetView;
     View::Ref DepthTargetView;
     View::Ref ShaderResourceView;
     View::Ref UnorderedAccessView;
+
+    // RingBuffer
+    Array<Buffer::Ref, FRAMES_IN_FLIGHT> RingBuffer;
 };
 
 class PassManager

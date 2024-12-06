@@ -28,17 +28,13 @@ Forward::Forward(RHI::Ref rhi)
     
     mPipeline = mRHI->CreateGraphicsPipeline(triangleSpecs);
     mSampler = mRHI->CreateSampler(SamplerAddress::Wrap, SamplerFilter::Linear, true);
-
-    for (int i = 0; i < FRAMES_IN_FLIGHT; i++) {
-        mCameraBuffer[i] = mRHI->CreateBuffer(256, 0, BufferType::Constant, "CBV");
-        mCameraBuffer[i]->BuildCBV();
-    }
 }
 
 void Forward::Render(const Frame& frame, const Scene& scene)
 {
     ::Ref<RenderPassIO> color = PassManager::Get("MainColorBuffer");
     ::Ref<RenderPassIO> depth = PassManager::Get("MainDepthBuffer");
+    ::Ref<RenderPassIO> camera = PassManager::Get("CameraRingBuffer");
 
     frame.CommandBuffer->Barrier(color->Texture, ResourceLayout::ColorWrite);
     frame.CommandBuffer->Barrier(depth->Texture, ResourceLayout::DepthWrite);
@@ -50,7 +46,7 @@ void Forward::Render(const Frame& frame, const Scene& scene)
         scene.Camera.View(),
         scene.Camera.Projection()
     };
-    mCameraBuffer[frame.FrameIndex]->CopyMapped(uploads, sizeof(uploads));
+    camera->RingBuffer[frame.FrameIndex]->CopyMapped(uploads, sizeof(uploads));
 
     std::function<void(Frame frame, GLTFNode*, GLTF* model, glm::mat4 transform)> drawNode = [&](Frame frame, GLTFNode* node, GLTF* model, glm::mat4 transform) {
         if (!node) {
@@ -63,7 +59,7 @@ void Forward::Render(const Frame& frame, const Scene& scene)
             node->ModelBuffer[frame.FrameIndex]->CopyMapped(glm::value_ptr(globalTransform), sizeof(glm::mat4));
             
             int resources[] = {
-                mCameraBuffer[frame.FrameIndex]->CBV(),
+                camera->RingBuffer[frame.FrameIndex]->CBV(),
                 node->ModelBuffer[frame.FrameIndex]->CBV(),
                 material.AlbedoView->GetDescriptor().Index,
                 mSampler->BindlesssSampler()

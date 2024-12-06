@@ -1,16 +1,21 @@
 # This file contains all the data for the passes. I made it into a file so I didn't have to raw declare them in code. This looks better IMHO.
 # If the width and height are 0, they will inherit the screen size.
-# TODO: Add buffers? Move all frame resources to this lil file?
+# TODO: Add buffers and samplers? Move all frame resources to this lil file?
 # TODO: Move pipeline creation to a toml file as well?
-# TODO: Move sampler creation to this toml file as well?
+
+[CameraRingBuffer]
+Type = "RingBuffer"
+Size = 512
 
 [MainColorBuffer]
+Type = "Texture"
 Width = 0
 Height = 0
 Format = "RGBA8"
 Usage = "Render"
 
 [MainDepthBuffer]
+Type = "Texture"
 Width = 0
 Height = 0
 Format = "D32"

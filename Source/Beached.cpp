@@ -16,27 +16,26 @@
 
 Beached::Beached()
 {
-    Logger::Init();
-
-    mWindow = MakeRef<Window>(1440, 900, "Beached");
-    mRHI = MakeRef<RHI>(mWindow);
-
-    AssetManager::Init(mRHI);
-    AssetCacher::Init("Assets");
-    PassManager::Init(mRHI, mWindow);
-
-    mRenderer = MakeRef<Renderer>(mRHI);
-
-    // Loading and setup
     Timer startupTimer;
     {
+        Logger::Init();
+
+        mWindow = MakeRef<Window>(1440, 900, "Beached");
+        mRHI = MakeRef<RHI>(mWindow);
+
+        AssetManager::Init(mRHI);
+        AssetCacher::Init("Assets");
+        PassManager::Init(mRHI, mWindow);
+
+        mRenderer = MakeRef<Renderer>(mRHI);
+
+        // Loading and setup
         mScene.Models.push_back(AssetManager::Get("Assets/Models/Sponza/Sponza.gltf", AssetType::GLTF));
 
         Uploader::Flush();
         mRHI->Wait();
         Uploader::ClearRequests();
     }
-
     LOG_INFO("Starting renderer. Startup took {0} seconds", TO_SECONDS(startupTimer.GetElapsed()));
 }
 

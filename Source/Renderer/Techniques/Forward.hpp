@@ -18,5 +18,4 @@ public:
 private:
     Sampler::Ref mSampler;
     GraphicsPipeline::Ref mPipeline;
-    Array<Buffer::Ref, FRAMES_IN_FLIGHT> mCameraBuffer;
 };
