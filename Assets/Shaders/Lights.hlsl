@@ -10,8 +10,18 @@ struct PointLight
     float4 Color;
 };
 
+struct DirectionalLight
+{
+    float3 Direction;
+    float Strength;
+    float4 Color;
+};
+
 struct LightData
 {
     PointLight Lights[1024];
     int LightCount;
+    float3 Pad;
+
+    DirectionalLight Sun;
 };

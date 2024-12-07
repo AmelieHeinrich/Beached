@@ -15,10 +15,20 @@ struct PointLight
     glm::vec4 Color; // W channel is for pad
 };
 
+struct DirectionalLight
+{
+    glm::vec3 Direction;
+    float Strenght;
+    glm::vec4 Color;
+};
+
 struct LightData
 {
     Array<PointLight, 1024> Lights;
     int LightCount;
+    glm::vec3 Pad;
+
+    DirectionalLight Sun;
 };
 
 class Scene
@@ -26,6 +36,7 @@ class Scene
 public:
     Camera Camera;
     Vector<PointLight> PointLights;
+    DirectionalLight Sun;
 
     Vector<Asset::Handle> Models;
     Array<Buffer::Ref, FRAMES_IN_FLIGHT> LightBuffer;

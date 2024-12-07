@@ -23,7 +23,7 @@ Forward::Forward(RHI::Ref rhi)
     triangleSpecs.Formats.push_back(TextureFormat::RGBA8);
     triangleSpecs.Bytecodes[ShaderType::Vertex] = vertexShader->Shader;
     triangleSpecs.Bytecodes[ShaderType::Fragment] = fragmentShader->Shader;
-    triangleSpecs.Signature = mRHI->CreateRootSignature({ RootType::PushConstant }, sizeof(int) * 4);
+    triangleSpecs.Signature = mRHI->CreateRootSignature({ RootType::PushConstant }, sizeof(int) * 5);
     
     mPipeline = mRHI->CreateGraphicsPipeline(triangleSpecs);
     mSampler = mRHI->CreateSampler(SamplerAddress::Wrap, SamplerFilter::Linear, true);
@@ -41,11 +41,18 @@ void Forward::Render(const Frame& frame, const Scene& scene)
     frame.CommandBuffer->ClearDepth(depth->DepthTargetView);
     frame.CommandBuffer->SetRenderTargets({ color->RenderTargetView }, depth->DepthTargetView);
     
-    glm::mat4 uploads[] = {
+    struct UploadData {
+        glm::mat4 View;
+        glm::mat4 Projection;
+        glm::vec3 Position;
+        float Pad;
+    } Data = {
         scene.Camera.View(),
-        scene.Camera.Projection()
+        scene.Camera.Projection(),
+        scene.Camera.Position(),
+        0.0f
     };
-    camera->RingBuffer[frame.FrameIndex]->CopyMapped(uploads, sizeof(uploads));
+    camera->RingBuffer[frame.FrameIndex]->CopyMapped(&Data, sizeof(Data));
 
     std::function<void(Frame frame, GLTFNode*, GLTF* model, glm::mat4 transform)> drawNode = [&](Frame frame, GLTFNode* node, GLTF* model, glm::mat4 transform) {
         if (!node) {
@@ -60,6 +67,7 @@ void Forward::Render(const Frame& frame, const Scene& scene)
             int resources[] = {
                 camera->RingBuffer[frame.FrameIndex]->CBV(),
                 node->ModelBuffer[frame.FrameIndex]->CBV(),
+                scene.LightBuffer[frame.FrameIndex]->CBV(),
                 material.AlbedoView->GetDescriptor().Index,
                 mSampler->BindlesssSampler()
             };

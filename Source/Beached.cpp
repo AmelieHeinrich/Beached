@@ -34,15 +34,9 @@ Beached::Beached()
         // Loading and setup
         mScene.Init(mRHI);
         mScene.Models.push_back(AssetManager::Get("Assets/Models/Sponza/Sponza.gltf", AssetType::GLTF));
-
-        for (int i = 0; i < 32; i++) {
-            PointLight light;
-            light.Position = glm::vec3(Random::Float(-5.0f, 5.0f), Random::Float(0.0f, 5.0f), Random::Float(-5.0f, 5.0f));
-            light.Color = glm::vec4(Random::Float(0.0f, 1.0f), Random::Float(0.0f, 1.0f), Random::Float(0.0f, 1.0f), 1.0f);
-            light.Radius = Random::Float(0.1f, 1.0f);
-
-            mScene.PointLights.push_back(light);
-        }
+        mScene.Sun.Direction = glm::vec3(0.0f, -1.0f, 0.0f);
+        mScene.Sun.Color = glm::vec4(1.0f);
+        mScene.Sun.Strenght = 1.0f;
 
         Uploader::Flush();
         mRHI->Wait();

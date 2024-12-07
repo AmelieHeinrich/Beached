@@ -7,6 +7,8 @@
 #include <Core/Math.hpp>
 
 #include <imgui.h>
+#include <glm/gtc/constants.hpp>
+#include <glm/gtx/rotate_vector.hpp>
 
 Debug::Data Debug::sData;
 
@@ -41,8 +43,9 @@ void Debug::Render(const Frame& frame, const Scene& scene)
     if (mEnable) {
         if (mDrawLights) {
             for (PointLight light : scene.PointLights) {
-                DrawSphere(light.Position, light.Radius, light.Color, 2);
+                DrawRings(light.Position, light.Radius, light.Color, 16);
             }
+            DrawArrow(glm::vec3(0.0f), scene.Sun.Direction, scene.Sun.Color, 0.2f);
         }
     }
 
@@ -219,6 +222,39 @@ void Debug::DrawSphere(glm::vec3 center, float radius, glm::vec3 color, int leve
 	DrawWireUnitSphereRecursive(matrix, color, -xAxis,  yAxis, -zAxis, level);
 	DrawWireUnitSphereRecursive(matrix, color,  xAxis, -yAxis, -zAxis, level);
 	DrawWireUnitSphereRecursive(matrix, color, -xAxis, -yAxis, -zAxis, level);
+}
+
+void Debug::DrawRing(glm::vec3 center, glm::vec3 normal, float radius, glm::vec3 color, int level)
+{
+    // Ensure a minimum of 3 segments to form a polygon
+    int numSegments = glm::max(level, 3);
+
+    glm::vec3 tangent;
+    if (glm::abs(normal.y) > 0.99f) {
+        tangent = glm::vec3(1.0f, 0.0f, 0.0f);
+    } else {
+        tangent = glm::normalize(glm::cross(normal, glm::vec3(0.0f, 1.0f, 0.0f)));
+    }
+    glm::vec3 bitangent = glm::normalize(glm::cross(normal, tangent));
+
+    float angleStep = glm::two_pi<float>() / numSegments;
+    glm::vec3 prevPoint = center + radius * tangent;
+
+    for (int i = 1; i <= numSegments; ++i) {
+        float angle = i * angleStep;
+        glm::vec3 nextPoint = center + radius * (cos(angle) * tangent + sin(angle) * bitangent);
+
+        Debug::DrawLine(prevPoint, nextPoint, color);
+
+        prevPoint = nextPoint;
+    }
+}
+
+void Debug::DrawRings(glm::vec3 center, float radius, glm::vec3 color, int level)
+{
+    DrawRing(center, glm::vec3(1.0f, 0.0f, 0.0f), radius, color, level);
+    DrawRing(center, glm::vec3(0.0f, 1.0f, 0.0f), radius, color, level);
+    DrawRing(center, glm::vec3(0.0f, 0.0f, 1.0f), radius, color, level);
 }
 
 void Debug::DrawWireUnitSphereRecursive(glm::mat4 matrix, glm::vec3 inColor, glm::vec3 inDir1, glm::vec3 inDir2, glm::vec3 inDir3, int inLevel)

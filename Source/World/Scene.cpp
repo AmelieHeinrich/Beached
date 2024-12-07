@@ -16,6 +16,7 @@ void Scene::Init(RHI::Ref rhi)
 void Scene::Update(UInt32 frameIndex)
 {
     mData.LightCount = PointLights.size();
+    mData.Sun = Sun;
     if (PointLights.size() > 0) {
         memcpy(mData.Lights.data(), PointLights.data(), PointLights.size() * sizeof(PointLight));
     }

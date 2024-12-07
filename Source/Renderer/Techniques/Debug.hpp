@@ -31,6 +31,8 @@ public:
     static void DrawFrustum(glm::mat4 view, glm::mat4 projection, glm::vec3 color = glm::vec3(1.0f));
     static void DrawCoordinateSystem(glm::mat4 transform, float size);
     static void DrawSphere(glm::vec3 center, float radius, glm::vec3 color = glm::vec3(1.0f), int level = 3);
+    static void DrawRing(glm::vec3 center, glm::vec3 normal, float radius, glm::vec3 color = glm::vec3(1.0f), int level = 32);
+    static void DrawRings(glm::vec3 center, float radius, glm::vec3 color = glm::vec3(1.0f), int level = 32);
 private:
     static constexpr UInt32 MAX_LINES = 5192 * 16;
 
