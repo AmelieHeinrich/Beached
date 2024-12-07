@@ -59,15 +59,12 @@ void Beached::Run()
         if (ImGui::IsKeyPressed(ImGuiKey_F1, false)) {
             mUI = !mUI;
         }
+        if (ImGui::IsKeyPressed(ImGuiKey_F2, false)) {
+            mFreezeCamera = !mFreezeCamera;
+        }
 
         Frame frame = mRHI->Begin();
         frame.CommandBuffer->Begin();
-
-        // Debug draw
-        {
-            Debug::DrawTriangle(glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec3(0.0f, 0.5f, 0.0f), glm::vec3(0.5f, -0.5f, 0.0f));
-            Debug::DrawArrow(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 0.3f), glm::vec3(1.0f), 0.05f);
-        }
         
         // Render
         {
