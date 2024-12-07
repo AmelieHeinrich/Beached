@@ -31,7 +31,7 @@ Beached::Beached()
         mRenderer = MakeRef<Renderer>(mRHI);
 
         // Loading and setup
-        // mScene.Models.push_back(AssetManager::Get("Assets/Models/DamagedHelmet/DamagedHelmet.gltf", AssetType::GLTF));
+        mScene.Models.push_back(AssetManager::Get("Assets/Models/Bistro/Bistro.gltf", AssetType::GLTF));
 
         Uploader::Flush();
         mRHI->Wait();
@@ -58,9 +58,6 @@ void Beached::Run()
         mScene.Camera.Begin();
         if (ImGui::IsKeyPressed(ImGuiKey_F1, false)) {
             mUI = !mUI;
-        }
-        if (ImGui::IsKeyPressed(ImGuiKey_F2, false)) {
-            mFreezeCamera = !mFreezeCamera;
         }
 
         Frame frame = mRHI->Begin();

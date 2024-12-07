@@ -7,6 +7,7 @@ struct FragmentIn
 {
     float4 Position : SV_Position;
     float2 UV : TEXCOORD;
+    float3 Normal : NORMAL;
 };
 
 struct Settings

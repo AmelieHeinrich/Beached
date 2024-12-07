@@ -146,8 +146,8 @@ void GLTF::ProcessPrimitive(cgltf_primitive *primitive, GLTFNode *node)
         }
         if (!cgltf_accessor_read_float(uvAttribute->data, i, glm::value_ptr(vertex.UV), 4)) {
         }
-        //if (!cgltf_accessor_read_float(norm_attribute->data, i, glm::value_ptr(vertex.Normals), 4)) {
-        //}
+        if (!cgltf_accessor_read_float(normAttribute->data, i, glm::value_ptr(vertex.Normal), 4)) {
+        }
         //if (!cgltf_accessor_read_uint(joint_attribute->data, i, ids, 4)) {
         //}
         //if (!cgltf_accessor_read_float(weight_attribute->data, i, vertex.Weights, 4)) {
@@ -183,6 +183,12 @@ void GLTF::ProcessPrimitive(cgltf_primitive *primitive, GLTFNode *node)
     
         outMaterial.Albedo = AssetManager::Get(path, AssetType::Texture);
         outMaterial.AlbedoView = mRHI->CreateView(outMaterial.Albedo->Texture, ViewType::ShaderResource);
+    }
+    if (material && material->normal_texture.texture) {
+        std::string path = Directory + '/' + std::string(material->normal_texture.texture->image->uri);
+    
+        outMaterial.Normal = AssetManager::Get(path, AssetType::Texture);
+        outMaterial.NormalView = mRHI->CreateView(outMaterial.Normal->Texture, ViewType::ShaderResource);
     }
 
     VertexCount += out.VertexCount;

@@ -17,12 +17,16 @@ struct Vertex
 {
     glm::vec3 Position;
     glm::vec2 UV;
+    glm::vec3 Normal;
 };
 
 struct GLTFMaterial
 {
     Ref<Asset> Albedo;
     View::Ref AlbedoView;
+
+    Ref<Asset> Normal;
+    View::Ref NormalView;
 };
 
 struct GLTFPrimitive

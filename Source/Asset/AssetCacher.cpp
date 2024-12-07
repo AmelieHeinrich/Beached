@@ -249,7 +249,7 @@ void AssetCacher::CacheAsset(const String& normalPath)
                 return;
             }
             int mipCount = image.countMipmaps();
-            int finalMipCount = mipCount - 2; // (Remove mip 2x2 and 1x1)
+            int finalMipCount = glm::max(1, mipCount - 2); // (Remove mip 2x2 and 1x1)
 
             file.Header.TextureHeader.Width = imageWidth;
             file.Header.TextureHeader.Height = imageHeight;
