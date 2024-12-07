@@ -4,7 +4,9 @@
 //
 
 #include <Renderer/PassManager.hpp>
+#include <RHI/Uploader.hpp>
 #include <Core/Logger.hpp>
+#include <Asset/Image.hpp>
 #include <TOML++/toml.hpp>
 
 UnorderedMap<String, Ref<RenderPassIO>> PassManager::sPassIOs;
@@ -67,5 +69,70 @@ void PassManager::Init(RHI::Ref rhi, Window::Ref window)
         }
     } catch (const toml::parse_error& err) {
         LOG_CRITICAL("TOML ERROR: {0}", err.what());
+    }
+
+    // Create white and black image
+    {
+        // White
+        {
+            Image image;
+            image.Width = 1;
+            image.Height = 1;
+            image.Levels = 1;
+
+            // 0xFFFFFFFF
+            image.Pixels.push_back(255);
+            image.Pixels.push_back(255);
+            image.Pixels.push_back(255);
+            image.Pixels.push_back(255);
+
+            TextureDesc desc;
+            desc.Width = 1;
+            desc.Height = 1;
+            desc.Levels = 1;
+            desc.Format = TextureFormat::RGBA8;
+            desc.Name = "White Texture";
+            desc.Usage = TextureUsage::ShaderResource;
+            desc.Depth = 1;
+
+            Ref<RenderPassIO> whiteTexture = MakeRef<RenderPassIO>();
+            whiteTexture->Desc = desc;
+            whiteTexture->Texture = rhi->CreateTexture(desc);
+            whiteTexture->ShaderResourceView = rhi->CreateView(whiteTexture->Texture, ViewType::ShaderResource);
+            sPassIOs["WhiteTexture"] = whiteTexture;
+
+            Uploader::EnqueueTextureUpload(image, whiteTexture->Texture);
+        }
+    
+        // White
+        {
+            Image image;
+            image.Width = 1;
+            image.Height = 1;
+            image.Levels = 1;
+
+            // 0xFFFFFFFF
+            image.Pixels.push_back(0);
+            image.Pixels.push_back(0);
+            image.Pixels.push_back(0);
+            image.Pixels.push_back(255);
+
+            TextureDesc desc;
+            desc.Width = 1;
+            desc.Height = 1;
+            desc.Levels = 1;
+            desc.Format = TextureFormat::RGBA8;
+            desc.Name = "Black Texture";
+            desc.Usage = TextureUsage::ShaderResource;
+            desc.Depth = 1;
+
+            Ref<RenderPassIO> blackTexture = MakeRef<RenderPassIO>();
+            blackTexture->Desc = desc;
+            blackTexture->Texture = rhi->CreateTexture(desc);
+            blackTexture->ShaderResourceView = rhi->CreateView(blackTexture->Texture, ViewType::ShaderResource);
+            sPassIOs["BlackTexture"] = blackTexture;
+
+            Uploader::EnqueueTextureUpload(image, blackTexture->Texture);
+        }
     }
 }

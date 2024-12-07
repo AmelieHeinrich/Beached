@@ -4,6 +4,7 @@
 //
 
 #include <Renderer/Techniques/Forward.hpp>
+#include <Renderer/Techniques/CSM.hpp>
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -23,7 +24,7 @@ Forward::Forward(RHI::Ref rhi)
     triangleSpecs.Formats.push_back(TextureFormat::RGBA8);
     triangleSpecs.Bytecodes[ShaderType::Vertex] = vertexShader->Shader;
     triangleSpecs.Bytecodes[ShaderType::Fragment] = fragmentShader->Shader;
-    triangleSpecs.Signature = mRHI->CreateRootSignature({ RootType::PushConstant }, sizeof(int) * 5);
+    triangleSpecs.Signature = mRHI->CreateRootSignature({ RootType::PushConstant }, sizeof(int) * 8);
     
     mPipeline = mRHI->CreateGraphicsPipeline(triangleSpecs);
     mSampler = mRHI->CreateSampler(SamplerAddress::Wrap, SamplerFilter::Linear, true);
@@ -34,6 +35,7 @@ void Forward::Render(const Frame& frame, const Scene& scene)
     ::Ref<RenderPassIO> color = PassManager::Get("MainColorBuffer");
     ::Ref<RenderPassIO> depth = PassManager::Get("MainDepthBuffer");
     ::Ref<RenderPassIO> camera = PassManager::Get("CameraRingBuffer");
+    ::Ref<RenderPassIO> white = PassManager::Get("WhiteTexture");
 
     frame.CommandBuffer->Barrier(color->Texture, ResourceLayout::ColorWrite);
     frame.CommandBuffer->Barrier(depth->Texture, ResourceLayout::DepthWrite);
@@ -50,7 +52,7 @@ void Forward::Render(const Frame& frame, const Scene& scene)
         scene.Camera.View(),
         scene.Camera.Projection(),
         scene.Camera.Position(),
-        0.0f
+        0.0f,
     };
     camera->RingBuffer[frame.FrameIndex]->CopyMapped(&Data, sizeof(Data));
 
@@ -64,14 +66,24 @@ void Forward::Render(const Frame& frame, const Scene& scene)
             GLTFMaterial material = model->Materials[primitive.MaterialIndex];
             node->ModelBuffer[frame.FrameIndex]->CopyMapped(glm::value_ptr(globalTransform), sizeof(glm::mat4));
             
-            int resources[] = {
+            int albedoIndex = material.Albedo ? material.AlbedoView->GetDescriptor().Index : white->ShaderResourceView->GetDescriptor().Index;
+
+            struct PushConstants {
+                int CameraIndex;
+                int ModelIndex;
+                int LightIndex;
+                int TextureIndex;
+                int SamplerIndex;
+                glm::ivec3 Pad;
+            } Constants = {
                 camera->RingBuffer[frame.FrameIndex]->CBV(),
                 node->ModelBuffer[frame.FrameIndex]->CBV(),
                 scene.LightBuffer[frame.FrameIndex]->CBV(),
-                material.AlbedoView->GetDescriptor().Index,
-                mSampler->BindlesssSampler()
+                albedoIndex,
+                mSampler->BindlesssSampler(),
+                glm::ivec3(0)
             };
-            frame.CommandBuffer->GraphicsPushConstants(resources, sizeof(resources), 0);
+            frame.CommandBuffer->GraphicsPushConstants(&Constants, sizeof(Constants), 0);
             frame.CommandBuffer->SetVertexBuffer(primitive.VertexBuffer);
             frame.CommandBuffer->SetIndexBuffer(primitive.IndexBuffer);
             frame.CommandBuffer->DrawIndexed(primitive.IndexCount);

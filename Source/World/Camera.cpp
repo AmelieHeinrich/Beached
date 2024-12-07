@@ -47,5 +47,28 @@ void Camera::Update(float dt, int width, int height)
 
     // Calculate matrices
     mView = glm::lookAt(mPosition, mPosition + mForward, glm::vec3(0.0f, 1.0f, 0.0f));
-    mProjection = glm::perspective(glm::radians(90.0f), (float)width / (float)height, 0.1f, 1000.0f);
+    mProjection = glm::perspective(glm::radians(90.0f), (float)width / (float)height, CAMERA_NEAR, CAMERA_FAR);
+}
+
+Vector<glm::vec4> Camera::Corners() const
+{
+    glm::mat4 inv = glm::inverse(mProjection * mView);
+
+    Vector<glm::vec4> corners;
+    for (int x = 0; x < 2; x++) {
+        for (int y = 0; y < 2; y++) {
+            for (int z = 0; z < 2; z++) {
+                // Go from NDC to world
+                glm::vec4 point = inv * glm::vec4(
+                    2.0f * x - 1.0f,
+                    2.0f * y - 1.0f,
+                    2.0f * z - 1.0f,
+                    1.0f
+                );
+                point = point / point.w; // Perspective divide
+                corners.push_back(point);
+            }
+        }
+    }
+    return corners;
 }

@@ -6,6 +6,7 @@
 #pragma once
 
 #include <Renderer/RenderPass.hpp>
+#include <World/Camera.hpp>
 
 class Debug : public RenderPass
 {
@@ -29,6 +30,8 @@ public:
     static void DrawUnitBox(glm::mat4 transform, glm::vec3 color = glm::vec3(1.0f));
     static void DrawBox(glm::mat4 transform, glm::vec3 min, glm::vec3 max, glm::vec3 color = glm::vec3(1.0f));
     static void DrawFrustum(glm::mat4 view, glm::mat4 projection, glm::vec3 color = glm::vec3(1.0f));
+    static void DrawFrustum(glm::mat4 projview, glm::vec3 color = glm::vec3(1.0f));
+    static void DrawFrustum(Camera camera, glm::vec3 color = glm::vec3(1.0f));
     static void DrawCoordinateSystem(glm::mat4 transform, float size);
     static void DrawSphere(glm::vec3 center, float radius, glm::vec3 color = glm::vec3(1.0f), int level = 3);
     static void DrawRing(glm::vec3 center, glm::vec3 normal, float radius, glm::vec3 color = glm::vec3(1.0f), int level = 32);

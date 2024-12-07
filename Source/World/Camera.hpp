@@ -9,6 +9,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+constexpr float CAMERA_FAR = 500.0f;
+constexpr float CAMERA_NEAR = 0.1f;
+
 class Camera
 {
 public:
@@ -21,6 +24,7 @@ public:
     glm::mat4 View() const { return mView; }
     glm::mat4 Projection() const { return mProjection; }
     glm::vec3 Position() const { return mPosition; }
+    Vector<glm::vec4> Corners() const;
 private:
     glm::mat4 mView = glm::mat4(1.0f);
     glm::mat4 mProjection = glm::mat4(1.0f);

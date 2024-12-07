@@ -5,6 +5,7 @@
 
 #include <Renderer/Renderer.hpp>
 
+#include <Renderer/Techniques/CSM.hpp>
 #include <Renderer/Techniques/Forward.hpp>
 #include <Renderer/Techniques/Composite.hpp>
 #include <Renderer/Techniques/Debug.hpp>
@@ -14,6 +15,7 @@
 Renderer::Renderer(RHI::Ref rhi)
 {
     mPasses = {
+        MakeRef<CSM>(rhi),
         MakeRef<Forward>(rhi),
         MakeRef<Composite>(rhi),
         MakeRef<Debug>(rhi)

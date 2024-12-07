@@ -170,6 +170,11 @@ void Debug::DrawBox(glm::mat4 transform, glm::vec3 min, glm::vec3 max, glm::vec3
 
 void Debug::DrawFrustum(glm::mat4 view, glm::mat4 projection, glm::vec3 color)
 {
+    DrawFrustum(projection * view, color);
+}
+
+void Debug::DrawFrustum(glm::mat4 projview, glm::vec3 color)
+{
     glm::vec3 corners[8] = {
         glm::vec3(-1.0f,  1.0f, 0.0f),
         glm::vec3( 1.0f,  1.0f, 0.0f),
@@ -185,7 +190,7 @@ void Debug::DrawFrustum(glm::mat4 view, glm::mat4 projection, glm::vec3 color)
     // Not sure I 100% understand the math here, TODO: study
     for (int i = 0; i < 8; i++) {
         glm::vec4 v = glm::vec4(corners[i], 1.0);
-        glm::vec4 h = glm::inverse(projection * view) * v;
+        glm::vec4 h = glm::inverse(projview) * v;
         h.x /= h.w;
         h.y /= h.w;
         h.z /= h.w;
@@ -196,6 +201,17 @@ void Debug::DrawFrustum(glm::mat4 view, glm::mat4 projection, glm::vec3 color)
         DrawLine(corners[i % 4],     corners[(i + 1) % 4],     color);
         DrawLine(corners[i],         corners[i + 4],           color);
         DrawLine(corners[i % 4 + 4], corners[(i + 1) % 4 + 4], color);
+    }
+}
+
+void Debug::DrawFrustum(Camera camera, glm::vec3 color)
+{
+    Vector<glm::vec4> corners = camera.Corners();
+
+    for (int i = 0; i < 4; i++) {
+        DrawLine(glm::vec3(corners[i % 4]),     glm::vec3(corners[(i + 1) % 4]),     color);
+        DrawLine(glm::vec3(corners[i]),         glm::vec3(corners[i + 4]),           color);
+        DrawLine(glm::vec3(corners[i % 4 + 4]), glm::vec3(corners[(i + 1) % 4 + 4]), color);
     }
 }
 
