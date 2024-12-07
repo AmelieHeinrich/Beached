@@ -5,6 +5,7 @@
 
 #include <Beached.hpp>
 
+#include <Core/Random.hpp>
 #include <Core/Logger.hpp>
 #include <UI/Helpers.hpp>
 #include <Asset/AssetCacher.hpp>
@@ -31,7 +32,17 @@ Beached::Beached()
         mRenderer = MakeRef<Renderer>(mRHI);
 
         // Loading and setup
-        mScene.Models.push_back(AssetManager::Get("Assets/Models/Bistro/Bistro.gltf", AssetType::GLTF));
+        mScene.Init(mRHI);
+        mScene.Models.push_back(AssetManager::Get("Assets/Models/Sponza/Sponza.gltf", AssetType::GLTF));
+
+        for (int i = 0; i < 32; i++) {
+            PointLight light;
+            light.Position = glm::vec3(Random::Float(-5.0f, 5.0f), Random::Float(0.0f, 5.0f), Random::Float(-5.0f, 5.0f));
+            light.Color = glm::vec4(Random::Float(0.0f, 1.0f), Random::Float(0.0f, 1.0f), Random::Float(0.0f, 1.0f), 1.0f);
+            light.Radius = Random::Float(0.1f, 1.0f);
+
+            mScene.PointLights.push_back(light);
+        }
 
         Uploader::Flush();
         mRHI->Wait();
@@ -62,9 +73,10 @@ void Beached::Run()
 
         Frame frame = mRHI->Begin();
         frame.CommandBuffer->Begin();
-        
+
         // Render
         {
+            mScene.Update(frame.FrameIndex);
             mRenderer->Render(frame, mScene);
         }
 
@@ -87,7 +99,9 @@ void Beached::Run()
         mRHI->End();
         mRHI->Present(false);
 
-        mScene.Camera.Update(dt, frame.Width, frame.Height);
+        ImGuiIO& io = ImGui::GetIO();
+        if (!io.WantCaptureMouse)
+            mScene.Camera.Update(dt, frame.Width, frame.Height);
     }
     mRHI->Wait();
 }
@@ -108,6 +122,12 @@ void Beached::UI()
             }
             ImGui::EndMenu();
         }
+        if (ImGui::BeginMenu("Renderer")) {
+            if (ImGui::MenuItem("Render Settings")) {
+                mRendererUI = !mRendererUI;
+            }
+            ImGui::EndMenu();
+        }
 
         ImGui::EndMainMenuBar();
     }
@@ -116,4 +136,6 @@ void Beached::UI()
     ImGui::Text("Version 0.0.1");
     ImGui::Text("Renderer: Direct3D 12");
     ImGui::End();
+
+    mRenderer->UI(&mRendererUI);
 }

@@ -9,6 +9,8 @@
 #include <Renderer/Techniques/Composite.hpp>
 #include <Renderer/Techniques/Debug.hpp>
 
+#include <imgui.h>
+
 Renderer::Renderer(RHI::Ref rhi)
 {
     mPasses = {
@@ -25,9 +27,13 @@ void Renderer::Render(const Frame& frame, const Scene& scene)
     }
 }
 
-void Renderer::UI()
+void Renderer::UI(bool *open)
 {
-    for (RenderPass::Ref pass : mPasses) {
-        pass->UI();
+    if (*open) {
+        ImGui::Begin("Renderer", open);
+        for (RenderPass::Ref pass : mPasses) {
+            pass->UI();
+        }
+        ImGui::End();
     }
 }

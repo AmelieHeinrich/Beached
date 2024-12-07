@@ -3,6 +3,8 @@
 // > Create Time: 2024-12-03 18:52:15
 //
 
+#include "Assets/Shaders/Lights.hlsl"
+
 struct FragmentIn
 {
     float4 Position : SV_Position;

@@ -6,6 +6,8 @@
 #include <Renderer/Techniques/Debug.hpp>
 #include <Core/Math.hpp>
 
+#include <imgui.h>
+
 Debug::Data Debug::sData;
 
 Debug::Debug(RHI::Ref rhi)
@@ -36,44 +38,63 @@ void Debug::Render(const Frame& frame, const Scene& scene)
 {
     ::Ref<RenderPassIO> cameraBuffer = PassManager::Get("CameraRingBuffer");
 
-    if (!sData.Lines.empty()) {
-        Vector<LineVertex> vertices;
-        for (Line line : sData.Lines) {
-            vertices.push_back({ line.From, line.Color });
-            vertices.push_back({ line.To, line.Color });
+    if (mEnable) {
+        if (mDrawLights) {
+            for (PointLight light : scene.PointLights) {
+                DrawSphere(light.Position, light.Radius, light.Color, 2);
+            }
         }
+    }
 
-        sData.TransferBuffer[frame.FrameIndex]->CopyMapped(vertices.data(), vertices.size() * sizeof(LineVertex));
+    if (!sData.Lines.empty()) {
+        if (mEnable) {
+            mLineCount = sData.Lines.size();
 
-        glm::mat4 pushConstants[] = {
-            scene.Camera.Projection(),
-            scene.Camera.View()
-        };
-
-        // Copy to the vertex buffer
-        frame.CommandBuffer->Barrier(sData.TransferBuffer[frame.FrameIndex], ResourceLayout::CopySource);
-        frame.CommandBuffer->Barrier(sData.VertexBuffer[frame.FrameIndex], ResourceLayout::CopyDest);
-        frame.CommandBuffer->CopyBufferToBuffer(sData.VertexBuffer[frame.FrameIndex], sData.TransferBuffer[frame.FrameIndex]);
-        frame.CommandBuffer->Barrier(sData.VertexBuffer[frame.FrameIndex], ResourceLayout::Vertex);
-        frame.CommandBuffer->Barrier(sData.TransferBuffer[frame.FrameIndex], ResourceLayout::Common);
+            Vector<LineVertex> vertices;
+            for (Line line : sData.Lines) {
+                vertices.push_back({ line.From, line.Color });
+                vertices.push_back({ line.To, line.Color });
+            }
     
-        // Render
-        frame.CommandBuffer->Barrier(frame.Backbuffer, ResourceLayout::ColorWrite);
-        frame.CommandBuffer->SetRenderTargets({ frame.BackbufferView }, nullptr);
-        frame.CommandBuffer->SetViewport(0, 0, frame.Width, frame.Height);
-        frame.CommandBuffer->SetGraphicsPipeline(sData.Pipeline);
-        frame.CommandBuffer->SetTopology(Topology::LineList);
-        frame.CommandBuffer->SetVertexBuffer(sData.VertexBuffer[frame.FrameIndex]);
-        frame.CommandBuffer->GraphicsPushConstants(pushConstants, sizeof(pushConstants), 0);
-        frame.CommandBuffer->Draw(vertices.size());
-
+            sData.TransferBuffer[frame.FrameIndex]->CopyMapped(vertices.data(), vertices.size() * sizeof(LineVertex));
+    
+            glm::mat4 pushConstants[] = {
+                scene.Camera.Projection(),
+                scene.Camera.View()
+            };
+    
+            // Copy to the vertex buffer
+            frame.CommandBuffer->Barrier(sData.TransferBuffer[frame.FrameIndex], ResourceLayout::CopySource);
+            frame.CommandBuffer->Barrier(sData.VertexBuffer[frame.FrameIndex], ResourceLayout::CopyDest);
+            frame.CommandBuffer->CopyBufferToBuffer(sData.VertexBuffer[frame.FrameIndex], sData.TransferBuffer[frame.FrameIndex]);
+            frame.CommandBuffer->Barrier(sData.VertexBuffer[frame.FrameIndex], ResourceLayout::Vertex);
+            frame.CommandBuffer->Barrier(sData.TransferBuffer[frame.FrameIndex], ResourceLayout::Common);
+        
+            // Render
+            frame.CommandBuffer->Barrier(frame.Backbuffer, ResourceLayout::ColorWrite);
+            frame.CommandBuffer->SetRenderTargets({ frame.BackbufferView }, nullptr);
+            frame.CommandBuffer->SetViewport(0, 0, frame.Width, frame.Height);
+            frame.CommandBuffer->SetGraphicsPipeline(sData.Pipeline);
+            frame.CommandBuffer->SetTopology(Topology::LineList);
+            frame.CommandBuffer->SetVertexBuffer(sData.VertexBuffer[frame.FrameIndex]);
+            frame.CommandBuffer->GraphicsPushConstants(pushConstants, sizeof(pushConstants), 0);
+            frame.CommandBuffer->Draw(vertices.size());
+        } else {
+            mLineCount = 0;
+        }
         sData.Lines.clear();
     }
 }
 
 void Debug::UI()
 {
-
+    if (ImGui::TreeNodeEx("Debug", ImGuiTreeNodeFlags_Framed)) {
+        ImGui::Checkbox("Enable", &mEnable);
+        ImGui::Checkbox("Draw Point Lights", &mDrawLights);
+        if (mEnable)
+            ImGui::Text("Line Count: %llu", mLineCount);
+        ImGui::TreePop();
+    }
 }
 
 void Debug::DrawLine(glm::vec3 from, glm::vec3 to, glm::vec3 color)

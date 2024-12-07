@@ -40,4 +40,5 @@ private:
 
     // UI settings
     bool mUI = false;
+    bool mRendererUI = false;
 };

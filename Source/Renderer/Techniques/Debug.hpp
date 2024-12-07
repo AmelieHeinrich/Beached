@@ -32,7 +32,7 @@ public:
     static void DrawCoordinateSystem(glm::mat4 transform, float size);
     static void DrawSphere(glm::vec3 center, float radius, glm::vec3 color = glm::vec3(1.0f), int level = 3);
 private:
-    static constexpr UInt32 MAX_LINES = 5192 * 8;
+    static constexpr UInt32 MAX_LINES = 5192 * 16;
 
     static void DrawWireUnitSphereRecursive(glm::mat4 matrix, glm::vec3 inColor, glm::vec3 inDir1, glm::vec3 inDir2, glm::vec3 inDir3, int inLevel);
 
@@ -49,6 +49,10 @@ private:
         Array<Buffer::Ref, FRAMES_IN_FLIGHT> TransferBuffer;
         Array<Buffer::Ref, FRAMES_IN_FLIGHT> VertexBuffer;
     } sData;
+
+    bool mEnable = true;
+    bool mDrawLights = true;
+    UInt64 mLineCount = 0;
 };
 
 
