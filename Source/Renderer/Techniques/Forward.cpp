@@ -21,7 +21,6 @@ Forward::Forward(RHI::Ref rhi)
     triangleSpecs.DepthEnabled = true;
     triangleSpecs.DepthFormat = TextureFormat::Depth32;
     triangleSpecs.Formats.push_back(TextureFormat::RGBA8);
-    triangleSpecs.DepthEnabled = true;
     triangleSpecs.Bytecodes[ShaderType::Vertex] = vertexShader->Shader;
     triangleSpecs.Bytecodes[ShaderType::Fragment] = fragmentShader->Shader;
     triangleSpecs.Signature = mRHI->CreateRootSignature({ RootType::PushConstant }, sizeof(int) * 4);

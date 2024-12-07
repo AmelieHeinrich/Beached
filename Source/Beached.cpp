@@ -9,6 +9,7 @@
 #include <UI/Helpers.hpp>
 #include <Asset/AssetCacher.hpp>
 #include <Renderer/PassManager.hpp>
+#include <Renderer/Techniques/Debug.hpp>
 
 #include <imgui.h>
 #include <glm/glm.hpp>
@@ -20,7 +21,7 @@ Beached::Beached()
     {
         Logger::Init();
 
-        mWindow = MakeRef<Window>(1440, 900, "Beached");
+        mWindow = MakeRef<Window>(1920, 1080, "Beached");
         mRHI = MakeRef<RHI>(mWindow);
 
         AssetManager::Init(mRHI);
@@ -30,7 +31,7 @@ Beached::Beached()
         mRenderer = MakeRef<Renderer>(mRHI);
 
         // Loading and setup
-        mScene.Models.push_back(AssetManager::Get("Assets/Models/DamagedHelmet/DamagedHelmet.gltf", AssetType::GLTF));
+        // mScene.Models.push_back(AssetManager::Get("Assets/Models/DamagedHelmet/DamagedHelmet.gltf", AssetType::GLTF));
 
         Uploader::Flush();
         mRHI->Wait();
@@ -61,6 +62,12 @@ void Beached::Run()
 
         Frame frame = mRHI->Begin();
         frame.CommandBuffer->Begin();
+
+        // Debug draw
+        {
+            Debug::DrawTriangle(glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec3(0.0f, 0.5f, 0.0f), glm::vec3(0.5f, -0.5f, 0.0f));
+            Debug::DrawArrow(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 0.3f), glm::vec3(1.0f), 0.05f);
+        }
         
         // Render
         {

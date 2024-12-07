@@ -45,25 +45,25 @@ void CommandBuffer::Begin()
     mList->SetDescriptorHeaps(2, heaps);
 }
 
-void CommandBuffer::Barrier(Texture::Ref texture, ResourceLayout layout, UInt32 mip)
+void CommandBuffer::Barrier(::Ref<Resource> resource, ResourceLayout layout, UInt32 mip)
 {
     D3D12_RESOURCE_BARRIER Barrier = {};
     Barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-    Barrier.Transition.pResource = texture->GetResource();
-    Barrier.Transition.StateBefore = D3D12_RESOURCE_STATES(texture->GetLayout());
+    Barrier.Transition.pResource = resource->GetResource();
+    Barrier.Transition.StateBefore = D3D12_RESOURCE_STATES(resource->GetLayout());
     Barrier.Transition.StateAfter = D3D12_RESOURCE_STATES(layout);
     Barrier.Transition.Subresource = mip == VIEW_ALL_MIPS ? D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES : mip;
     
     if (Barrier.Transition.StateBefore == D3D12_RESOURCE_STATE_UNORDERED_ACCESS && Barrier.Transition.StateAfter == D3D12_RESOURCE_STATE_UNORDERED_ACCESS) {
         Barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
-        Barrier.UAV.pResource = texture->GetResource();
+        Barrier.UAV.pResource = resource->GetResource();
     } else {
-        if (texture->GetLayout() == layout)
+        if (resource->GetLayout() == layout)
             return;
     }
     
     mList->ResourceBarrier(1, &Barrier);
-    texture->SetLayout(layout);
+    resource->SetLayout(layout);
 }
 
 void CommandBuffer::SetViewport(float x, float y, float width, float height)

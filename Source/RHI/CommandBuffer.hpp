@@ -31,7 +31,7 @@ public:
     void Begin();
     void End();
 
-    void Barrier(Texture::Ref texture, ResourceLayout layout, UInt32 mip = VIEW_ALL_MIPS);
+    void Barrier(::Ref<Resource> resource, ResourceLayout layout, UInt32 mip = VIEW_ALL_MIPS);
     
     void SetViewport(float x, float y, float width, float height);
     void SetTopology(Topology topology);

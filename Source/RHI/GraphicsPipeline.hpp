@@ -33,13 +33,13 @@ enum class DepthOperation
 
 struct GraphicsPipelineSpecs
 {
-    FillMode Fill;
-    CullMode Cull;
-    DepthOperation Depth;
+    FillMode Fill = FillMode::Solid;
+    CullMode Cull = CullMode::None;
+    DepthOperation Depth = DepthOperation::None;
 
     Vector<TextureFormat> Formats;
-    TextureFormat DepthFormat;
-    bool DepthEnabled;
+    TextureFormat DepthFormat = TextureFormat::Unknown;
+    bool DepthEnabled = false;
     bool CCW = true;
     bool Line = false;
     bool DepthClipEnable = true;
