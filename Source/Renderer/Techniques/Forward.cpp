@@ -106,7 +106,7 @@ void Forward::Render(const Frame& frame, const Scene& scene)
     frame.CommandBuffer->EndMarker();
 }
 
-void Forward::UI()
+void Forward::UI(const Frame& frame)
 {
 
 }

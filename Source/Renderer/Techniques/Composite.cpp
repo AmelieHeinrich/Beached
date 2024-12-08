@@ -21,7 +21,7 @@ void Composite::Render(const Frame& frame, const Scene& scene)
     frame.CommandBuffer->EndMarker();
 }
 
-void Composite::UI()
+void Composite::UI(const Frame& frame)
 {
 
 }

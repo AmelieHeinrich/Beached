@@ -18,7 +18,7 @@ public:
     ~RenderPass() = default;
 
     virtual void Render(const Frame& frame, const Scene& scene) = 0;
-    virtual void UI() = 0;
+    virtual void UI(const Frame& frame) = 0;
 protected:
     RHI::Ref mRHI;
 };

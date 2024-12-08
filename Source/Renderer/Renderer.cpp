@@ -29,12 +29,12 @@ void Renderer::Render(const Frame& frame, const Scene& scene)
     }
 }
 
-void Renderer::UI(bool *open)
+void Renderer::UI(const Frame& frame, bool *open)
 {
     if (*open) {
         ImGui::Begin("Renderer", open);
         for (RenderPass::Ref pass : mPasses) {
-            pass->UI();
+            pass->UI(frame);
         }
         ImGui::End();
     }

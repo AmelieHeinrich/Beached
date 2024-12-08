@@ -52,23 +52,32 @@ void Camera::Update(float dt, int width, int height)
 
 Vector<glm::vec4> Camera::Corners() const
 {
-    glm::mat4 inv = glm::inverse(mProjection * mView);
+    return FrustumCorners(mView, mProjection);
+}
 
-    Vector<glm::vec4> corners;
-    for (int x = 0; x < 2; x++) {
-        for (int y = 0; y < 2; y++) {
-            for (int z = 0; z < 2; z++) {
-                // Go from NDC to world
-                glm::vec4 point = inv * glm::vec4(
-                    2.0f * x - 1.0f,
-                    2.0f * y - 1.0f,
-                    2.0f * z - 1.0f,
-                    1.0f
-                );
-                point = point / point.w; // Perspective divide
-                corners.push_back(point);
-            }
-        }
+Vector<glm::vec4> Camera::FrustumCorners(glm::mat4 view, glm::mat4 proj)
+{
+    glm::mat4 inv = glm::inverse(view * proj);
+
+    Vector<glm::vec4> corners = {
+        glm::vec4(-1.0f,  1.0f, 0.0f, 1.0f),
+        glm::vec4( 1.0f,  1.0f, 0.0f, 1.0f),
+        glm::vec4( 1.0f, -1.0f, 0.0f, 1.0f),
+        glm::vec4(-1.0f, -1.0f, 0.0f, 1.0f),
+        glm::vec4(-1.0f,  1.0f, 1.0f, 1.0f),
+        glm::vec4( 1.0f,  1.0f, 1.0f, 1.0f),
+        glm::vec4( 1.0f, -1.0f, 1.0f, 1.0f),
+        glm::vec4(-1.0f, -1.0f, 1.0f, 1.0f),
+    };
+
+    // To convert from world space to NDC space, multiply by the inverse of the camera matrix (projection * view) then perspective divide
+    // Not sure I 100% understand the math here, TODO: study
+    for (int i = 0; i < 8; i++) {
+        glm::vec4 h = inv * corners[i];
+        h.x /= h.w;
+        h.y /= h.w;
+        h.z /= h.w;
+        corners[i] = h;
     }
     return corners;
 }

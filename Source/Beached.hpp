@@ -28,7 +28,7 @@ public:
     void Run();
 private:
     void Overlay();
-    void UI();
+    void UI(const Frame& frame);
 
     Window::Ref mWindow;
     RHI::Ref mRHI;

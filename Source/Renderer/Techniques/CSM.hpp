@@ -8,24 +8,31 @@
 #include <Renderer/RenderPass.hpp>
 
 constexpr int SHADOW_CASCADE_COUNT = 4;
-constexpr float SHADOW_CASCADE_LEVELS[SHADOW_CASCADE_COUNT] = { CAMERA_FAR / 50.0f, CAMERA_FAR / 25.0f, CAMERA_FAR / 10.0f, CAMERA_FAR / 2.0f };
 
 class CSM : public RenderPass
 {
 public:
+    struct LightMatrix {
+        bool Visualized = false;
+        glm::mat4 View;
+        glm::mat4 Projection;
+    };
+
     CSM(RHI::Ref rhi);
     ~CSM() = default;
 
     void Render(const Frame& frame, const Scene& scene) override;
-    void UI() override;
+    void UI(const Frame& frame) override;
+
+    Array<float, SHADOW_CASCADE_COUNT + 1> ComputeCascadeLevels(float cameraNear, float cameraFar);
 private:
-    glm::mat4 GetLightSpaceMatrix(const Scene& scene, float near, float far);
+    LightMatrix GetLightSpaceMatrix(const Frame& frame, const Scene& scene, float near, float far);
 
     bool mFreezeFrustum = false;
 
     glm::mat4 mFrozenView;
     glm::mat4 mFrozenProj;
-    Vector<glm::mat4> mLightMatrices;
+    Vector<LightMatrix> mLightMatrices;
 
     GraphicsPipeline::Ref mPipeline;
 };

@@ -8,6 +8,9 @@
 
 #include <imgui.h>
 
+#undef near
+#undef far
+
 CSM::CSM(RHI::Ref rhi)
     : RenderPass(rhi)
 {
@@ -31,7 +34,7 @@ CSM::CSM(RHI::Ref rhi)
     specs.DepthEnabled = true;
     specs.Depth = DepthOperation::Less;
     specs.DepthFormat = TextureFormat::Depth32;
-    specs.Signature = rhi->CreateRootSignature({ RootType::PushConstant }, sizeof(glm::mat4) * 2);
+    specs.Signature = rhi->CreateRootSignature({ RootType::PushConstant }, sizeof(glm::mat4) * 3);
     
     mPipeline = rhi->CreateGraphicsPipeline(specs);
 }
@@ -44,19 +47,16 @@ void CSM::Render(const Frame& frame, const Scene& scene)
         mFrozenProj = scene.Camera.Projection();
 
         mLightMatrices.clear();
-        for (int i = 0; i < SHADOW_CASCADE_COUNT + 1; i++) {
-            if (i == 0) {
-                mLightMatrices.push_back(GetLightSpaceMatrix(scene, CAMERA_NEAR, SHADOW_CASCADE_LEVELS[i]));
-            } else if (i < SHADOW_CASCADE_COUNT) {
-                mLightMatrices.push_back(GetLightSpaceMatrix(scene, SHADOW_CASCADE_LEVELS[i - 1], SHADOW_CASCADE_LEVELS[i]));
-            } else {
-                mLightMatrices.push_back(GetLightSpaceMatrix(scene, SHADOW_CASCADE_LEVELS[i - 1], CAMERA_FAR));
-            }
+        std::array<float, SHADOW_CASCADE_COUNT + 1> cascadeLevels = ComputeCascadeLevels(CAMERA_NEAR, CAMERA_FAR);
+        for (int i = 0; i < SHADOW_CASCADE_COUNT; ++i) {
+            float cascadeStart = cascadeLevels[i];
+            float cascadeEnd = cascadeLevels[i + 1];
+            mLightMatrices.push_back(GetLightSpaceMatrix(frame, scene, cascadeStart, cascadeEnd));
         }
     } else {
-        Debug::DrawFrustum(mFrozenProj * mFrozenView);
-        for (glm::mat4 matrix : mLightMatrices) {
-            Debug::DrawFrustum(matrix, glm::vec3(1.0f, 0.0f, 0.0f));
+        Debug::DrawFrustum(mFrozenProj * mFrozenView, glm::vec3(1.0f, 0.0f, 0.0f));
+        for (LightMatrix matrix : mLightMatrices) {
+            Debug::DrawFrustum(matrix.Projection * matrix.View, glm::vec3(0.0f, 1.0f, 0.0f));
         }
     }
 
@@ -86,10 +86,12 @@ void CSM::Render(const Frame& frame, const Scene& scene)
             for (GLTFPrimitive primitive : node->Primitives) {
                 struct PushConstants {
                     glm::mat4 transform;
-                    glm::mat4 light;
+                    glm::mat4 view;
+                    glm::mat4 projection;
                 } Constants = {
                     globalTransform,
-                    mLightMatrices[i]
+                    mLightMatrices[i].View,
+                    mLightMatrices[i].Projection
                 };
                 frame.CommandBuffer->GraphicsPushConstants(&Constants, sizeof(Constants), 0);
                 frame.CommandBuffer->SetVertexBuffer(primitive.VertexBuffer);
@@ -113,34 +115,75 @@ void CSM::Render(const Frame& frame, const Scene& scene)
     frame.CommandBuffer->EndMarker();
 }
 
-void CSM::UI()
+void CSM::UI(const Frame& frame)
 {
+    Vector<::Ref<RenderPassIO>> cascades = {
+        PassManager::Get("ShadowCascade0"),
+        PassManager::Get("ShadowCascade1"),
+        PassManager::Get("ShadowCascade2"),
+        PassManager::Get("ShadowCascade3"),
+    };
+
     if (ImGui::TreeNodeEx("Cascaded Shadow Maps", ImGuiTreeNodeFlags_Framed)) {
         ImGui::Checkbox("Freeze Frustum", &mFreezeFrustum);
+        for (int i = 0; i < SHADOW_CASCADE_COUNT; i++) {
+            if (ImGui::TreeNodeEx(("Cascade " + std::to_string(i)).data(), ImGuiTreeNodeFlags_Framed)) {
+                frame.CommandBuffer->Barrier(cascades[i]->Texture, ResourceLayout::Shader);
+                ImGui::Image((ImTextureID)cascades[i]->ShaderResourceView->GetDescriptor().GPU.ptr, ImVec2(128, 128));
+                ImGui::TreePop();
+            }
+        }
         ImGui::TreePop();
     }
 }
 
-glm::mat4 CSM::GetLightSpaceMatrix(const Scene& scene, float near, float far)
+Array<float, SHADOW_CASCADE_COUNT + 1> CSM::ComputeCascadeLevels(float cameraNear, float cameraFar)
 {
-    // View
-    Vector<glm::vec4> corners = scene.Camera.Corners();
+    Array<float, SHADOW_CASCADE_COUNT + 1> levels;
+    levels[0] = cameraNear;
+
+    // Compute cascade levels using a logarithmic distribution
+    for (int i = 1; i <= SHADOW_CASCADE_COUNT; ++i) {
+        float fraction = static_cast<float>(i) / SHADOW_CASCADE_COUNT;
+        levels[i] = cameraNear * pow(cameraFar / cameraNear, fraction);  // Non-linear spacing
+    }
+
+    return levels;
+}
+
+CSM::LightMatrix CSM::GetLightSpaceMatrix(const Frame& frame, const Scene& scene, float near, float far)
+{
+    // Step 1: Compute perspective projection for the camera frustum
+    glm::mat4 projection = glm::perspective(glm::radians(90.0f), (float)frame.Width / (float)frame.Height, near, far);
+
+    // Step 2: Get frustum corners (this might need to be adjusted)
+    Vector<glm::vec4> corners = Camera::FrustumCorners(scene.Camera.View(), projection);
+
+    // Step 3: Normalize the light direction
+    glm::vec3 lightDir = glm::normalize(-scene.Sun.Direction);
+    assert(glm::length(lightDir) > 0.0f && "Sun direction vector must not be zero");
+
+    // Step 4: Compute the frustum center
     glm::vec3 center = glm::vec3(0.0f);
-    for (glm::vec4& corner : corners) {
+    for (const glm::vec4& corner : corners) {
         center += glm::vec3(corner);
     }
     center /= corners.size();
-    glm::mat4 lightView = glm::lookAt(center + scene.Sun.Direction, center, glm::vec3(0.0f, 1.0f, 0.0f));
-    
-    // Projection
+
+    // Step 5: Construct the light's view matrix (account for left-handed coordinate system)
+    glm::vec3 up = glm::abs(lightDir.y) > 0.99f ? glm::vec3(1.0f, 0.0f, 0.0f) : glm::vec3(0.0f, 1.0f, 0.0f);
+    glm::mat4 lightView = glm::lookAt(center + lightDir, center, up);
+
+    // Step 6: Transform frustum corners into light view space
     float minX = std::numeric_limits<float>::max();
     float maxX = std::numeric_limits<float>::lowest();
     float minY = std::numeric_limits<float>::max();
     float maxY = std::numeric_limits<float>::lowest();
     float minZ = std::numeric_limits<float>::max();
     float maxZ = std::numeric_limits<float>::lowest();
-    for (const auto& v : corners) {
-        const auto trf = lightView * v;
+
+    for (const glm::vec4& corner : corners) {
+        glm::vec4 trf = lightView * corner; // Transform into light view space
         minX = std::min(minX, trf.x);
         maxX = std::max(maxX, trf.x);
         minY = std::min(minY, trf.y);
@@ -149,17 +192,9 @@ glm::mat4 CSM::GetLightSpaceMatrix(const Scene& scene, float near, float far)
         maxZ = std::max(maxZ, trf.z);
     }
 
-    constexpr float zMult = 10.0f;
-    if (minZ < 0) {
-        minZ *= zMult;
-    } else {
-        minZ /= zMult;
-    }
-    if (maxZ < 0) {
-        maxZ /= zMult;
-    } else {
-        maxZ *= zMult;
-    }
+    // Step 8: Construct the orthographic projection matrix for DirectX (Zero-to-One depth)
     glm::mat4 lightProjection = glm::ortho(minX, maxX, minY, maxY, minZ, maxZ);
-    return lightProjection * lightView;
+
+    // Step 9: Return combined view and projection matrices
+    return { false, lightView, lightProjection };
 }

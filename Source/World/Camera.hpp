@@ -25,6 +25,7 @@ public:
     glm::mat4 Projection() const { return mProjection; }
     glm::vec3 Position() const { return mPosition; }
     Vector<glm::vec4> Corners() const;
+    static Vector<glm::vec4> FrustumCorners(glm::mat4 view, glm::mat4 proj);
 private:
     glm::mat4 mView = glm::mat4(1.0f);
     glm::mat4 mProjection = glm::mat4(1.0f);

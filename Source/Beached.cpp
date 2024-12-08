@@ -81,7 +81,7 @@ void Beached::Run()
             frame.CommandBuffer->SetRenderTargets({ frame.BackbufferView }, nullptr);
             frame.CommandBuffer->BeginGUI(frame.Width, frame.Height);
             if (mUI) {
-                UI();
+                UI(frame);
             } else {
                 Overlay();
             }
@@ -109,7 +109,7 @@ void Beached::Overlay()
     ImGui::End();
 }
 
-void Beached::UI()
+void Beached::UI(const Frame& frame)
 {
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("Window")) {
@@ -133,5 +133,5 @@ void Beached::UI()
     ImGui::Text("Renderer: Direct3D 12");
     ImGui::End();
 
-    mRenderer->UI(&mRendererUI);
+    mRenderer->UI(frame, &mRendererUI);
 }

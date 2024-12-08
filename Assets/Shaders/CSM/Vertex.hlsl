@@ -13,15 +13,17 @@ struct VertexIn
 struct Settings
 {
     column_major float4x4 Transform;
-    column_major float4x4 LightMatrix;  
+    column_major float4x4 LightView;
+    column_major float4x4 LightProj;  
 };
 
 ConstantBuffer<Settings> PushConstants : register(b0);
 
 float4 VSMain(VertexIn Input) : SV_Position
 {
-    float4 Output = float4(Input.Position, 1.0);
-    Output = mul(PushConstants.Transform, Output);
-    Output = mul(PushConstants.LightMatrix, Output);
-    return Output;
+    // Add a homogeneous coordinate for transformation
+    float4 worldPosition = mul(PushConstants.Transform, float4(Input.Position, 1.0)); // Model-space to World-space
+    float4 lightViewPosition = mul(PushConstants.LightView, worldPosition);          // World-space to Light-view-space
+    float4 clipSpacePosition = mul(PushConstants.LightProj, lightViewPosition);      // Light-view-space to Clip-space
+    return clipSpacePosition;
 }

@@ -91,7 +91,7 @@ void Debug::Render(const Frame& frame, const Scene& scene)
     }
 }
 
-void Debug::UI()
+void Debug::UI(const Frame& frame)
 {
     if (ImGui::TreeNodeEx("Debug", ImGuiTreeNodeFlags_Framed)) {
         ImGui::Checkbox("Enable", &mEnable);

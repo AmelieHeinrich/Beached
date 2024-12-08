@@ -14,5 +14,5 @@ public:
     ~Composite() = default;
 
     void Render(const Frame& frame, const Scene& scene) override;
-    void UI() override;
+    void UI(const Frame& frame) override;
 };

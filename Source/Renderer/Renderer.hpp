@@ -16,7 +16,7 @@ public:
     ~Renderer() = default;
 
     void Render(const Frame& frame, const Scene& scene);
-    void UI(bool *open);
+    void UI(const Frame& frame, bool *open);
 private:
     Vector<RenderPass::Ref> mPasses;
 };
