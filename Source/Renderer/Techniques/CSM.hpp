@@ -19,11 +19,13 @@ public:
     void Render(const Frame& frame, const Scene& scene) override;
     void UI() override;
 private:
+    glm::mat4 GetLightSpaceMatrix(const Scene& scene, float near, float far);
+
     bool mFreezeFrustum = false;
 
     glm::mat4 mFrozenView;
     glm::mat4 mFrozenProj;
     Vector<glm::mat4> mLightMatrices;
 
-    glm::mat4 GetLightSpaceMatrix(const Scene& scene, float near, float far);
+    GraphicsPipeline::Ref mPipeline;
 };

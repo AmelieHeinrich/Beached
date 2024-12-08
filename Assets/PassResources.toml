@@ -1,8 +1,9 @@
 # This file contains all the data for the passes. I made it into a file so I didn't have to raw declare them in code. This looks better IMHO.
 # If the width and height are 0, they will inherit the screen size.
-# TODO: Add buffers and samplers? Move all frame resources to this lil file?
+# TODO: Add samplers? Move all frame resources to this lil file?
 # TODO: Move pipeline creation to a toml file as well?
 
+# Forward
 [CameraRingBuffer]
 Type = "RingBuffer"
 Size = 512
@@ -18,5 +19,35 @@ Usage = "Render"
 Type = "Texture"
 Width = 0
 Height = 0
+Format = "D32"
+Usage = "Depth"
+#
+
+# CSM
+[ShadowCascade0]
+Type = "Texture"
+Width = 4096
+Height = 4096
+Format = "D32"
+Usage = "Depth"
+
+[ShadowCascade1]
+Type = "Texture"
+Width = 4096
+Height = 4096
+Format = "D32"
+Usage = "Depth"
+
+[ShadowCascade2]
+Type = "Texture"
+Width = 4096
+Height = 4096
+Format = "D32"
+Usage = "Depth"
+
+[ShadowCascade3]
+Type = "Texture"
+Width = 4096
+Height = 4096
 Format = "D32"
 Usage = "Depth"

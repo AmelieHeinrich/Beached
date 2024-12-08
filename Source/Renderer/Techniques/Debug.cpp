@@ -67,6 +67,7 @@ void Debug::Render(const Frame& frame, const Scene& scene)
             };
     
             // Copy to the vertex buffer
+            frame.CommandBuffer->BeginMarker("Debug");
             frame.CommandBuffer->Barrier(sData.TransferBuffer[frame.FrameIndex], ResourceLayout::CopySource);
             frame.CommandBuffer->Barrier(sData.VertexBuffer[frame.FrameIndex], ResourceLayout::CopyDest);
             frame.CommandBuffer->CopyBufferToBuffer(sData.VertexBuffer[frame.FrameIndex], sData.TransferBuffer[frame.FrameIndex]);
@@ -82,6 +83,7 @@ void Debug::Render(const Frame& frame, const Scene& scene)
             frame.CommandBuffer->SetVertexBuffer(sData.VertexBuffer[frame.FrameIndex]);
             frame.CommandBuffer->GraphicsPushConstants(pushConstants, sizeof(pushConstants), 0);
             frame.CommandBuffer->Draw(vertices.size());
+            frame.CommandBuffer->EndMarker();
         } else {
             mLineCount = 0;
         }

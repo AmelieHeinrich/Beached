@@ -14,9 +14,11 @@ void Composite::Render(const Frame& frame, const Scene& scene)
 {
     ::Ref<RenderPassIO> color = PassManager::Get("MainColorBuffer");
 
+    frame.CommandBuffer->BeginMarker("Composite");
     frame.CommandBuffer->Barrier(color->Texture, ResourceLayout::CopySource);
     frame.CommandBuffer->Barrier(frame.Backbuffer, ResourceLayout::CopyDest);
     frame.CommandBuffer->CopyTextureToTexture(frame.Backbuffer, color->Texture);
+    frame.CommandBuffer->EndMarker();
 }
 
 void Composite::UI()

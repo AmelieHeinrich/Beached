@@ -31,6 +31,9 @@ public:
     void Begin();
     void End();
 
+    void BeginMarker(const String& name);
+    void EndMarker();
+
     void Barrier(::Ref<Resource> resource, ResourceLayout layout, UInt32 mip = VIEW_ALL_MIPS);
     
     void SetViewport(float x, float y, float width, float height);

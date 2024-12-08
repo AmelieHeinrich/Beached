@@ -11,6 +11,8 @@
 #include <imgui_impl_dx12.h>
 #include <imgui_impl_win32.h>
 
+#include <PIX/pix3.h>
+
 CommandBuffer::CommandBuffer(Device::Ref device, Queue::Ref queue, DescriptorHeaps heaps, bool singleTime)
     : mSingleTime(singleTime), mParentQueue(queue), mHeaps(heaps), mDevice(device)
 {
@@ -182,6 +184,16 @@ void CommandBuffer::CopyBufferToTexture(::Ref<Resource> dst, ::Ref<Resource> src
 void CommandBuffer::End()
 {
     mList->Close();
+}
+
+void CommandBuffer::BeginMarker(const String& name)
+{
+    PIXBeginEvent(mList, PIX_COLOR_DEFAULT, name.data());
+}
+
+void CommandBuffer::EndMarker()
+{
+    PIXEndEvent(mList);
 }
 
 void CommandBuffer::BeginGUI(int width, int height)

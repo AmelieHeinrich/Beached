@@ -37,6 +37,7 @@ void Forward::Render(const Frame& frame, const Scene& scene)
     ::Ref<RenderPassIO> camera = PassManager::Get("CameraRingBuffer");
     ::Ref<RenderPassIO> white = PassManager::Get("WhiteTexture");
 
+    frame.CommandBuffer->BeginMarker("Forward");
     frame.CommandBuffer->Barrier(color->Texture, ResourceLayout::ColorWrite);
     frame.CommandBuffer->Barrier(depth->Texture, ResourceLayout::DepthWrite);
     frame.CommandBuffer->ClearRenderTarget(color->RenderTargetView, 0.1f, 0.1f, 0.1f);
@@ -102,6 +103,7 @@ void Forward::Render(const Frame& frame, const Scene& scene)
     for (auto& model : scene.Models) {
         drawNode(frame, model->Model.Root, &model->Model, glm::mat4(1.0f));
     }
+    frame.CommandBuffer->EndMarker();
 }
 
 void Forward::UI()
