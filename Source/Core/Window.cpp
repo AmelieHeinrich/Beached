@@ -22,6 +22,7 @@ Window::Window(UInt32 width, UInt32 height, const String& title)
     windowClass.lpszClassName = "Beached Window Class";
     windowClass.hInstance = ::GetModuleHandleA(nullptr);
     windowClass.lpfnWndProc = WindowCallback;
+    windowClass.hbrBackground = (HBRUSH)GRAY_BRUSH;
     RegisterClassA(&windowClass);
 
     mWindow = CreateWindowA(

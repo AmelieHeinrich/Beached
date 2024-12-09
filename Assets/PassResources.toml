@@ -24,6 +24,10 @@ Usage = "Depth"
 #
 
 # CSM
+[CascadeRingBuffer]
+Type = "RingBuffer"
+Size = 1024
+
 [ShadowCascade0]
 Type = "Texture"
 Width = 4096

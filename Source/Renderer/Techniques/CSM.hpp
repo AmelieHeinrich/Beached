@@ -8,31 +8,32 @@
 #include <Renderer/RenderPass.hpp>
 
 constexpr int SHADOW_CASCADE_COUNT = 4;
+constexpr float CASCADE_SPLIT_LAMBDA = 0.95f;
+
+struct Cascade
+{
+    int SRVIndex;
+    float Split;
+    glm::mat4 ViewProj;
+};
 
 class CSM : public RenderPass
 {
 public:
-    struct LightMatrix {
-        bool Visualized = false;
-        glm::mat4 View;
-        glm::mat4 Projection;
-    };
-
     CSM(RHI::Ref rhi);
     ~CSM() = default;
 
     void Render(const Frame& frame, const Scene& scene) override;
     void UI(const Frame& frame) override;
-
-    Array<float, SHADOW_CASCADE_COUNT + 1> ComputeCascadeLevels(float cameraNear, float cameraFar);
 private:
-    LightMatrix GetLightSpaceMatrix(const Frame& frame, const Scene& scene, float near, float far);
-
-    bool mFreezeFrustum = false;
-
-    glm::mat4 mFrozenView;
-    glm::mat4 mFrozenProj;
-    Vector<LightMatrix> mLightMatrices;
+    void UpdateCascades(const Scene& scene);
 
     GraphicsPipeline::Ref mPipeline;
+
+    bool mFreezeFrustum = false;
+    glm::mat4 mFrozenView;
+    glm::mat4 mFrozenProj;
+
+    Array<float, SHADOW_CASCADE_COUNT> mSplits;
+    Array<Cascade, SHADOW_CASCADE_COUNT> mCascades;
 };

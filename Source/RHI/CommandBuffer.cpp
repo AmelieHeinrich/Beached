@@ -102,6 +102,12 @@ void CommandBuffer::SetGraphicsPipeline(GraphicsPipeline::Ref pipeline)
     mList->SetGraphicsRootSignature(pipeline->GetRootSignature()->GetSignature());
 }
 
+void CommandBuffer::SetGraphicsPipeline(GraphicsPipeline* pipeline)
+{
+    mList->SetPipelineState(pipeline->GetPipeline());
+    mList->SetGraphicsRootSignature(pipeline->GetRootSignature()->GetSignature());
+}
+
 void CommandBuffer::SetRenderTargets(const Vector<View::Ref> targets, View::Ref depth)
 {
     std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> cpus;

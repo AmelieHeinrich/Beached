@@ -122,6 +122,11 @@ GraphicsPipeline::Ref RHI::CreateGraphicsPipeline(GraphicsPipelineSpecs& specs)
     return MakeRef<GraphicsPipeline>(mDevice, specs);
 }
 
+GraphicsPipeline* RHI::CreateGraphicsPipelinePtr(GraphicsPipelineSpecs& specs)
+{
+    return new GraphicsPipeline(mDevice, specs);
+}
+
 Buffer::Ref RHI::CreateBuffer(UInt64 size, UInt64 stride, BufferType type, const String& name)
 {
     return MakeRef<Buffer>(mDevice, mDescriptorHeaps, size, stride, type, name);

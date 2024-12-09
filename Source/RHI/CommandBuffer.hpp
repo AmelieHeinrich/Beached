@@ -39,6 +39,7 @@ public:
     void SetViewport(float x, float y, float width, float height);
     void SetTopology(Topology topology);
     void SetGraphicsPipeline(GraphicsPipeline::Ref pipeline);
+    void SetGraphicsPipeline(GraphicsPipeline* pipeline);
     void SetRenderTargets(const Vector<View::Ref> targets, View::Ref depth);
     void SetVertexBuffer(Buffer::Ref buffer);
     void SetIndexBuffer(Buffer::Ref buffer);

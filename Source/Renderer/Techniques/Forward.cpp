@@ -24,10 +24,11 @@ Forward::Forward(RHI::Ref rhi)
     triangleSpecs.Formats.push_back(TextureFormat::RGBA8);
     triangleSpecs.Bytecodes[ShaderType::Vertex] = vertexShader->Shader;
     triangleSpecs.Bytecodes[ShaderType::Fragment] = fragmentShader->Shader;
-    triangleSpecs.Signature = mRHI->CreateRootSignature({ RootType::PushConstant }, sizeof(int) * 8);
+    triangleSpecs.Signature = mRHI->CreateRootSignature({ RootType::PushConstant }, sizeof(int) * 7);
     
     mPipeline = mRHI->CreateGraphicsPipeline(triangleSpecs);
     mSampler = mRHI->CreateSampler(SamplerAddress::Wrap, SamplerFilter::Linear, true);
+    mShadowSampler = mRHI->CreateSampler(SamplerAddress::Clamp, SamplerFilter::Nearest, false);
 }
 
 void Forward::Render(const Frame& frame, const Scene& scene)
@@ -36,6 +37,7 @@ void Forward::Render(const Frame& frame, const Scene& scene)
     ::Ref<RenderPassIO> depth = PassManager::Get("MainDepthBuffer");
     ::Ref<RenderPassIO> camera = PassManager::Get("CameraRingBuffer");
     ::Ref<RenderPassIO> white = PassManager::Get("WhiteTexture");
+    ::Ref<RenderPassIO> cascade = PassManager::Get("CascadeRingBuffer");
 
     frame.CommandBuffer->BeginMarker("Forward");
     frame.CommandBuffer->Barrier(color->Texture, ResourceLayout::ColorWrite);
@@ -47,11 +49,13 @@ void Forward::Render(const Frame& frame, const Scene& scene)
     struct UploadData {
         glm::mat4 View;
         glm::mat4 Projection;
+        glm::mat4 InvView;
         glm::vec3 Position;
         float Pad;
     } Data = {
         scene.Camera.View(),
         scene.Camera.Projection(),
+        glm::inverse(scene.Camera.View()),
         scene.Camera.Position(),
         0.0f,
     };
@@ -73,16 +77,22 @@ void Forward::Render(const Frame& frame, const Scene& scene)
                 int CameraIndex;
                 int ModelIndex;
                 int LightIndex;
+                int CascadeIndex;
+
                 int TextureIndex;
+                
                 int SamplerIndex;
-                glm::ivec3 Pad;
+                int ShadowSamplerIndex;
             } Constants = {
                 camera->RingBuffer[frame.FrameIndex]->CBV(),
                 node->ModelBuffer[frame.FrameIndex]->CBV(),
                 scene.LightBuffer[frame.FrameIndex]->CBV(),
+                cascade->RingBuffer[frame.FrameIndex]->CBV(),
+
                 albedoIndex,
+
                 mSampler->BindlesssSampler(),
-                glm::ivec3(0)
+                mShadowSampler->BindlesssSampler()
             };
             frame.CommandBuffer->GraphicsPushConstants(&Constants, sizeof(Constants), 0);
             frame.CommandBuffer->SetVertexBuffer(primitive.VertexBuffer);

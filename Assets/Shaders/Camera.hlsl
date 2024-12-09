@@ -7,10 +7,10 @@ struct Camera
 {
     column_major float4x4 View;
     column_major float4x4 Projection;
+    column_major float4x4 InvView;
     float3 Position;
     float Pad;
 };
 
 static const float CAMERA_NEAR = 0.1f;
-static const float CAMERA_FAR = 500.0f;
-static const float SHADOW_CASCADE_LEVELS[4] = { CAMERA_FAR / 50.0f, CAMERA_FAR / 25.0f, CAMERA_FAR / 10.0f, CAMERA_FAR / 2.0f };
+static const float CAMERA_FAR = 100.0f;

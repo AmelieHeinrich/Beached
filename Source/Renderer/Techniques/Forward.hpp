@@ -17,5 +17,6 @@ public:
     void UI(const Frame& frame) override;
 private:
     Sampler::Ref mSampler;
+    Sampler::Ref mShadowSampler;
     GraphicsPipeline::Ref mPipeline;
 };

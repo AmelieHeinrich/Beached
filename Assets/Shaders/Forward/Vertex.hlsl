@@ -32,9 +32,14 @@ struct Settings
     int CameraIndex;
     int ModelIndex;
     int LightIndex;
+    int CascadeBufferIndex;
+    
+    // Model textures
     int TextureIndex;
+
+    // Samplers
     int SamplerIndex;
-    int3 Pad;
+    int ShadowSamplerIndex;
 };
 
 ConstantBuffer<Settings> PushConstants : register(b0);
