@@ -100,6 +100,17 @@ void Uploader::EnqueueBufferUpload(void* data, UInt64 size, Ref<Resource> buffer
     sData.Requests.push_back(request);
 }
 
+void Uploader::EnqueueAccelerationStructureBuild(Ref<AccelerationStructure> as)
+{
+    sData.ASRequests++;
+
+    UploadRequest request;
+    request.Type = UploadRequestType::BuildAS;
+    request.Acceleration = as;
+
+    sData.Requests.push_back(request);
+}
+
 void Uploader::Flush()
 {
     sData.CmdBuffer = MakeRef<CommandBuffer>(sData.Device, sData.UploadQueue, sData.Heaps, true);
@@ -116,6 +127,10 @@ void Uploader::Flush()
                 sData.CmdBuffer->CopyBufferToTexture(request.Resource, request.StagingBuffer);
                 break;
             }
+            case UploadRequestType::BuildAS: {
+                sData.CmdBuffer->BuildAccelerationStructure(request.Acceleration);
+                break;
+            }
         }
     }
 
@@ -129,7 +144,10 @@ void Uploader::ClearRequests()
     sData.TextureRequests = 0;
     for (auto request : sData.Requests) {
         request.Resource = nullptr;
-        request.StagingBuffer.reset();
+        if (request.StagingBuffer)
+            request.StagingBuffer.reset();
+        if (request.Acceleration)
+            request.Acceleration->FreeScratch();
     }
     if (sData.CmdBuffer) {
         sData.CmdBuffer.reset();

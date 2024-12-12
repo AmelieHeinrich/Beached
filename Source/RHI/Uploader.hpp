@@ -11,6 +11,7 @@
 #include <RHI/Resource.hpp>
 #include <RHI/Queue.hpp>
 #include <RHI/Buffer.hpp>
+#include <RHI/AccelerationStructure.hpp>
 
 class Uploader
 {
@@ -19,6 +20,7 @@ public:
     static void EnqueueTextureUpload(Vector<UInt8> buffer, Ref<Resource> texture);
     static void EnqueueTextureUpload(Image image, Ref<Resource> buffer);
     static void EnqueueBufferUpload(void* data, UInt64 size, Ref<Resource> buffer);
+    static void EnqueueAccelerationStructureBuild(Ref<AccelerationStructure> as);
     static void Flush();
     static void ClearRequests();
 
@@ -26,7 +28,8 @@ private:
     enum class UploadRequestType
     {
         BufferCPUToGPU,
-        TextureToGPU
+        TextureToGPU,
+        BuildAS
     };
 
     struct UploadRequest
@@ -34,6 +37,7 @@ private:
         UploadRequestType Type;
         Ref<Resource> Resource;
         Ref<Buffer> StagingBuffer;
+        Ref<AccelerationStructure> Acceleration;
         UInt64 Size;
     };
 
@@ -47,5 +51,6 @@ private:
 
         int TextureRequests;
         int BufferRequests;
+        int ASRequests;
     } sData;
 };

@@ -187,6 +187,16 @@ void CommandBuffer::CopyBufferToTexture(::Ref<Resource> dst, ::Ref<Resource> src
     }
 }
 
+void CommandBuffer::BuildAccelerationStructure(::Ref<AccelerationStructure> as)
+{
+    D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC buildDesc = {};
+    buildDesc.Inputs = as->mInputs;
+    buildDesc.DestAccelerationStructureData = as->mResource->GetAddress();
+    buildDesc.ScratchAccelerationStructureData = as->mScratch->GetAddress();
+
+    mList->BuildRaytracingAccelerationStructure(&buildDesc, 0, nullptr);
+}
+
 void CommandBuffer::End()
 {
     mList->Close();

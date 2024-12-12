@@ -10,6 +10,7 @@
 #include <RHI/GraphicsPipeline.hpp>
 #include <RHI/Resource.hpp>
 #include <RHI/Buffer.hpp>
+#include <RHI/AccelerationStructure.hpp>
 
 enum class Topology
 {
@@ -55,6 +56,7 @@ public:
     void CopyTextureToTexture(::Ref<Resource> dst, ::Ref<Resource> src) { CopyBufferToBuffer(dst, src); } // It's all buffers anyway innit?
     void CopyBufferToBuffer(::Ref<Resource> dst, ::Ref<Resource> src);
     void CopyBufferToTexture(::Ref<Resource> dst, ::Ref<Resource> src);
+    void BuildAccelerationStructure(::Ref<AccelerationStructure> as);
 
     void BeginGUI(int width, int height);
     void EndGUI();
