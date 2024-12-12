@@ -153,6 +153,7 @@ void CSM::UpdateCascades(const Scene& scene)
     float range = maxZ - minZ;
     float ratio = maxZ / minZ;
 
+    // Calculate split depths based on view camera frustum
     for (int i = 0; i < SHADOW_CASCADE_COUNT; i++) {
         float p = (i + 1) / static_cast<float>(SHADOW_CASCADE_COUNT);
         float log = minZ + range * p;
@@ -161,59 +162,14 @@ void CSM::UpdateCascades(const Scene& scene)
         mSplits[i] = (d - nearClip) / clipRange;
     }
 
-    // Calculate split depths based on view camera frustum
 	// Based on method presented in https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch10.html
     // Calculate orthographic projection matrix for each cascade
     float lastSplitDist = 0.0f;
     for (int i = 0; i < SHADOW_CASCADE_COUNT; i++) {
         float splitDist = mSplits[i];
 
-		glm::vec3 frustumCorners[8] = {
-			glm::vec3(-1.0f,  1.0f, 0.0f),
-			glm::vec3( 1.0f,  1.0f, 0.0f),
-			glm::vec3( 1.0f, -1.0f, 0.0f),
-			glm::vec3(-1.0f, -1.0f, 0.0f),
-			glm::vec3(-1.0f,  1.0f,  1.0f),
-			glm::vec3( 1.0f,  1.0f,  1.0f),
-			glm::vec3( 1.0f, -1.0f,  1.0f),
-			glm::vec3(-1.0f, -1.0f,  1.0f),
-		};
-
-        glm::mat4 invCam = glm::inverse(scene.Camera.Projection() * scene.Camera.View());
-		for (uint32_t j = 0; j < 8; j++) {
-			glm::vec4 invCorner = invCam * glm::vec4(frustumCorners[j], 1.0f);
-			frustumCorners[j] = invCorner / invCorner.w;
-		}
-
-        for (uint32_t j = 0; j < 4; j++) {
-			glm::vec3 dist = frustumCorners[j + 4] - frustumCorners[j];
-			frustumCorners[j + 4] = frustumCorners[j] + (dist * splitDist);
-			frustumCorners[j] = frustumCorners[j] + (dist * lastSplitDist);
-		}
-
-        glm::vec3 frustumCenter = glm::vec3(0.0f);
-		for (uint32_t j = 0; j < 8; j++) {
-			frustumCenter += frustumCorners[j];
-		}
-		frustumCenter /= 8.0f;
-
-        float radius = 0.0f;
-		for (uint32_t j = 0; j < 8; j++) {
-			float distance = glm::length(frustumCorners[j] - frustumCenter);
-			radius = glm::max(radius, distance);
-		}
-		radius = std::ceil(radius * 16.0f) / 16.0f;
-
-        glm::vec3 maxExtents = glm::vec3(radius);
-		glm::vec3 minExtents = -maxExtents;
-		
-        glm::vec3 lightDir = glm::normalize(scene.Sun.Direction);
-        glm::vec3 up = glm::abs(lightDir.y) > 0.99f ? glm::vec3(1.0f, 0.0f, 0.0f) : glm::vec3(0.0f, 1.0f, 0.0f);
-		glm::mat4 lightViewMatrix = glm::lookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter, up);
-		glm::mat4 lightOrthoMatrix = glm::ortho(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f, maxExtents.z - minExtents.z);
-
         mCascades[i].Split = (CAMERA_NEAR + splitDist * clipRange);
-        mCascades[i].ViewProj = lightOrthoMatrix * lightViewMatrix;
+        mCascades[i].ViewProj = glm::mat4(0.0f);
 
         lastSplitDist = mSplits[i];
     }

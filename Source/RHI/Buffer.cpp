@@ -40,8 +40,9 @@ Buffer::Buffer(Device::Ref device, DescriptorHeaps heaps, UInt64 size, UInt64 st
     resourceDesc.SampleDesc.Quality = 0;
     resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
     resourceDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
-    if (type == BufferType::Storage) resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+    if (type == BufferType::Storage || type == BufferType::AccelerationStructure) resourceDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
     if (type == BufferType::Constant) mLayout = ResourceLayout::GenericRead;
+    if (type == BufferType::AccelerationStructure) mLayout = ResourceLayout::AccelerationStructure;
 
     CreateResource(&heapProperties, &resourceDesc, D3D12_RESOURCE_STATES(mLayout));
     SetName(name);

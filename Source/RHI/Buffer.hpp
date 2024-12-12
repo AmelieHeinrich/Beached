@@ -16,7 +16,8 @@ enum class BufferType
     Constant,
     Storage,
     Copy,
-    Readback
+    Readback,
+    AccelerationStructure
 };
 
 class Buffer : public Resource
