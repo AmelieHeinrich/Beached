@@ -10,12 +10,11 @@ AccelerationStructure::AccelerationStructure(Device::Ref device, DescriptorHeaps
 {
 }
 
-void AccelerationStructure::Allocate(const D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS& inputs, UInt64 *scratchSize, const String& name)
+void AccelerationStructure::Allocate(const String& name)
 {
     D3D12_RAYTRACING_ACCELERATION_STRUCTURE_PREBUILD_INFO prebuildInfo = {};
-    mDevice->GetDevice()->GetRaytracingAccelerationStructurePrebuildInfo(&inputs, &prebuildInfo);
-    if (scratchSize)
-        *scratchSize = prebuildInfo.UpdateScratchDataSizeInBytes;
+    mDevice->GetDevice()->GetRaytracingAccelerationStructurePrebuildInfo(&mInputs, &prebuildInfo);
+    mScratchSize = prebuildInfo.UpdateScratchDataSizeInBytes;
 
     // Create scratch
     mScratch = MakeRef<Buffer>(mDevice, mHeaps, prebuildInfo.ScratchDataSizeInBytes, 0, BufferType::Storage, "Scratch Acceleration Structure " + name);

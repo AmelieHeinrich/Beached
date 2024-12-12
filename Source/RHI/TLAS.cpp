@@ -13,7 +13,7 @@ TLAS::TLAS(Device::Ref device, DescriptorHeaps& heaps, Buffer::Ref instanceBuffe
     mInputs.NumDescs = numInstance;
     mInputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
     mInputs.InstanceDescs = instanceBuffer->GetAddress();
-    Allocate(mInputs, &mScratchSize, name);
+    Allocate(name);
 
     mSRV = heaps[DescriptorHeapType::ShaderResource]->Allocate();
 

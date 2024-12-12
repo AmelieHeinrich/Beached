@@ -18,5 +18,4 @@ public:
     UInt64 Address() const { return mResource->GetAddress(); }
 private:
     D3D12_RAYTRACING_GEOMETRY_DESC mGeometryDesc;
-    D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS mInputs;
 };

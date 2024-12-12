@@ -25,5 +25,5 @@ BLAS::BLAS(Device::Ref device, DescriptorHeaps& heaps, Buffer::Ref vertex, Buffe
     mInputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
     mInputs.pGeometryDescs = &mGeometryDesc;
 
-    Allocate(mInputs, nullptr, name);
+    Allocate(name);
 }

@@ -17,10 +17,16 @@ public:
 
     void FreeScratch();
 protected:
-    void Allocate(const D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS& inputs, UInt64 *scratchSize = nullptr, const String& name = "Acceleration Structure");
+    friend class Uploader;
+    friend class CommandBuffer;
+
+    void Allocate(const String& name = "Acceleration Structure");
 
     Device::Ref mDevice;
     DescriptorHeaps mHeaps;
+
+    D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS mInputs;
+    UInt64 mScratchSize;
 
     Buffer::Ref mResource;
     Buffer::Ref mScratch;

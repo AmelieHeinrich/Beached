@@ -18,7 +18,4 @@ public:
     UInt32 Bindless() const { return mSRV.Index; }
 private:
     DescriptorHeap::Descriptor mSRV;
-
-    UInt64 mScratchSize;
-    D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS mInputs;
 };
