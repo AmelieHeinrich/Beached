@@ -15,6 +15,7 @@ public:
     AccelerationStructure(Device::Ref device, DescriptorHeaps& heaps);
     ~AccelerationStructure() = default;
 
+    void FreeScratch();
 protected:
     void Allocate(const D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS& inputs, UInt64 *scratchSize = nullptr, const String& name = "Acceleration Structure");
 

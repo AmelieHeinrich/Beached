@@ -23,3 +23,8 @@ void AccelerationStructure::Allocate(const D3D12_BUILD_RAYTRACING_ACCELERATION_S
     // Create AS
     mResource = MakeRef<Buffer>(mDevice, mHeaps, prebuildInfo.ResultDataMaxSizeInBytes, 0, BufferType::AccelerationStructure, name);
 }
+
+void AccelerationStructure::FreeScratch()
+{
+    mScratch.reset();
+}

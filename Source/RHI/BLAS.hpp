@@ -15,7 +15,6 @@ public:
     BLAS(Device::Ref device, DescriptorHeaps& heaps, Buffer::Ref vertex, Buffer::Ref index, UInt32 vtxCount, UInt32 idxCount, const String& name = "BLAS");
     ~BLAS() = default;
 
-    void FreeScratch();
     UInt64 Address() const { return mResource->GetAddress(); }
 private:
     D3D12_RAYTRACING_GEOMETRY_DESC mGeometryDesc;

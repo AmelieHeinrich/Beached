@@ -27,8 +27,3 @@ BLAS::BLAS(Device::Ref device, DescriptorHeaps& heaps, Buffer::Ref vertex, Buffe
 
     Allocate(mInputs, nullptr, name);
 }
-
-void BLAS::FreeScratch()
-{
-    mScratch.reset();
-}
