@@ -4,6 +4,7 @@
 //
 
 #include <RHI/Utilities.hpp>
+#include <Core/Logger.hpp>
 
 void D3DUtils::Release(IUnknown* object)
 {

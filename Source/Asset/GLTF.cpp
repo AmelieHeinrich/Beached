@@ -156,7 +156,6 @@ void GLTF::ProcessPrimitive(cgltf_primitive *primitive, GLTFNode *node)
         //for (u32 i = 0; i < MAX_BONE_WEIGHTS; i++)
         //    vertex.MaxBoneInfluence[i] = static_cast<int>(ids[i]);
 
-        glm::vec4 untransformed_point = node->Transform * glm::vec4(vertex.Position, 1.0f);
         vertices.push_back(vertex);
     }
 
@@ -170,9 +169,18 @@ void GLTF::ProcessPrimitive(cgltf_primitive *primitive, GLTFNode *node)
     /// @note(ame): create buffers
     out.VertexBuffer = mRHI->CreateBuffer(vertices.size() * sizeof(Vertex), sizeof(Vertex), BufferType::Vertex, node->Name + " Vertex Buffer");
     out.IndexBuffer = mRHI->CreateBuffer(indices.size() * sizeof(UInt32), sizeof(UInt32), BufferType::Index, node->Name + " Index Buffer");
+    out.GeometryStructure = mRHI->CreateBLAS(out.VertexBuffer, out.IndexBuffer, out.VertexCount, out.IndexCount, node->Name + " BLAS");
 
     Uploader::EnqueueBufferUpload(vertices.data(), out.VertexBuffer->GetSize(), out.VertexBuffer);
     Uploader::EnqueueBufferUpload(indices.data(), out.IndexBuffer->GetSize(), out.IndexBuffer);
+    Uploader::EnqueueAccelerationStructureBuild(out.GeometryStructure);
+
+    out.Instance = {};
+    out.Instance.AccelerationStructure = out.GeometryStructure->GetAddress();
+    out.Instance.InstanceMask = 1;
+    out.Instance.InstanceID = 0;
+    out.Instance.Transform = glm::mat3x4(glm::transpose(node->Transform));
+    out.Instance.Flags = 0x4;
 
     cgltf_material *material = primitive->material;
     GLTFMaterial outMaterial = {};

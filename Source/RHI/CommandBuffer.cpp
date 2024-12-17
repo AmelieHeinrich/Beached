@@ -47,6 +47,15 @@ void CommandBuffer::Begin()
     mList->SetDescriptorHeaps(2, heaps);
 }
 
+void CommandBuffer::UAVBarrier(::Ref<Resource> resource)
+{
+    D3D12_RESOURCE_BARRIER Barrier = {};
+    Barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_UAV;
+    Barrier.UAV.pResource = resource->GetResource();
+
+    mList->ResourceBarrier(1, &Barrier);
+}
+
 void CommandBuffer::Barrier(::Ref<Resource> resource, ResourceLayout layout, UInt32 mip)
 {
     D3D12_RESOURCE_BARRIER Barrier = {};
@@ -187,11 +196,26 @@ void CommandBuffer::CopyBufferToTexture(::Ref<Resource> dst, ::Ref<Resource> src
     }
 }
 
+void CommandBuffer::UpdateTLAS(TLAS::Ref tlas, Buffer::Ref instanceBuffer, int numInstances)
+{
+    D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC buildDesc = {};
+    buildDesc.DestAccelerationStructureData = tlas->GetAddress();
+    buildDesc.Inputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;
+    buildDesc.Inputs.Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PERFORM_UPDATE;
+    buildDesc.Inputs.NumDescs = numInstances;
+    buildDesc.Inputs.DescsLayout = D3D12_ELEMENTS_LAYOUT_ARRAY;
+    buildDesc.Inputs.InstanceDescs = instanceBuffer->GetAddress();
+    buildDesc.SourceAccelerationStructureData =  tlas->GetAddress();
+    buildDesc.ScratchAccelerationStructureData = tlas->mScratch->GetAddress();
+
+    mList->BuildRaytracingAccelerationStructure(&buildDesc, 0, nullptr);
+}
+
 void CommandBuffer::BuildAccelerationStructure(::Ref<AccelerationStructure> as)
 {
     D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_DESC buildDesc = {};
     buildDesc.Inputs = as->mInputs;
-    buildDesc.DestAccelerationStructureData = as->mResource->GetAddress();
+    buildDesc.DestAccelerationStructureData = as->GetAddress();
     buildDesc.ScratchAccelerationStructureData = as->mScratch->GetAddress();
 
     mList->BuildRaytracingAccelerationStructure(&buildDesc, 0, nullptr);

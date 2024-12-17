@@ -40,7 +40,7 @@ public:
     ViewDimension GetDimension() { return mDimension; }
 private:
     DescriptorHeap::Descriptor mDescriptor;
-    ::Ref<Resource> mParent;
+    ::Ref<Resource> mParent = nullptr;
     ViewType mType;
     ViewDimension mDimension;
 };

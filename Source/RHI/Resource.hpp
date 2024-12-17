@@ -21,7 +21,8 @@ enum class ResourceLayout
     Present = D3D12_RESOURCE_STATE_PRESENT,
     GenericRead = D3D12_RESOURCE_STATE_GENERIC_READ,
     Vertex = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER,
-    AccelerationStructure = D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE
+    AccelerationStructure = D3D12_RESOURCE_STATE_RAYTRACING_ACCELERATION_STRUCTURE,
+    NonPixelShader = D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE
 };
 
 enum class ResourceTag
@@ -46,6 +47,7 @@ public:
     UInt64 GetStride() const { return mStride; }
     ID3D12Resource* GetResource() const { return mResource; }
     UInt64 GetAddress() { return mResource->GetGPUVirtualAddress(); }
+    String GetName() { return mName; }
 
     ResourceLayout GetLayout() { return mLayout; };
     void SetLayout(ResourceLayout layout) { mLayout = layout; }
@@ -57,6 +59,7 @@ protected:
     UInt64 mStride;
     Vector<ResourceTag> mTags;
     ResourceLayout mLayout;
+    String mName;
 
     void CreateResource(D3D12_HEAP_PROPERTIES* heapProps, D3D12_RESOURCE_DESC* resourceDesc, D3D12_RESOURCE_STATES state);
 };

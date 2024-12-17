@@ -5,7 +5,7 @@
 
 includes("ThirdParty")
 
-add_rules("mode.debug", "mode.release")
+add_rules("mode.debug", "mode.release", "mode.releasedbg")
 
 target("Beached")
     set_rundir(".")
@@ -33,14 +33,23 @@ target("Beached")
         set_optimize("fastest")
         set_strip("all")
     end
+    if is_mode("releasedbg") then
+        set_symbols("debug")
+        set_optimize("fastest")
+        set_strip("all")
+    end
 
     -- Copy DLLs in build folder
     before_link(function (target)
         if not os.exists("$(buildir)/$(plat)/$(arch)/$(mode)/Assets/") then
             os.mkdir("$(buildir)/$(plat)/$(arch)/$(mode)/Assets/")
         end
+        if not os.exists("$(buildir)/$(plat)/$(arch)/$(mode)/.cache/") then
+            os.mkdir("$(buildir)/$(plat)/$(arch)/$(mode)/.cache/")
+        end
         os.cp("Binaries/*", "$(buildir)/$(plat)/$(arch)/$(mode)/")
         os.cp("Assets/*", "$(buildir)/$(plat)/$(arch)/$(mode)/Assets/")
+        os.cp(".cache/*", "$(buildir)/$(plat)/$(arch)/$(mode)/.cache/")
     end)
 
     add_files("Source/**.cpp")

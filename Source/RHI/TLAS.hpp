@@ -6,6 +6,17 @@
 #pragma once
 
 #include <RHI/AccelerationStructure.hpp>
+#include <glm/glm.hpp>
+
+struct RaytracingInstance
+{
+    glm::mat3x4 Transform;
+    uint32_t InstanceID	: 24;
+    uint32_t InstanceMask : 8;
+    uint32_t InstanceContributionToHitGroupIndex : 24;
+    uint32_t Flags : 8;
+    uint64_t AccelerationStructure;
+};
 
 class TLAS : public AccelerationStructure
 {
@@ -15,7 +26,7 @@ public:
     TLAS(Device::Ref device, DescriptorHeaps& heaps, Buffer::Ref instanceBuffer, UInt32 numInstance, const String& name = "TLAS");
     ~TLAS();
 
-    UInt32 Bindless() const { return mSRV.Index; }
+    int Bindless() const { return mSRV.Index; }
 private:
     DescriptorHeap::Descriptor mSRV;
 };

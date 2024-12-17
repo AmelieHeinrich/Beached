@@ -146,3 +146,13 @@ Sampler::Ref RHI::CreateSampler(SamplerAddress address, SamplerFilter filter, bo
 {
     return MakeRef<Sampler>(mDevice, mDescriptorHeaps, address, filter, mips, anisotropyLevel);
 }
+
+BLAS::Ref RHI::CreateBLAS(Buffer::Ref vertex, Buffer::Ref index, UInt32 vtxCount, UInt32 idxCount, const String& name)
+{
+    return MakeRef<BLAS>(mDevice, mDescriptorHeaps, vertex, index, vtxCount, idxCount, name);
+}
+
+TLAS::Ref RHI::CreateTLAS(Buffer::Ref instanceBuffer, UInt32 numInstance, const String& name)
+{
+    return MakeRef<TLAS>(mDevice, mDescriptorHeaps, instanceBuffer, numInstance, name);
+}

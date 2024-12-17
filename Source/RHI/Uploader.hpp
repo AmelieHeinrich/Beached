@@ -35,10 +35,10 @@ private:
     struct UploadRequest
     {
         UploadRequestType Type;
-        Ref<Resource> Resource;
-        Ref<Buffer> StagingBuffer;
-        Ref<AccelerationStructure> Acceleration;
-        UInt64 Size;
+
+        Ref<Resource> Resource = nullptr;
+        Ref<Buffer> StagingBuffer = nullptr;
+        Ref<AccelerationStructure> Acceleration = nullptr;
     };
 
     static struct Data

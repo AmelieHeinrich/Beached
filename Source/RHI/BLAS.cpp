@@ -8,6 +8,7 @@
 BLAS::BLAS(Device::Ref device, DescriptorHeaps& heaps, Buffer::Ref vertex, Buffer::Ref index, UInt32 vtxCount, UInt32 idxCount, const String& name)
     : AccelerationStructure(device, heaps)
 {
+    mGeometryDesc = {};
     mGeometryDesc.Type = D3D12_RAYTRACING_GEOMETRY_TYPE_TRIANGLES;
     mGeometryDesc.Flags = D3D12_RAYTRACING_GEOMETRY_FLAG_OPAQUE;
     mGeometryDesc.Triangles.IndexBuffer = index->GetAddress();
@@ -19,6 +20,7 @@ BLAS::BLAS(Device::Ref device, DescriptorHeaps& heaps, Buffer::Ref vertex, Buffe
     mGeometryDesc.Triangles.VertexBuffer.StrideInBytes = vertex->GetStride();
     mGeometryDesc.Triangles.Transform3x4 = 0;
 
+    mInputs = {};
     mInputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_BOTTOM_LEVEL;
     mInputs.Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE;
     mInputs.NumDescs = 1;

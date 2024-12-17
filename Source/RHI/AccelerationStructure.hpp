@@ -7,27 +7,25 @@
 
 #include <RHI/Device.hpp>
 #include <RHI/DescriptorHeap.hpp>
+#include <RHI/Resource.hpp>
 #include <RHI/Buffer.hpp>
 
-class AccelerationStructure
+class AccelerationStructure : public Resource
 {
 public:
     AccelerationStructure(Device::Ref device, DescriptorHeaps& heaps);
     ~AccelerationStructure() = default;
 
     void FreeScratch();
+    Buffer::Ref GetScratch() { return mScratch; }
 protected:
     friend class Uploader;
     friend class CommandBuffer;
 
     void Allocate(const String& name = "Acceleration Structure");
 
-    Device::Ref mDevice;
     DescriptorHeaps mHeaps;
-
     D3D12_BUILD_RAYTRACING_ACCELERATION_STRUCTURE_INPUTS mInputs;
-    UInt64 mScratchSize;
-
-    Buffer::Ref mResource;
-    Buffer::Ref mScratch;
+    UInt64 mUpdateSize = 0;
+    Buffer::Ref mScratch = nullptr;
 };

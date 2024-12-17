@@ -32,12 +32,14 @@ Beached::Beached()
         mRenderer = MakeRef<Renderer>(mRHI);
 
         // Loading and setup
-        mScene.Init(mRHI);
         mScene.Models.push_back(AssetManager::Get("Assets/Models/ShadowTest/ShadowTest.gltf", AssetType::GLTF));
-        mScene.Sun.Direction = glm::vec3(0.0f, -1.0f, 0.0f);
+        mScene.Sun.Direction = glm::vec3(0.3f, -1.0f, 0.4f);
         mScene.Sun.Color = glm::vec4(1.0f);
         mScene.Sun.Strenght = 1.0f;
 
+        mScene.Bake(mRHI);
+
+        // TLAS flush
         Uploader::Flush();
         mRHI->Wait();
         Uploader::ClearRequests();
@@ -70,7 +72,7 @@ void Beached::Run()
 
         // Render
         {
-            mScene.Update(frame.FrameIndex);
+            mScene.Update(frame, frame.FrameIndex);
             mRenderer->Render(frame, mScene);
         }
 

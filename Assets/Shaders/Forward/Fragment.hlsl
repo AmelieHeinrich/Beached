@@ -37,11 +37,14 @@ struct Settings
     // Samplers
     int SamplerIndex;
     int ShadowSamplerIndex;
+
+    // Acceleration structures
+    int AccelStructure;
 };
 
 ConstantBuffer<Settings> PushConstants : register(b0);
 
-float CalculateShadow(FragmentIn input, uint cascadeIndex)
+float CalculateShadowCascade(FragmentIn input, uint cascadeIndex)
 {
     ConstantBuffer<CascadeBuffer> CascadeInfo = ResourceDescriptorHeap[PushConstants.CascadeBufferIndex];
     ConstantBuffer<LightData> Lights = ResourceDescriptorHeap[PushConstants.LightIndex];
@@ -97,19 +100,30 @@ float3 CalculateSun(DirectionalLight Light, FragmentIn Input, float3 Albedo)
     return (NdotL * Albedo * Light.Strength * Light.Color.xyz);
 }
 
-float4 GetCascadeColor(int layer)
+float TraceShadow(DirectionalLight Light, FragmentIn Input)
 {
-    switch (layer) {
-        case 0:
-            return float4(1.0f, 0.0f, 0.0f, 1.0f);
-        case 1:
-            return float4(0.0f, 1.0f, 0.0f, 1.0f);
-        case 2:
-            return float4(0.0f, 0.0f, 1.0f, 1.0f);
-        case 3:
-            return float4(1.0f, 0.0f, 1.0f, 1.0f);
+    RaytracingAccelerationStructure TLAS = ResourceDescriptorHeap[PushConstants.AccelStructure];
+
+    float attenuation = clamp(dot(Input.Normal, -Light.Direction), 0.0, 1.0);
+    if (true) {
+        RayDesc desc;
+        desc.Origin = Input.FragPosWorld.xyz + Input.Normal * 0.01;
+        desc.Direction = -Light.Direction;
+        desc.TMin = 0.01;
+        desc.TMax = 10000.0;
+
+        RayQuery<RAY_FLAG_CULL_NON_OPAQUE | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES> q;
+        q.TraceRayInline(TLAS, RAY_FLAG_CULL_NON_OPAQUE | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, 0xFF, desc);
+        q.Proceed();
+
+        if (q.CommittedStatus() == COMMITTED_TRIANGLE_HIT) {
+            return 0.3;
+        } else {
+            return 1.0;
+        }
+    } else {
+        return 0.3f;
     }
-    return 0.0f;
 }
 
 float4 PSMain(FragmentIn Input) : SV_Target
@@ -119,19 +133,18 @@ float4 PSMain(FragmentIn Input) : SV_Target
     Texture2D Albedo = ResourceDescriptorHeap[PushConstants.TextureIndex];
     SamplerState Sampler = SamplerDescriptorHeap[PushConstants.SamplerIndex];
 
-    uint cascadeIndex = 0;
+    // uint cascadeIndex = 0;
 	// for (uint i = 0; i < SHADOW_CASCADE_COUNT - 1; ++i) {
 	// 	if(Input.FragPosView.z < CascadeInfo.Cascades[i].Split) {
 	// 		cascadeIndex = i + 1;
 	// 	}
 	// }
 
-    float shadow = CalculateShadow(Input, cascadeIndex);
-
     float4 Color = Albedo.Sample(Sampler, Input.UV);
     if (Color.a < 0.1)
         discard;
     
+    float shadow = TraceShadow(Lights.Sun, Input);
     float3 Lo = CalculateSun(Lights.Sun, Input, Color.xyz) * shadow;
     for (int i = 0; i < Lights.LightCount; i++) {
         Lo += CalculatePoint(Lights.Lights[i], Input, Color.xyz);

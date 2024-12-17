@@ -27,5 +27,5 @@ public:
 
     ID3D12RootSignature* GetSignature() { return mRootSignature; }
 private:
-    ID3D12RootSignature* mRootSignature;
+    ID3D12RootSignature* mRootSignature = nullptr;
 };

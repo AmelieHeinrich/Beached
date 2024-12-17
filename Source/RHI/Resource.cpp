@@ -22,6 +22,7 @@ Resource::~Resource()
 
 void Resource::SetName(const String& string)
 {
+    mName = string;
     mResource->SetName(UTF::AsciiToWide(string).data());
 }
 
@@ -32,6 +33,7 @@ void Resource::Tag(ResourceTag tag)
 
 void Resource::CreateResource(D3D12_HEAP_PROPERTIES* heapProps, D3D12_RESOURCE_DESC* resourceDesc, D3D12_RESOURCE_STATES state)
 {
+    mLayout = ResourceLayout(state);
     HRESULT result = mParentDevice->GetDevice()->CreateCommittedResource(heapProps, D3D12_HEAP_FLAG_NONE, resourceDesc, state, nullptr, IID_PPV_ARGS(&mResource));
     ASSERT(SUCCEEDED(result), "Failed to allocate resource!");
 }

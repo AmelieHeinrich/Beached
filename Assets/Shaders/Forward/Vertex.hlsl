@@ -24,6 +24,7 @@ struct VertexOut
 struct Model
 {
     column_major float4x4 Transform;
+    column_major float4x4 InvTransform;
 };
 
 struct Settings
@@ -40,6 +41,9 @@ struct Settings
     // Samplers
     int SamplerIndex;
     int ShadowSamplerIndex;
+
+    // Acceleration structures
+    int AccelStructure;
 };
 
 ConstantBuffer<Settings> PushConstants : register(b0);
@@ -64,7 +68,7 @@ VertexOut VSMain(VertexIn Input)
     VertexOut Output = (VertexOut)0;
     Output.Position = NDCPosition;
     Output.UV = Input.UV;
-    Output.Normal = Input.Normal;
+    Output.Normal = normalize(float4(mul(transpose(Instance.InvTransform), float4(Input.Normal, 1.0))).xyz);
     Output.FragPosWorld = WorldPosition.xyz;
     Output.FragPosView = ViewPosition.xyz;
     return Output;

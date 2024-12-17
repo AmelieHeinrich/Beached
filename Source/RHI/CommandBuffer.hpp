@@ -11,6 +11,7 @@
 #include <RHI/Resource.hpp>
 #include <RHI/Buffer.hpp>
 #include <RHI/AccelerationStructure.hpp>
+#include <RHI/TLAS.hpp>
 
 enum class Topology
 {
@@ -35,6 +36,7 @@ public:
     void BeginMarker(const String& name);
     void EndMarker();
 
+    void UAVBarrier(::Ref<Resource> resource);
     void Barrier(::Ref<Resource> resource, ResourceLayout layout, UInt32 mip = VIEW_ALL_MIPS);
     
     void SetViewport(float x, float y, float width, float height);
@@ -56,6 +58,8 @@ public:
     void CopyTextureToTexture(::Ref<Resource> dst, ::Ref<Resource> src) { CopyBufferToBuffer(dst, src); } // It's all buffers anyway innit?
     void CopyBufferToBuffer(::Ref<Resource> dst, ::Ref<Resource> src);
     void CopyBufferToTexture(::Ref<Resource> dst, ::Ref<Resource> src);
+
+    void UpdateTLAS(TLAS::Ref tlas, Buffer::Ref instaceBuffer, int numInstances);
     void BuildAccelerationStructure(::Ref<AccelerationStructure> as);
 
     void BeginGUI(int width, int height);

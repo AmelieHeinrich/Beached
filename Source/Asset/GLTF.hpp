@@ -7,6 +7,8 @@
 
 #include <Core/Common.hpp>
 #include <RHI/RHI.hpp>
+#include <RHI/BLAS.hpp>
+#include <RHI/TLAS.hpp>
 
 #include <cgltf/cgltf.h>
 #include <glm/glm.hpp>
@@ -33,6 +35,9 @@ struct GLTFPrimitive
 {
     Buffer::Ref VertexBuffer;
     Buffer::Ref IndexBuffer;
+
+    RaytracingInstance Instance;
+    BLAS::Ref GeometryStructure;
 
     UInt32 VertexCount;
     UInt32 IndexCount;

@@ -35,14 +35,19 @@ class Scene
 {
 public:
     Camera Camera;
+
     Vector<PointLight> PointLights;
     DirectionalLight Sun;
+
+    Vector<RaytracingInstance> Instances;
+    Buffer::Ref InstanceBuffer;
+    TLAS::Ref TLAS;
 
     Vector<Asset::Handle> Models;
     Array<Buffer::Ref, FRAMES_IN_FLIGHT> LightBuffer;
 
-    void Init(RHI::Ref rhi);
-    void Update(UInt32 frameIndex);
+    void Bake(RHI::Ref rhi);
+    void Update(const Frame& frame, UInt32 frameIndex);
 private:
     LightData mData;
 };

@@ -8,6 +8,7 @@
 TLAS::TLAS(Device::Ref device, DescriptorHeaps& heaps, Buffer::Ref instanceBuffer, UInt32 numInstance, const String& name)
     : AccelerationStructure(device, heaps)
 {
+    mInputs = {};
     mInputs.Type = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_TYPE_TOP_LEVEL;
     mInputs.Flags = D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_ALLOW_UPDATE | D3D12_RAYTRACING_ACCELERATION_STRUCTURE_BUILD_FLAG_PREFER_FAST_TRACE;
     mInputs.NumDescs = numInstance;
@@ -21,9 +22,9 @@ TLAS::TLAS(Device::Ref device, DescriptorHeaps& heaps, Buffer::Ref instanceBuffe
     desc.ViewDimension = D3D12_SRV_DIMENSION_RAYTRACING_ACCELERATION_STRUCTURE;
     desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
     desc.Format = DXGI_FORMAT_UNKNOWN;
-    desc.RaytracingAccelerationStructure.Location = mResource->GetAddress();
+    desc.RaytracingAccelerationStructure.Location = mResource->GetGPUVirtualAddress();
     
-    mDevice->GetDevice()->CreateShaderResourceView(nullptr, &desc, mSRV.CPU);
+    mParentDevice->GetDevice()->CreateShaderResourceView(nullptr, &desc, mSRV.CPU);
 }
 
 TLAS::~TLAS()

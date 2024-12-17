@@ -24,7 +24,7 @@ Forward::Forward(RHI::Ref rhi)
     triangleSpecs.Formats.push_back(TextureFormat::RGBA8);
     triangleSpecs.Bytecodes[ShaderType::Vertex] = vertexShader->Shader;
     triangleSpecs.Bytecodes[ShaderType::Fragment] = fragmentShader->Shader;
-    triangleSpecs.Signature = mRHI->CreateRootSignature({ RootType::PushConstant }, sizeof(int) * 7);
+    triangleSpecs.Signature = mRHI->CreateRootSignature({ RootType::PushConstant }, sizeof(int) * 8);
     
     mPipeline = mRHI->CreateGraphicsPipeline(triangleSpecs);
     mSampler = mRHI->CreateSampler(SamplerAddress::Wrap, SamplerFilter::Linear, true);
@@ -67,9 +67,15 @@ void Forward::Render(const Frame& frame, const Scene& scene)
         }
 
         glm::mat4 globalTransform = transform * node->Transform;
+        glm::mat4 invTransform = glm::inverse(globalTransform);
         for (GLTFPrimitive primitive : node->Primitives) {
             GLTFMaterial material = model->Materials[primitive.MaterialIndex];
-            node->ModelBuffer[frame.FrameIndex]->CopyMapped(glm::value_ptr(globalTransform), sizeof(glm::mat4));
+
+            glm::mat4 matrices[] = {
+                globalTransform,
+                invTransform
+            };
+            node->ModelBuffer[frame.FrameIndex]->CopyMapped(matrices, sizeof(glm::mat4) * 2);
             
             int albedoIndex = material.Albedo ? material.AlbedoView->GetDescriptor().Index : white->ShaderResourceView->GetDescriptor().Index;
 
@@ -83,6 +89,8 @@ void Forward::Render(const Frame& frame, const Scene& scene)
                 
                 int SamplerIndex;
                 int ShadowSamplerIndex;
+
+                int Accel;
             } Constants = {
                 camera->RingBuffer[frame.FrameIndex]->CBV(),
                 node->ModelBuffer[frame.FrameIndex]->CBV(),
@@ -92,7 +100,9 @@ void Forward::Render(const Frame& frame, const Scene& scene)
                 albedoIndex,
 
                 mSampler->BindlesssSampler(),
-                mShadowSampler->BindlesssSampler()
+                mShadowSampler->BindlesssSampler(),
+
+                scene.TLAS->Bindless()
             };
             frame.CommandBuffer->GraphicsPushConstants(&Constants, sizeof(Constants), 0);
             frame.CommandBuffer->SetVertexBuffer(primitive.VertexBuffer);
