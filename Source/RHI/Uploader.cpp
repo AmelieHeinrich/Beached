@@ -113,6 +113,9 @@ void Uploader::EnqueueAccelerationStructureBuild(Ref<AccelerationStructure> as)
 
 void Uploader::Flush()
 {
+    if (sData.Requests.empty())
+        return;
+
     sData.CmdBuffer = MakeRef<CommandBuffer>(sData.Device, sData.UploadQueue, sData.Heaps, true);
     sData.CmdBuffer->Begin();
 
@@ -155,6 +158,12 @@ void Uploader::ClearRequests()
     sData.BufferRequests = 0;
     sData.TextureRequests = 0;
     sData.ASRequests = 0;
+    for (auto& request : sData.Requests) {
+        if (request.StagingBuffer)
+            request.StagingBuffer.reset();
+        if (request.Acceleration)
+            request.Acceleration->FreeScratch();
+    }
     sData.CmdBuffer.reset();
     sData.Requests.clear();
 }

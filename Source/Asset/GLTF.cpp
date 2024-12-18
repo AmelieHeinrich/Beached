@@ -173,7 +173,6 @@ void GLTF::ProcessPrimitive(cgltf_primitive *primitive, GLTFNode *node)
 
     Uploader::EnqueueBufferUpload(vertices.data(), out.VertexBuffer->GetSize(), out.VertexBuffer);
     Uploader::EnqueueBufferUpload(indices.data(), out.IndexBuffer->GetSize(), out.IndexBuffer);
-    Uploader::EnqueueAccelerationStructureBuild(out.GeometryStructure);
 
     out.Instance = {};
     out.Instance.AccelerationStructure = out.GeometryStructure->GetAddress();
@@ -204,4 +203,18 @@ void GLTF::ProcessPrimitive(cgltf_primitive *primitive, GLTFNode *node)
 
     Materials.push_back(outMaterial);
     node->Primitives.push_back(out);
+}
+
+void GLTF::TraverseNode(GLTFNode* root, const std::function<void(GLTFNode*)>& fn)
+{
+    if (!root) {
+        return;
+    }
+    fn(root);
+
+    if (!root->Children.empty()) {
+        for (GLTFNode* child : root->Children) {
+            TraverseNode(child, fn);
+        }
+    }
 }

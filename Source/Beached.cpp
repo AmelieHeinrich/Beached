@@ -32,17 +32,21 @@ Beached::Beached()
         mRenderer = MakeRef<Renderer>(mRHI);
 
         // Loading and setup
-        mScene.Models.push_back(AssetManager::Get("Assets/Models/ShadowTest/ShadowTest.gltf", AssetType::GLTF));
+        mScene.Models.push_back(AssetManager::Get("Assets/Models/Sponza/Sponza.gltf", AssetType::GLTF));
         mScene.Sun.Direction = glm::vec3(0.3f, -1.0f, 0.4f);
         mScene.Sun.Color = glm::vec4(1.0f);
         mScene.Sun.Strenght = 1.0f;
 
-        mScene.Bake(mRHI);
+        // Upload vertex/index buffers, textures
+        UploadAndFlush();
+
+        // Build BLASes
+        mScene.BakeBLAS(mRHI);
+        UploadAndFlush();
 
         // TLAS flush
-        Uploader::Flush();
-        mRHI->Wait();
-        Uploader::ClearRequests();
+        mScene.BakeTLAS(mRHI);
+        UploadAndFlush();
     }
     LOG_INFO("Starting renderer. Startup took {0} seconds", TO_SECONDS(startupTimer.GetElapsed()));
 }
@@ -50,6 +54,13 @@ Beached::Beached()
 Beached::~Beached()
 {
 
+}
+
+void Beached::UploadAndFlush()
+{
+    Uploader::Flush();
+    mRHI->Wait();
+    Uploader::ClearRequests();
 }
 
 void Beached::Run()

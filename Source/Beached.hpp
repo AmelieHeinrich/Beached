@@ -29,6 +29,7 @@ public:
 private:
     void Overlay();
     void UI(const Frame& frame);
+    void UploadAndFlush();
 
     Window::Ref mWindow;
     RHI::Ref mRHI;

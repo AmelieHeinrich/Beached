@@ -12,6 +12,7 @@
 
 #include <cgltf/cgltf.h>
 #include <glm/glm.hpp>
+#include <functional>
 
 class Asset;
 
@@ -72,6 +73,7 @@ public:
     void Load(RHI::Ref rhi, const String& path);
     ~GLTF();
 
+    void TraverseNode(GLTFNode* root, const std::function<void(GLTFNode*)>& fn);
 private:
     RHI::Ref mRHI;
 

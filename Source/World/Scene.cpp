@@ -7,25 +7,25 @@
 
 #include <RHI/Uploader.hpp>
 
-void Scene::Bake(RHI::Ref rhi)
+void Scene::BakeBLAS(RHI::Ref rhi)
 {
-    std::function<void(GLTFNode*)> updateNode = [&](GLTFNode* node) {
-        if (!node) {
-            return;
-        }
-
-        for (auto& primitive : node->Primitives) {
-            Instances.push_back(primitive.Instance);
-        }
-
-        if (!node->Children.empty()) {
-            for (GLTFNode* child : node->Children) {
-                updateNode(child);
-            }
-        }
-    };
     for (auto& model : Models) {
-        updateNode(model->Model.Root);
+        model->Model.TraverseNode(model->Model.Root, [&](GLTFNode* node){
+            for (auto& primitive : node->Primitives) {
+                Uploader::EnqueueAccelerationStructureBuild(primitive.GeometryStructure);
+            }
+        });
+    }
+}
+
+void Scene::BakeTLAS(RHI::Ref rhi)
+{
+    for (auto& model : Models) {
+        model->Model.TraverseNode(model->Model.Root, [&](GLTFNode* node){
+            for (auto& primitive : node->Primitives) {
+                Instances.push_back(primitive.Instance);
+            }
+        });
     }
 
     InstanceBuffer = rhi->CreateBuffer(Instances.size() * sizeof(RaytracingInstance), sizeof(RaytracingInstance), BufferType::Constant, "Scene Instance Buffers");
@@ -52,23 +52,12 @@ void Scene::Update(const Frame& frame, UInt32 frameIndex)
 
     // Update instances
     Instances.clear();
-    std::function<void(GLTFNode*)> updateNode = [&](GLTFNode* node) {
-        if (!node) {
-            return;
-        }
-
-        for (auto& primitive : node->Primitives) {
-            Instances.push_back(primitive.Instance);
-        }
-
-        if (!node->Children.empty()) {
-            for (GLTFNode* child : node->Children) {
-                updateNode(child);
-            }
-        }
-    };
     for (auto& model : Models) {
-        updateNode(model->Model.Root);
+        model->Model.TraverseNode(model->Model.Root, [&](GLTFNode* node){
+            for (auto& primitive : node->Primitives) {
+                Instances.push_back(primitive.Instance);
+            }
+        });
     }
     InstanceBuffer->CopyMapped(Instances.data(), Instances.size() * sizeof(RaytracingInstance));
 
