@@ -111,10 +111,10 @@ void CommandBuffer::SetGraphicsPipeline(GraphicsPipeline::Ref pipeline)
     mList->SetGraphicsRootSignature(pipeline->GetRootSignature()->GetSignature());
 }
 
-void CommandBuffer::SetGraphicsPipeline(GraphicsPipeline* pipeline)
+void CommandBuffer::SetComputePipeline(ComputePipeline::Ref pipeline)
 {
     mList->SetPipelineState(pipeline->GetPipeline());
-    mList->SetGraphicsRootSignature(pipeline->GetRootSignature()->GetSignature());
+    mList->SetComputeRootSignature(pipeline->GetSignature()->GetSignature());
 }
 
 void CommandBuffer::SetRenderTargets(const Vector<View::Ref> targets, View::Ref depth)
@@ -144,6 +144,11 @@ void CommandBuffer::GraphicsPushConstants(const void *data, UInt32 size, int ind
     mList->SetGraphicsRoot32BitConstants(index, size / 4, data, 0);
 }
 
+void CommandBuffer::ComputePushConstants(const void *data, UInt32 size, int index)
+{
+    mList->SetComputeRoot32BitConstants(index, size / 4, data, 0);
+}
+
 void CommandBuffer::ClearDepth(View::Ref view)
 {
     mList->ClearDepthStencilView(view->GetDescriptor().CPU, D3D12_CLEAR_FLAG_DEPTH, 1.0f, 0, 0, nullptr);
@@ -163,6 +168,11 @@ void CommandBuffer::Draw(int vertexCount)
 void CommandBuffer::DrawIndexed(int indexCount)
 {
     mList->DrawIndexedInstanced(indexCount, 1, 0, 0, 0);
+}
+
+void CommandBuffer::Dispatch(int x, int y, int z)
+{
+    mList->Dispatch(x, y, z);
 }
 
 void CommandBuffer::CopyBufferToBuffer(::Ref<Resource> dst, ::Ref<Resource> src)

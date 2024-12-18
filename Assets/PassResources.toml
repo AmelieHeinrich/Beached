@@ -3,6 +3,14 @@
 # TODO: Add samplers? Move all frame resources to this lil file?
 # TODO: Move pipeline creation to a toml file as well?
 
+# Composite
+[OutputLDR]
+Type = "Texture"
+Width = 0
+Height = 0
+Format = "RGBA8"
+Usage = "Render"
+
 # Forward
 [CameraRingBuffer]
 Type = "RingBuffer"
@@ -12,7 +20,7 @@ Size = 512
 Type = "Texture"
 Width = 0
 Height = 0
-Format = "RGBA8"
+Format = "RGBA16"
 Usage = "Render"
 
 [MainDepthBuffer]

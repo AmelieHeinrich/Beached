@@ -55,5 +55,7 @@ TextureFormat Texture::StringToFormat(const String& format)
         return TextureFormat::Depth32;
     if (format == "R32Float")
         return TextureFormat::R32Float;
+    if (format == "RGBA16")
+        return TextureFormat::RGBA16Float;
     return TextureFormat::Unknown;
 }

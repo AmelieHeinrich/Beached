@@ -83,12 +83,16 @@ float3 CalculatePoint(PointLight Light, FragmentIn Input, float3 Albedo)
     ConstantBuffer<Camera> Cam = ResourceDescriptorHeap[PushConstants.CameraIndex];
 
     // TODO: Normal maps.
-    float3 LightDirection = normalize(Light.Position - Input.FragPosWorld);
     float Distance = length(Light.Position - Input.FragPosWorld);
     float Attenuation = 1.0 / (Distance * Distance);
 
-    float NdotL = max(dot(Input.Normal, LightDirection) * Light.Radius, 0.2);
-    return (NdotL * Albedo * Attenuation * Light.Color.xyz);
+    if (Attenuation > 0.0) {
+        float3 LightDirection = normalize(Light.Position - Input.FragPosWorld);
+        float NdotL = max(dot(Input.Normal, LightDirection) * Light.Radius, 0.2);
+        return (NdotL * Albedo * Attenuation * Light.Color.xyz);
+    } else {
+        return Albedo * 0.2;
+    }
 }
 
 float3 CalculateSun(DirectionalLight Light, FragmentIn Input, float3 Albedo)
@@ -96,8 +100,13 @@ float3 CalculateSun(DirectionalLight Light, FragmentIn Input, float3 Albedo)
     ConstantBuffer<Camera> Cam = ResourceDescriptorHeap[PushConstants.CameraIndex];
 
     // TODO: Normal maps.
-    float NdotL = max(dot(Input.Normal, -Light.Direction), 0.2);
-    return (NdotL * Albedo * Light.Strength * Light.Color.xyz);
+    float attenuation = clamp(dot(Input.Normal, -Light.Direction), 0.0, 1.0);
+    if (attenuation > 0.0f) {
+        float NdotL = max(dot(Input.Normal, -Light.Direction), 0.2);
+        return (NdotL * Albedo * Light.Strength * Light.Color.xyz);
+    } else {
+        return Albedo * 0.2;
+    }
 }
 
 float TraceShadow(DirectionalLight Light, FragmentIn Input)
@@ -107,9 +116,9 @@ float TraceShadow(DirectionalLight Light, FragmentIn Input)
     float attenuation = clamp(dot(Input.Normal, -Light.Direction), 0.0, 1.0);
     if (attenuation > 0.0f) {
         RayDesc desc;
-        desc.Origin = Input.FragPosWorld.xyz;
+        desc.Origin = Input.FragPosWorld.xyz + Input.Normal * 0.1;
         desc.Direction = -Light.Direction;
-        desc.TMin = 0.1;
+        desc.TMin = 0.01;
         desc.TMax = 5000.0;
 
         RayQuery<RAY_FLAG_CULL_NON_OPAQUE | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES> q;
@@ -144,8 +153,10 @@ float4 PSMain(FragmentIn Input) : SV_Target
     if (Color.a < 0.1)
         discard;
     
-    float shadow = 1.0;
-    float3 Lo = CalculateSun(Lights.Sun, Input, Color.xyz) * shadow;
+    float3 Lo = Color.xyz * 0.2;
+    float shadow = TraceShadow(Lights.Sun, Input);
+    if (shadow == 1.0)
+        Lo += CalculateSun(Lights.Sun, Input, Color.xyz);
     for (int i = 0; i < Lights.LightCount; i++) {
         Lo += CalculatePoint(Lights.Lights[i], Input, Color.xyz);
     }

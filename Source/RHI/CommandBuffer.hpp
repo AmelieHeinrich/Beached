@@ -8,6 +8,7 @@
 #include <RHI/Queue.hpp>
 #include <RHI/View.hpp>
 #include <RHI/GraphicsPipeline.hpp>
+#include <RHI/ComputePipeline.hpp>
 #include <RHI/Resource.hpp>
 #include <RHI/Buffer.hpp>
 #include <RHI/AccelerationStructure.hpp>
@@ -42,18 +43,20 @@ public:
     void SetViewport(float x, float y, float width, float height);
     void SetTopology(Topology topology);
     void SetGraphicsPipeline(GraphicsPipeline::Ref pipeline);
-    void SetGraphicsPipeline(GraphicsPipeline* pipeline);
+    void SetComputePipeline(ComputePipeline::Ref pipeline);
     void SetRenderTargets(const Vector<View::Ref> targets, View::Ref depth);
     void SetVertexBuffer(Buffer::Ref buffer);
     void SetIndexBuffer(Buffer::Ref buffer);
 
     void GraphicsPushConstants(const void *data, UInt32 size, int index);
+    void ComputePushConstants(const void *data, UInt32 size, int index);
 
     void ClearDepth(View::Ref view);
     void ClearRenderTarget(View::Ref view, float r, float g, float b);
 
     void Draw(int vertexCount);
     void DrawIndexed(int indexCount);
+    void Dispatch(int x, int y, int z);
 
     void CopyTextureToTexture(::Ref<Resource> dst, ::Ref<Resource> src) { CopyBufferToBuffer(dst, src); } // It's all buffers anyway innit?
     void CopyBufferToBuffer(::Ref<Resource> dst, ::Ref<Resource> src);

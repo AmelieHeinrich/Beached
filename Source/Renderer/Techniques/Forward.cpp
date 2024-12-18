@@ -11,6 +11,8 @@
 Forward::Forward(RHI::Ref rhi)
     : RenderPass(rhi)
 {
+    ::Ref<RenderPassIO> color = PassManager::Get("MainColorBuffer");
+
     Asset::Handle vertexShader = AssetManager::Get("Assets/Shaders/Forward/Vertex.hlsl", AssetType::Shader);
     Asset::Handle fragmentShader = AssetManager::Get("Assets/Shaders/Forward/Fragment.hlsl", AssetType::Shader);
     
@@ -21,7 +23,7 @@ Forward::Forward(RHI::Ref rhi)
     triangleSpecs.CCW = false;
     triangleSpecs.DepthEnabled = true;
     triangleSpecs.DepthFormat = TextureFormat::Depth32;
-    triangleSpecs.Formats.push_back(TextureFormat::RGBA8);
+    triangleSpecs.Formats.push_back(color->Desc.Format);
     triangleSpecs.Bytecodes[ShaderType::Vertex] = vertexShader->Shader;
     triangleSpecs.Bytecodes[ShaderType::Fragment] = fragmentShader->Shader;
     triangleSpecs.Signature = mRHI->CreateRootSignature({ RootType::PushConstant }, sizeof(int) * 8);
@@ -39,13 +41,6 @@ void Forward::Render(const Frame& frame, const Scene& scene)
     ::Ref<RenderPassIO> white = PassManager::Get("WhiteTexture");
     ::Ref<RenderPassIO> cascade = PassManager::Get("CascadeRingBuffer");
 
-    frame.CommandBuffer->BeginMarker("Forward");
-    frame.CommandBuffer->Barrier(color->Texture, ResourceLayout::ColorWrite);
-    frame.CommandBuffer->Barrier(depth->Texture, ResourceLayout::DepthWrite);
-    frame.CommandBuffer->ClearRenderTarget(color->RenderTargetView, 0.1f, 0.1f, 0.1f);
-    frame.CommandBuffer->ClearDepth(depth->DepthTargetView);
-    frame.CommandBuffer->SetRenderTargets({ color->RenderTargetView }, depth->DepthTargetView);
-    
     struct UploadData {
         glm::mat4 View;
         glm::mat4 Projection;
@@ -60,6 +55,16 @@ void Forward::Render(const Frame& frame, const Scene& scene)
         0.0f,
     };
     camera->RingBuffer[frame.FrameIndex]->CopyMapped(&Data, sizeof(Data));
+
+    frame.CommandBuffer->BeginMarker("Forward");
+    frame.CommandBuffer->Barrier(color->Texture, ResourceLayout::ColorWrite);
+    frame.CommandBuffer->Barrier(depth->Texture, ResourceLayout::DepthWrite);
+    frame.CommandBuffer->ClearRenderTarget(color->RenderTargetView, 0.1f, 0.1f, 0.1f);
+    frame.CommandBuffer->ClearDepth(depth->DepthTargetView);
+    frame.CommandBuffer->SetRenderTargets({ color->RenderTargetView }, depth->DepthTargetView);
+    frame.CommandBuffer->SetTopology(Topology::TriangleList);
+    frame.CommandBuffer->SetViewport(0, 0, (float)frame.Width, (float)frame.Height);
+    frame.CommandBuffer->SetGraphicsPipeline(mPipeline);
 
     std::function<void(Frame frame, GLTFNode*, GLTF* model, glm::mat4 transform)> drawNode = [&](Frame frame, GLTFNode* node, GLTF* model, glm::mat4 transform) {
         if (!node) {
@@ -116,10 +121,6 @@ void Forward::Render(const Frame& frame, const Scene& scene)
             }
         }
     };
-
-    frame.CommandBuffer->SetTopology(Topology::TriangleList);
-    frame.CommandBuffer->SetViewport(0, 0, (float)frame.Width, (float)frame.Height);
-    frame.CommandBuffer->SetGraphicsPipeline(mPipeline);
     for (auto& model : scene.Models) {
         drawNode(frame, model->Model.Root, &model->Model, glm::mat4(1.0f));
     }
