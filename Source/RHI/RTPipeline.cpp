@@ -53,7 +53,7 @@ RTPipeline::RTPipeline(Device::Ref device, DescriptorHeaps& heaps, RTPipelineSpe
         LOG_CRITICAL("Failed to create raytracing pipeline!");
     }
 
-   mIDBuffer = std::make_shared<Buffer>(device, heaps, 3 * D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT, D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT, BufferType::Constant, "ID Buffer");
+   mIDBuffer = MakeRef<Buffer>(device, heaps, 3 * D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT, D3D12_RAYTRACING_SHADER_TABLE_BYTE_ALIGNMENT, BufferType::Constant, "ID Buffer");
 
    ID3D12StateObjectProperties* props;
    mPipeline->QueryInterface(&props);
