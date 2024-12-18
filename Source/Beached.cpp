@@ -32,10 +32,19 @@ Beached::Beached()
         mRenderer = MakeRef<Renderer>(mRHI);
 
         // Loading and setup
-        mScene.Models.push_back(AssetManager::Get("Assets/Models/ShadowTest/ShadowTest.gltf", AssetType::GLTF));
-        mScene.Sun.Direction = glm::vec3(0.3f, -1.0f, 0.4f);
+        mScene.Models.push_back(AssetManager::Get("Assets/Models/Sponza/Sponza.gltf", AssetType::GLTF));
+        mScene.Sun.Direction = glm::vec3(0.0f, -1.0f, 0.2f);
         mScene.Sun.Color = glm::vec4(1.0f);
         mScene.Sun.Strenght = 1.0f;
+
+        // Add lights
+        // for (int i = 0; i < 128; i++) {
+        //     PointLight light;
+        //     light.Position = glm::vec3(Random::Float(-5.0f, 5.0f), Random::Float(0.0f, 5.0f), Random::Float(-5.0f, 5.0f));
+        //     light.Color = glm::vec4(Random::Float(0.0f, 1.0f), Random::Float(0.0f, 1.0f), Random::Float(0.0f, 1.0f), 1.0f);
+        //     light.Radius = Random::Float(0.05f, 0.3f);
+        //     mScene.PointLights.push_back(light);
+        // }
 
         // Upload vertex/index buffers, textures
         UploadAndFlush();

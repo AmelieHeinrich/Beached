@@ -7,6 +7,8 @@
 #include "Assets/Shaders/Camera.hlsl"
 #include "Assets/Shaders/Cascade.hlsl"
 
+static const float AMBIENT = 0.01;
+
 static const float4x4 BIAS_MATRIX = float4x4(
 	0.5, 0.0, 0.0, 0.5,
 	0.0, 0.5, 0.0, 0.5,
@@ -88,10 +90,10 @@ float3 CalculatePoint(PointLight Light, FragmentIn Input, float3 Albedo)
 
     if (Attenuation > 0.0) {
         float3 LightDirection = normalize(Light.Position - Input.FragPosWorld);
-        float NdotL = max(dot(Input.Normal, LightDirection) * Light.Radius, 0.2);
+        float NdotL = max(dot(Input.Normal, LightDirection) * Light.Radius, AMBIENT);
         return (NdotL * Albedo * Attenuation * Light.Color.xyz);
     } else {
-        return Albedo * 0.2;
+        return Albedo * AMBIENT;
     }
 }
 
@@ -102,10 +104,10 @@ float3 CalculateSun(DirectionalLight Light, FragmentIn Input, float3 Albedo)
     // TODO: Normal maps.
     float attenuation = clamp(dot(Input.Normal, -Light.Direction), 0.0, 1.0);
     if (attenuation > 0.0f) {
-        float NdotL = max(dot(Input.Normal, -Light.Direction), 0.2);
+        float NdotL = max(dot(Input.Normal, -Light.Direction), AMBIENT);
         return (NdotL * Albedo * Light.Strength * Light.Color.xyz);
     } else {
-        return Albedo * 0.2;
+        return Albedo * AMBIENT;
     }
 }
 
@@ -114,9 +116,9 @@ float TraceShadow(DirectionalLight Light, FragmentIn Input)
     RaytracingAccelerationStructure TLAS = ResourceDescriptorHeap[PushConstants.AccelStructure];
 
     float attenuation = clamp(dot(Input.Normal, -Light.Direction), 0.0, 1.0);
-    if (attenuation > 0.0f) {
+    if (true) {
         RayDesc desc;
-        desc.Origin = Input.FragPosWorld.xyz + Input.Normal * 0.1;
+        desc.Origin = Input.FragPosWorld.xyz;
         desc.Direction = -Light.Direction;
         desc.TMin = 0.01;
         desc.TMax = 5000.0;
@@ -126,7 +128,7 @@ float TraceShadow(DirectionalLight Light, FragmentIn Input)
         q.Proceed();
 
         if (q.CommittedStatus() == COMMITTED_TRIANGLE_HIT) {
-            return 0.2;
+            return AMBIENT;
         } else {
             return 1.0;
         }
@@ -153,10 +155,11 @@ float4 PSMain(FragmentIn Input) : SV_Target
     if (Color.a < 0.1)
         discard;
     
-    float3 Lo = Color.xyz * 0.2;
-    float shadow = TraceShadow(Lights.Sun, Input);
-    if (shadow == 1.0)
-        Lo += CalculateSun(Lights.Sun, Input, Color.xyz);
+    float3 Lo = Color.xyz * AMBIENT;
+    
+    float shadow = 1.0;
+    Lo += CalculateSun(Lights.Sun, Input, Color.xyz) * shadow;
+    
     for (int i = 0; i < Lights.LightCount; i++) {
         Lo += CalculatePoint(Lights.Lights[i], Input, Color.xyz);
     }
