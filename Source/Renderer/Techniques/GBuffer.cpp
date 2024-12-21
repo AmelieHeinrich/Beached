@@ -1,45 +1,43 @@
 //
 // > Notice: Amélie Heinrich @ 2024
-// > Create Time: 2024-12-06 00:14:09
+// > Create Time: 2024-12-21 04:31:42
 //
 
-#include <Renderer/Techniques/Forward.hpp>
-#include <Renderer/Techniques/CSM.hpp>
+#include <Renderer/Techniques/GBuffer.hpp>
 
-#include <glm/gtc/type_ptr.hpp>
-
-Forward::Forward(RHI::Ref rhi)
+GBuffer::GBuffer(RHI::Ref rhi)
     : RenderPass(rhi)
 {
-    ::Ref<RenderPassIO> color = PassManager::Get("MainColorBuffer");
+    ::Ref<RenderPassIO> normal = PassManager::Get("GBufferNormal");
+    ::Ref<RenderPassIO> albedo = PassManager::Get("GBufferAlbedo");
 
-    Asset::Handle vertexShader = AssetManager::Get("Assets/Shaders/Forward/Vertex.hlsl", AssetType::Shader);
-    Asset::Handle fragmentShader = AssetManager::Get("Assets/Shaders/Forward/Fragment.hlsl", AssetType::Shader);
+    Asset::Handle vertexShader = AssetManager::Get("Assets/Shaders/GBuffer/Vertex.hlsl", AssetType::Shader);
+    Asset::Handle fragmentShader = AssetManager::Get("Assets/Shaders/GBuffer/Fragment.hlsl", AssetType::Shader);
     
-    GraphicsPipelineSpecs triangleSpecs;
-    triangleSpecs.Fill = FillMode::Solid;
-    triangleSpecs.Cull = CullMode::None;
-    triangleSpecs.Depth = DepthOperation::Less;
-    triangleSpecs.CCW = false;
-    triangleSpecs.DepthEnabled = true;
-    triangleSpecs.DepthFormat = TextureFormat::Depth32;
-    triangleSpecs.Formats.push_back(color->Desc.Format);
-    triangleSpecs.Bytecodes[ShaderType::Vertex] = vertexShader->Shader;
-    triangleSpecs.Bytecodes[ShaderType::Fragment] = fragmentShader->Shader;
-    triangleSpecs.Signature = mRHI->CreateRootSignature({ RootType::PushConstant }, sizeof(int) * 8);
+    GraphicsPipelineSpecs specs;
+    specs.Fill = FillMode::Solid;
+    specs.Cull = CullMode::None;
+    specs.Depth = DepthOperation::Less;
+    specs.CCW = false;
+    specs.DepthEnabled = true;
+    specs.DepthFormat = TextureFormat::Depth32;
+    specs.Formats.push_back(normal->Desc.Format);
+    specs.Formats.push_back(albedo->Desc.Format);
+    specs.Bytecodes[ShaderType::Vertex] = vertexShader->Shader;
+    specs.Bytecodes[ShaderType::Fragment] = fragmentShader->Shader;
+    specs.Signature = mRHI->CreateRootSignature({ RootType::PushConstant }, sizeof(int) * 4);
     
-    mPipeline = mRHI->CreateGraphicsPipeline(triangleSpecs);
+    mPipeline = mRHI->CreateGraphicsPipeline(specs);
     mSampler = mRHI->CreateSampler(SamplerAddress::Wrap, SamplerFilter::Linear, true);
-    mShadowSampler = mRHI->CreateSampler(SamplerAddress::Clamp, SamplerFilter::Nearest, false);
 }
 
-void Forward::Render(const Frame& frame, const Scene& scene)
+void GBuffer::Render(const Frame& frame, const Scene& scene)
 {
-    ::Ref<RenderPassIO> color = PassManager::Get("MainColorBuffer");
-    ::Ref<RenderPassIO> depth = PassManager::Get("GBufferDepth");
-    ::Ref<RenderPassIO> camera = PassManager::Get("CameraRingBuffer");
     ::Ref<RenderPassIO> white = PassManager::Get("WhiteTexture");
-    ::Ref<RenderPassIO> cascade = PassManager::Get("CascadeRingBuffer");
+    ::Ref<RenderPassIO> depth = PassManager::Get("GBufferDepth");
+    ::Ref<RenderPassIO> normal = PassManager::Get("GBufferNormal");
+    ::Ref<RenderPassIO> albedo = PassManager::Get("GBufferAlbedo");
+    ::Ref<RenderPassIO> camera = PassManager::Get("CameraRingBuffer");
 
     struct UploadData {
         glm::mat4 View;
@@ -56,12 +54,14 @@ void Forward::Render(const Frame& frame, const Scene& scene)
     };
     camera->RingBuffer[frame.FrameIndex]->CopyMapped(&Data, sizeof(Data));
 
-    frame.CommandBuffer->BeginMarker("Forward");
-    frame.CommandBuffer->Barrier(color->Texture, ResourceLayout::ColorWrite);
+    frame.CommandBuffer->BeginMarker("GBuffer");
+    frame.CommandBuffer->Barrier(normal->Texture, ResourceLayout::ColorWrite);
+    frame.CommandBuffer->Barrier(albedo->Texture, ResourceLayout::ColorWrite);
     frame.CommandBuffer->Barrier(depth->Texture, ResourceLayout::DepthWrite);
-    frame.CommandBuffer->ClearRenderTarget(color->RenderTargetView, 0.1f, 0.1f, 0.1f);
+    frame.CommandBuffer->ClearRenderTarget(albedo->RenderTargetView, 0.0f, 0.0f, 0.0f);
+    frame.CommandBuffer->ClearRenderTarget(normal->RenderTargetView, 0.0f, 0.0f, 0.0f);
     frame.CommandBuffer->ClearDepth(depth->DepthTargetView);
-    frame.CommandBuffer->SetRenderTargets({ color->RenderTargetView }, depth->DepthTargetView);
+    frame.CommandBuffer->SetRenderTargets({ normal->RenderTargetView, albedo->RenderTargetView }, depth->DepthTargetView);
     frame.CommandBuffer->SetTopology(Topology::TriangleList);
     frame.CommandBuffer->SetViewport(0, 0, (float)frame.Width, (float)frame.Height);
     frame.CommandBuffer->SetGraphicsPipeline(mPipeline);
@@ -87,27 +87,13 @@ void Forward::Render(const Frame& frame, const Scene& scene)
             struct PushConstants {
                 int CameraIndex;
                 int ModelIndex;
-                int LightIndex;
-                int CascadeIndex;
-
-                int TextureIndex;
-                
+                int TextureIndex;          
                 int SamplerIndex;
-                int ShadowSamplerIndex;
-
-                int Accel;
             } Constants = {
                 camera->RingBuffer[frame.FrameIndex]->CBV(),
                 node->ModelBuffer[frame.FrameIndex]->CBV(),
-                scene.LightBuffer[frame.FrameIndex]->CBV(),
-                cascade->RingBuffer[frame.FrameIndex]->CBV(),
-
                 albedoIndex,
-
                 mSampler->BindlesssSampler(),
-                mShadowSampler->BindlesssSampler(),
-
-                scene.TLAS->Bindless()
             };
             frame.CommandBuffer->GraphicsPushConstants(&Constants, sizeof(Constants), 0);
             frame.CommandBuffer->SetVertexBuffer(primitive.VertexBuffer);
@@ -127,7 +113,7 @@ void Forward::Render(const Frame& frame, const Scene& scene)
     frame.CommandBuffer->EndMarker();
 }
 
-void Forward::UI(const Frame& frame)
+void GBuffer::UI(const Frame& frame)
 {
 
 }

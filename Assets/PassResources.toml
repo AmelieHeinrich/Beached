@@ -3,6 +3,31 @@
 # TODO: Add samplers? Move all frame resources to this lil file?
 # TODO: Move pipeline creation to a toml file as well?
 
+#############################
+# GBuffer
+[GBufferDepth]
+Type = "Texture"
+Width = 0
+Height = 0
+Format = "D32"
+Usage = "Depth"
+
+[GBufferNormal]
+Type = "Texture"
+Width = 0
+Height = 0
+Format = "RGB11"
+Usage = "Render"
+
+[GBufferAlbedo]
+Type = "Texture"
+Width = 0
+Height = 0
+Format = "RGBA8"
+Usage = "Render"
+#############################
+
+#############################
 # Composite
 [OutputLDR]
 Type = "Texture"
@@ -10,7 +35,9 @@ Width = 0
 Height = 0
 Format = "RGBA8"
 Usage = "Render"
+#############################
 
+#############################
 # Forward
 [CameraRingBuffer]
 Type = "RingBuffer"
@@ -22,15 +49,9 @@ Width = 0
 Height = 0
 Format = "RGBA16"
 Usage = "Render"
+#############################
 
-[MainDepthBuffer]
-Type = "Texture"
-Width = 0
-Height = 0
-Format = "D32"
-Usage = "Depth"
-#
-
+#############################
 # CSM
 [CascadeRingBuffer]
 Type = "RingBuffer"
@@ -63,3 +84,4 @@ Width = 4096
 Height = 4096
 Format = "D32"
 Usage = "Depth"
+#############################
