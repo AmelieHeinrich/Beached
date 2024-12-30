@@ -35,6 +35,7 @@ struct Settings
     
     // Model textures
     int TextureIndex;
+    int NormalIndex;
 
     // Samplers
     int SamplerIndex;
@@ -46,51 +47,47 @@ struct Settings
 
 ConstantBuffer<Settings> PushConstants : register(b0);
 
+float3 GetNormal(FragmentIn Input)
+{
+    if (PushConstants.NormalIndex == -1)
+        return normalize(Input.Normal);
+
+    Texture2D NormalTexture = ResourceDescriptorHeap[PushConstants.NormalIndex];
+    SamplerState Sampler = SamplerDescriptorHeap[PushConstants.SamplerIndex];
+
+    float3 tangentNormal = NormalTexture.Sample(Sampler, Input.UV.xy).rgb * 2.0 - 1.0;
+    float3 normal = normalize(Input.Normal);
+
+    float3 Q1 = ddx(Input.Position.xyz);
+    float3 Q2 = ddy(Input.Position.xyz);
+    float2 ST1 = ddx(Input.UV.xy);
+    float2 ST2 = ddy(Input.UV.xy);
+
+    // Epsilon because the normal can sometimes be a bit *freaky* when crossing that vector
+    float3 T = Q1 * ST2.y - Q2 * ST1.y + 0.01;
+    float3 B = cross(normal, T) + 0.01;
+    float3 N = normal + 0.01;
+    float3x3 TBN = float3x3(normalize(T), normalize(B), N);
+
+    return normalize(mul(tangentNormal, TBN));
+}
+
 float CalculateShadowCascade(FragmentIn input, uint cascadeIndex)
 {
-    ConstantBuffer<CascadeBuffer> CascadeInfo = ResourceDescriptorHeap[PushConstants.CascadeBufferIndex];
-    ConstantBuffer<LightData> Lights = ResourceDescriptorHeap[PushConstants.LightIndex];
-    Texture2D ShadowMap = ResourceDescriptorHeap[CascadeInfo.Cascades[cascadeIndex].SRVIndex];
-    SamplerState ShadowSampler = SamplerDescriptorHeap[PushConstants.ShadowSamplerIndex];
-
-    float4 lightPos = mul(CascadeInfo.Cascades[cascadeIndex].ViewProj, float4(input.FragPosWorld, 1.0));
-
-    float3 projectionCoords = lightPos.xyz / lightPos.w;
-    projectionCoords.xy = projectionCoords.xy * 0.5 + 0.5;
-    projectionCoords.y = 1.0 - projectionCoords.y;
-
-    float closestDepth = ShadowMap.Sample(ShadowSampler, projectionCoords.xy, 0).r;
-    float currentDepth = projectionCoords.z;
-
-    float bias = max(0.05 * (1.0 - dot(input.Normal, Lights.Sun.Direction.xyz)), 0.005);
-	
-    float shadowWidth, shadowHeight;
-    ShadowMap.GetDimensions(shadowWidth, shadowHeight);
-
-    float shadow = 1.0;
-    float2 texelSize = 1.0 / float2(shadowWidth, shadowHeight);
-
-    float dist = ShadowMap.Sample(ShadowSampler, projectionCoords.xy).r;
-	if (lightPos.w > 0 && dist < projectionCoords.z - bias) {
-		shadow = 0.3;
-	}
-
-    if (projectionCoords.z > 1.0)
-        shadow = 0.0;
-    return shadow;
+    return 1.0;
 }
 
 float3 CalculatePoint(PointLight Light, FragmentIn Input, float3 Albedo)
 {
     ConstantBuffer<Camera> Cam = ResourceDescriptorHeap[PushConstants.CameraIndex];
 
-    // TODO: Normal maps.
+    float3 N = GetNormal(Input);
     float Distance = length(Light.Position - Input.FragPosWorld);
     float Attenuation = 1.0 / (Distance * Distance);
 
     if (Attenuation > 0.0) {
         float3 LightDirection = normalize(Light.Position - Input.FragPosWorld);
-        float NdotL = max(dot(Input.Normal, LightDirection) * Light.Radius, AMBIENT);
+        float NdotL = max(dot(N, LightDirection) * Light.Radius, AMBIENT);
         return (NdotL * Albedo * Attenuation * Light.Color.xyz);
     } else {
         return Albedo * AMBIENT;
@@ -101,10 +98,10 @@ float3 CalculateSun(DirectionalLight Light, FragmentIn Input, float3 Albedo)
 {
     ConstantBuffer<Camera> Cam = ResourceDescriptorHeap[PushConstants.CameraIndex];
 
-    // TODO: Normal maps.
-    float attenuation = clamp(dot(Input.Normal, -Light.Direction), 0.0, 1.0);
+    float3 N = GetNormal(Input);
+    float attenuation = clamp(dot(N, -Light.Direction), 0.0, 1.0);
     if (attenuation > 0.0f) {
-        float NdotL = max(dot(Input.Normal, -Light.Direction), AMBIENT);
+        float NdotL = max(dot(N, -Light.Direction), AMBIENT);
         return (NdotL * Albedo * Light.Strength * Light.Color.xyz);
     } else {
         return Albedo * AMBIENT;
@@ -115,7 +112,8 @@ float TraceShadow(DirectionalLight Light, FragmentIn Input)
 {
     RaytracingAccelerationStructure TLAS = ResourceDescriptorHeap[PushConstants.AccelStructure];
 
-    float attenuation = clamp(dot(Input.Normal, -Light.Direction), 0.0, 1.0);
+    float3 N = GetNormal(Input);
+    float attenuation = clamp(dot(N, -Light.Direction), 0.0, 1.0);
     if (true) {
         RayDesc desc;
         desc.Origin = Input.FragPosWorld.xyz;
@@ -143,13 +141,6 @@ float4 PSMain(FragmentIn Input) : SV_Target
     ConstantBuffer<LightData> Lights = ResourceDescriptorHeap[PushConstants.LightIndex];
     Texture2D Albedo = ResourceDescriptorHeap[PushConstants.TextureIndex];
     SamplerState Sampler = SamplerDescriptorHeap[PushConstants.SamplerIndex];
-
-    // uint cascadeIndex = 0;
-	// for (uint i = 0; i < SHADOW_CASCADE_COUNT - 1; ++i) {
-	// 	if(Input.FragPosView.z < CascadeInfo.Cascades[i].Split) {
-	// 		cascadeIndex = i + 1;
-	// 	}
-	// }
 
     float4 Color = Albedo.Sample(Sampler, Input.UV);
     if (Color.a < 0.1)

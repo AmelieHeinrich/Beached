@@ -19,14 +19,14 @@ Forward::Forward(RHI::Ref rhi)
     GraphicsPipelineSpecs triangleSpecs;
     triangleSpecs.Fill = FillMode::Solid;
     triangleSpecs.Cull = CullMode::None;
-    triangleSpecs.Depth = DepthOperation::Less;
+    triangleSpecs.Depth = DepthOperation::Equal;
     triangleSpecs.CCW = false;
     triangleSpecs.DepthEnabled = true;
     triangleSpecs.DepthFormat = TextureFormat::Depth32;
     triangleSpecs.Formats.push_back(color->Desc.Format);
     triangleSpecs.Bytecodes[ShaderType::Vertex] = vertexShader->Shader;
     triangleSpecs.Bytecodes[ShaderType::Fragment] = fragmentShader->Shader;
-    triangleSpecs.Signature = mRHI->CreateRootSignature({ RootType::PushConstant }, sizeof(int) * 8);
+    triangleSpecs.Signature = mRHI->CreateRootSignature({ RootType::PushConstant }, sizeof(int) * 9);
     
     mPipeline = mRHI->CreateGraphicsPipeline(triangleSpecs);
     mSampler = mRHI->CreateSampler(SamplerAddress::Wrap, SamplerFilter::Linear, true);
@@ -60,7 +60,6 @@ void Forward::Render(const Frame& frame, const Scene& scene)
     frame.CommandBuffer->Barrier(color->Texture, ResourceLayout::ColorWrite);
     frame.CommandBuffer->Barrier(depth->Texture, ResourceLayout::DepthWrite);
     frame.CommandBuffer->ClearRenderTarget(color->RenderTargetView, 0.1f, 0.1f, 0.1f);
-    frame.CommandBuffer->ClearDepth(depth->DepthTargetView);
     frame.CommandBuffer->SetRenderTargets({ color->RenderTargetView }, depth->DepthTargetView);
     frame.CommandBuffer->SetTopology(Topology::TriangleList);
     frame.CommandBuffer->SetViewport(0, 0, (float)frame.Width, (float)frame.Height);
@@ -83,6 +82,7 @@ void Forward::Render(const Frame& frame, const Scene& scene)
             node->ModelBuffer[frame.FrameIndex]->CopyMapped(matrices, sizeof(glm::mat4) * 2);
             
             int albedoIndex = material.Albedo ? material.AlbedoView->GetDescriptor().Index : white->ShaderResourceView->GetDescriptor().Index;
+            int normalIndex = material.Normal ? material.NormalView->GetDescriptor().Index : -1;
 
             struct PushConstants {
                 int CameraIndex;
@@ -91,7 +91,8 @@ void Forward::Render(const Frame& frame, const Scene& scene)
                 int CascadeIndex;
 
                 int TextureIndex;
-                
+                int NormalIndex;
+
                 int SamplerIndex;
                 int ShadowSamplerIndex;
 
@@ -103,6 +104,7 @@ void Forward::Render(const Frame& frame, const Scene& scene)
                 cascade->RingBuffer[frame.FrameIndex]->CBV(),
 
                 albedoIndex,
+                normalIndex,
 
                 mSampler->BindlesssSampler(),
                 mShadowSampler->BindlesssSampler(),

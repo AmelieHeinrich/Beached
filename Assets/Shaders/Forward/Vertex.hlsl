@@ -37,6 +37,7 @@ struct Settings
     
     // Model textures
     int TextureIndex;
+    int NormalIndex;
 
     // Samplers
     int SamplerIndex;
