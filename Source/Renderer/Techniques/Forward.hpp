@@ -6,6 +6,7 @@
 #pragma once
 
 #include <Renderer/RenderPass.hpp>
+#include <Renderer/Permutation.hpp>
 
 class Forward : public RenderPass
 {
@@ -18,5 +19,5 @@ public:
 private:
     Sampler::Ref mSampler;
     Sampler::Ref mShadowSampler;
-    GraphicsPipeline::Ref mPipeline;
+    Permutation mPipeline;
 };

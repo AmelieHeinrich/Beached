@@ -139,11 +139,11 @@ void Uploader::Flush()
                 break;
             }
             case UploadRequestType::BuildAS: {
-                sData.CmdBuffer->UAVBarrier(request.Acceleration);
-                sData.CmdBuffer->UAVBarrier(request.Acceleration->GetScratch());
-                sData.CmdBuffer->BuildAccelerationStructure(request.Acceleration);
-                sData.CmdBuffer->UAVBarrier(request.Acceleration);
-                sData.CmdBuffer->UAVBarrier(request.Acceleration->GetScratch());
+                // sData.CmdBuffer->UAVBarrier(request.Acceleration);
+                // sData.CmdBuffer->UAVBarrier(request.Acceleration->GetScratch());
+                // sData.CmdBuffer->BuildAccelerationStructure(request.Acceleration);
+                // sData.CmdBuffer->UAVBarrier(request.Acceleration);
+                // sData.CmdBuffer->UAVBarrier(request.Acceleration->GetScratch());
                 break;
             }
         }

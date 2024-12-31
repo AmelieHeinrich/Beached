@@ -6,6 +6,7 @@
 #pragma once
 
 #include <Renderer/RenderPass.hpp>
+#include <Renderer/Permutation.hpp>
 
 class GBuffer : public RenderPass
 {
@@ -17,5 +18,5 @@ public:
     void UI(const Frame& frame) override;
 private:
     Sampler::Ref mSampler;
-    GraphicsPipeline::Ref mPipeline;
+    Permutation mPipeline;
 };

@@ -184,6 +184,8 @@ void GLTF::ProcessPrimitive(cgltf_primitive *primitive, GLTFNode *node)
     cgltf_material *material = primitive->material;
     GLTFMaterial outMaterial = {};
     out.MaterialIndex = Materials.size();
+    outMaterial.AlphaTested = material->alpha_mode == cgltf_alpha_mode_mask;
+    outMaterial.AlphaCutoff = material->alpha_cutoff;
 
     if (material && material->pbr_metallic_roughness.base_color_texture.texture) {
         std::string path = Directory + '/' + std::string(material->pbr_metallic_roughness.base_color_texture.texture->image->uri);

@@ -30,6 +30,9 @@ struct GLTFMaterial
 
     Ref<Asset> Normal;
     View::Ref NormalView;
+
+    bool AlphaTested;
+    float AlphaCutoff;
 };
 
 struct GLTFPrimitive

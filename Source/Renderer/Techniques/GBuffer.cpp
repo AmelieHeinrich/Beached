@@ -7,13 +7,9 @@
 
 GBuffer::GBuffer(RHI::Ref rhi)
     : RenderPass(rhi)
-{
-    ::Ref<RenderPassIO> normal = PassManager::Get("GBufferNormal");
-    ::Ref<RenderPassIO> albedo = PassManager::Get("GBufferAlbedo");
+{ 
+    mSampler = mRHI->CreateSampler(SamplerAddress::Wrap, SamplerFilter::Linear, true);
 
-    Asset::Handle vertexShader = AssetManager::Get("Assets/Shaders/GBuffer/Vertex.hlsl", AssetType::Shader);
-    Asset::Handle fragmentShader = AssetManager::Get("Assets/Shaders/GBuffer/Fragment.hlsl", AssetType::Shader);
-    
     GraphicsPipelineSpecs specs;
     specs.Fill = FillMode::Solid;
     specs.Cull = CullMode::None;
@@ -21,22 +17,17 @@ GBuffer::GBuffer(RHI::Ref rhi)
     specs.CCW = false;
     specs.DepthEnabled = true;
     specs.DepthFormat = TextureFormat::Depth32;
-    specs.Formats.push_back(normal->Desc.Format);
-    specs.Formats.push_back(albedo->Desc.Format);
-    specs.Bytecodes[ShaderType::Vertex] = vertexShader->Shader;
-    specs.Bytecodes[ShaderType::Fragment] = fragmentShader->Shader;
     specs.Signature = mRHI->CreateRootSignature({ RootType::PushConstant }, sizeof(int) * 4);
     
-    mPipeline = mRHI->CreateGraphicsPipeline(specs);
-    mSampler = mRHI->CreateSampler(SamplerAddress::Wrap, SamplerFilter::Linear, true);
+    mPipeline.Init(rhi, specs);
+    mPipeline.AddPermutation("NoAlpha", "Assets/Shaders/GBuffer/Vertex.hlsl", "Assets/Shaders/GBuffer/FragmentNoAlpha.hlsl");
+    mPipeline.AddPermutation("Alpha", "Assets/Shaders/GBuffer/Vertex.hlsl", "Assets/Shaders/GBuffer/FragmentAlpha.hlsl");
 }
 
 void GBuffer::Render(const Frame& frame, const Scene& scene)
 {
     ::Ref<RenderPassIO> white = PassManager::Get("WhiteTexture");
     ::Ref<RenderPassIO> depth = PassManager::Get("GBufferDepth");
-    ::Ref<RenderPassIO> normal = PassManager::Get("GBufferNormal");
-    ::Ref<RenderPassIO> albedo = PassManager::Get("GBufferAlbedo");
     ::Ref<RenderPassIO> camera = PassManager::Get("CameraRingBuffer");
 
     struct UploadData {
@@ -55,16 +46,11 @@ void GBuffer::Render(const Frame& frame, const Scene& scene)
     camera->RingBuffer[frame.FrameIndex]->CopyMapped(&Data, sizeof(Data));
 
     frame.CommandBuffer->BeginMarker("GBuffer");
-    frame.CommandBuffer->Barrier(normal->Texture, ResourceLayout::ColorWrite);
-    frame.CommandBuffer->Barrier(albedo->Texture, ResourceLayout::ColorWrite);
     frame.CommandBuffer->Barrier(depth->Texture, ResourceLayout::DepthWrite);
-    frame.CommandBuffer->ClearRenderTarget(albedo->RenderTargetView, 0.0f, 0.0f, 0.0f);
-    frame.CommandBuffer->ClearRenderTarget(normal->RenderTargetView, 0.0f, 0.0f, 0.0f);
     frame.CommandBuffer->ClearDepth(depth->DepthTargetView);
-    frame.CommandBuffer->SetRenderTargets({ normal->RenderTargetView, albedo->RenderTargetView }, depth->DepthTargetView);
+    frame.CommandBuffer->SetRenderTargets({}, depth->DepthTargetView);
     frame.CommandBuffer->SetTopology(Topology::TriangleList);
     frame.CommandBuffer->SetViewport(0, 0, (float)frame.Width, (float)frame.Height);
-    frame.CommandBuffer->SetGraphicsPipeline(mPipeline);
 
     std::function<void(Frame frame, GLTFNode*, GLTF* model, glm::mat4 transform)> drawNode = [&](Frame frame, GLTFNode* node, GLTF* model, glm::mat4 transform) {
         if (!node) {
@@ -95,6 +81,7 @@ void GBuffer::Render(const Frame& frame, const Scene& scene)
                 albedoIndex,
                 mSampler->BindlesssSampler(),
             };
+            frame.CommandBuffer->SetGraphicsPipeline(material.AlphaTested ? mPipeline.Get("Alpha") : mPipeline.Get("NoAlpha"));
             frame.CommandBuffer->GraphicsPushConstants(&Constants, sizeof(Constants), 0);
             frame.CommandBuffer->SetVertexBuffer(primitive.VertexBuffer);
             frame.CommandBuffer->SetIndexBuffer(primitive.IndexBuffer);

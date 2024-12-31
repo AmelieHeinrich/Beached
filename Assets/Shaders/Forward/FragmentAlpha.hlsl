@@ -143,7 +143,7 @@ float4 PSMain(FragmentIn Input) : SV_Target
     SamplerState Sampler = SamplerDescriptorHeap[PushConstants.SamplerIndex];
 
     float4 Color = Albedo.Sample(Sampler, Input.UV);
-    if (Color.a < 0.1)
+    if (Color.a < 0.5)
         discard;
     
     float3 Lo = Color.xyz * AMBIENT;
