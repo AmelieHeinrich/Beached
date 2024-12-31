@@ -31,7 +31,7 @@ RHI::RHI(Window::Ref window)
         mCommandBuffers[i] = MakeRef<CommandBuffer>(mDevice, mGraphicsQueue, mDescriptorHeaps);
     }
 
-    Uploader::Init(mDevice, mDescriptorHeaps, mGraphicsQueue);
+    Uploader::Init(this, mDevice, mDescriptorHeaps, mGraphicsQueue);
 
     mFontDescriptor = mDescriptorHeaps[DescriptorHeapType::ShaderResource]->Allocate();
 
@@ -52,6 +52,7 @@ RHI::RHI(Window::Ref window)
                         mDescriptorHeaps[DescriptorHeapType::RenderTarget]->GetHeap(),
                         mFontDescriptor.CPU,
                         mFontDescriptor.GPU);
+    ImGui_ImplDX12_CreateDeviceObjects();
 }
 
 RHI::~RHI()

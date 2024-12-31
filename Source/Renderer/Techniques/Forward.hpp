@@ -20,4 +20,6 @@ private:
     Sampler::Ref mSampler;
     Sampler::Ref mShadowSampler;
     Permutation mPipeline;
+
+    bool mShowOBBs = false;
 };

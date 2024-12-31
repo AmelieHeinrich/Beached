@@ -46,6 +46,7 @@ public:
     Vector<Asset::Handle> Models;
     Array<Buffer::Ref, FRAMES_IN_FLIGHT> LightBuffer;
 
+    void Init(RHI::Ref rhi);
     void BakeBLAS(RHI::Ref rhi);
     void BakeTLAS(RHI::Ref rhi);
     void Update(const Frame& frame, UInt32 frameIndex);

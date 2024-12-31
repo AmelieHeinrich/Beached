@@ -9,6 +9,7 @@
 #include <RHI/RHI.hpp>
 #include <RHI/BLAS.hpp>
 #include <RHI/TLAS.hpp>
+#include <Physics/Volume.hpp>
 
 #include <cgltf/cgltf.h>
 #include <glm/glm.hpp>
@@ -46,6 +47,8 @@ struct GLTFPrimitive
     UInt32 VertexCount;
     UInt32 IndexCount;
     int MaterialIndex;
+
+    Box AABB;
 };
 
 struct GLTFNode

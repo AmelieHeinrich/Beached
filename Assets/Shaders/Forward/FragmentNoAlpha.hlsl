@@ -63,13 +63,37 @@ float3 GetNormal(FragmentIn Input)
     float2 ST1 = ddx(Input.UV.xy);
     float2 ST2 = ddy(Input.UV.xy);
 
-    // Epsilon because the normal can sometimes be a bit *freaky* when crossing that vector
-    float3 T = Q1 * ST2.y - Q2 * ST1.y + 0.01;
-    float3 B = cross(normal, T) + 0.01;
-    float3 N = normal + 0.01;
-    float3x3 TBN = float3x3(normalize(T), normalize(B), N);
+    // Add a small epsilon to avoid division by zero or extremely small values
+    const float epsilon = 1e-6;
 
-    return normalize(mul(tangentNormal, TBN));
+    // Compute T and handle potential degenerate cases
+    float3 T = Q1 * ST2.y - Q2 * ST1.y;
+    if (length(T) < epsilon) {
+        T = float3(1.0, 0.0, 0.0); // Fallback to a default tangent
+    }
+    T = normalize(T);
+
+    // Compute B and handle potential degenerate cases
+    float3 B = cross(normal, T);
+    if (length(B) < epsilon) {
+        B = cross(normal, float3(0.0, 1.0, 0.0)); // Try using a different orthogonal vector
+    }
+    B = normalize(B);
+
+    // Ensure N is normalized and handle small values
+    float3 N = normal;
+    if (length(N) < epsilon) {
+        N = float3(0.0, 0.0, 1.0); // Fallback to a default normal
+    }
+
+    float3x3 TBN = float3x3(T, B, N);
+    // Handle NaNs or invalid results from matrix multiplication
+    float3 result = mul(tangentNormal, TBN);
+    if (any(isnan(result)) || length(result) < epsilon) {
+        result = float3(0.0, 0.0, 1.0); // Fallback to a safe default normal
+    }
+
+    return normalize(result);
 }
 
 float CalculateShadowCascade(FragmentIn input, uint cascadeIndex)
@@ -99,6 +123,10 @@ float3 CalculateSun(DirectionalLight Light, FragmentIn Input, float3 Albedo)
     ConstantBuffer<Camera> Cam = ResourceDescriptorHeap[PushConstants.CameraIndex];
 
     float3 N = GetNormal(Input);
+    if (any(isnan(N))) {
+        return float3(1.0, 0.0, 1.0); // Return a magenta color for NaN debugging
+    }
+
     float attenuation = clamp(dot(N, -Light.Direction), 0.0, 1.0);
     if (attenuation > 0.0f) {
         float NdotL = max(dot(N, -Light.Direction), AMBIENT);

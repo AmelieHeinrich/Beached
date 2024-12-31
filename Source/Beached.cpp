@@ -46,16 +46,8 @@ Beached::Beached()
         //     mScene.PointLights.push_back(light);
         // }
 
-        // Upload vertex/index buffers, textures
-        UploadAndFlush();
-
-        // Build BLASes
-        mScene.BakeBLAS(mRHI);
-        UploadAndFlush();
-
-        // TLAS flush
-        mScene.BakeTLAS(mRHI);
-        UploadAndFlush();
+        mScene.Init(mRHI);
+        Uploader::Flush();
     }
     LOG_INFO("Starting renderer. Startup took {0} seconds", TO_SECONDS(startupTimer.GetElapsed()));
 }
@@ -63,13 +55,6 @@ Beached::Beached()
 Beached::~Beached()
 {
 
-}
-
-void Beached::UploadAndFlush()
-{
-    Uploader::Flush();
-    mRHI->Wait();
-    Uploader::ClearRequests();
 }
 
 void Beached::Run()

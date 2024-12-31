@@ -5,8 +5,10 @@
 
 #include <Renderer/Techniques/Forward.hpp>
 #include <Renderer/Techniques/CSM.hpp>
+#include <Renderer/Techniques/Debug.hpp>
 
 #include <glm/gtc/type_ptr.hpp>
+#include <imgui.h>
 
 Forward::Forward(RHI::Ref rhi)
     : RenderPass(rhi)
@@ -106,13 +108,17 @@ void Forward::Render(const Frame& frame, const Scene& scene)
                 mSampler->BindlesssSampler(),
                 mShadowSampler->BindlesssSampler(),
 
-                scene.TLAS->Bindless()
+                -1
             };
             frame.CommandBuffer->SetGraphicsPipeline(material.AlphaTested ? mPipeline.Get("Alpha") : mPipeline.Get("NoAlpha"));
             frame.CommandBuffer->GraphicsPushConstants(&Constants, sizeof(Constants), 0);
             frame.CommandBuffer->SetVertexBuffer(primitive.VertexBuffer);
             frame.CommandBuffer->SetIndexBuffer(primitive.IndexBuffer);
             frame.CommandBuffer->DrawIndexed(primitive.IndexCount);
+
+            if (mShowOBBs) {
+                Debug::DrawBox(globalTransform, primitive.AABB.Min, primitive.AABB.Max, glm::vec3(0.0f, 1.0, 0.0f));
+            }
         }
         
         if (!node->Children.empty()) {
@@ -129,5 +135,8 @@ void Forward::Render(const Frame& frame, const Scene& scene)
 
 void Forward::UI(const Frame& frame)
 {
-
+    if (ImGui::TreeNodeEx("Forward", ImGuiTreeNodeFlags_Framed)) {
+        ImGui::Checkbox("Show Bounding Boxes", &mShowOBBs);
+        ImGui::TreePop();
+    }
 }

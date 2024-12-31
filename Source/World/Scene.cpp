@@ -33,7 +33,10 @@ void Scene::BakeTLAS(RHI::Ref rhi)
 
     TLAS = rhi->CreateTLAS(InstanceBuffer, Instances.size(), "Scene TLAS");
     Uploader::EnqueueAccelerationStructureBuild(TLAS);
+}
 
+void Scene::Init(RHI::Ref rhi)
+{
     for (int i = 0; i < FRAMES_IN_FLIGHT; i++) {
         LightBuffer[i] = rhi->CreateBuffer(65536, 0, BufferType::Constant, "Light CBV");
         LightBuffer[i]->BuildCBV();
@@ -51,15 +54,15 @@ void Scene::Update(const Frame& frame, UInt32 frameIndex)
     LightBuffer[frameIndex]->CopyMapped(&mData, sizeof(mData));
 
     // Update instances
-    Instances.clear();
-    for (auto& model : Models) {
-        model->Model.TraverseNode(model->Model.Root, [&](GLTFNode* node){
-            for (auto& primitive : node->Primitives) {
-                Instances.push_back(primitive.Instance);
-            }
-        });
-    }
-    InstanceBuffer->CopyMapped(Instances.data(), Instances.size() * sizeof(RaytracingInstance));
+    // Instances.clear();
+    // for (auto& model : Models) {
+    //     model->Model.TraverseNode(model->Model.Root, [&](GLTFNode* node){
+    //         for (auto& primitive : node->Primitives) {
+    //             Instances.push_back(primitive.Instance);
+    //         }
+    //     });
+    // }
+    // InstanceBuffer->CopyMapped(Instances.data(), Instances.size() * sizeof(RaytracingInstance));
 
     // Update TLAS
     // frame.CommandBuffer->UpdateTLAS(TLAS, InstanceBuffer, Instances.size());

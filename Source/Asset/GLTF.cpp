@@ -137,6 +137,8 @@ void GLTF::ProcessPrimitive(cgltf_primitive *primitive, GLTFNode *node)
     std::vector<Vertex> vertices = {};
     std::vector<UInt32> indices = {};
 
+    out.AABB.Min = glm::vec3(std::numeric_limits<float>::max());
+    out.AABB.Max = glm::vec3(std::numeric_limits<float>::min());
     for (int i = 0; i < vertexCount; i++) {
         Vertex vertex = {};
 
@@ -155,6 +157,9 @@ void GLTF::ProcessPrimitive(cgltf_primitive *primitive, GLTFNode *node)
 
         //for (u32 i = 0; i < MAX_BONE_WEIGHTS; i++)
         //    vertex.MaxBoneInfluence[i] = static_cast<int>(ids[i]);
+
+        out.AABB.Min = glm::min(vertex.Position, out.AABB.Min);
+        out.AABB.Max = glm::max(vertex.Position, out.AABB.Max);
 
         vertices.push_back(vertex);
     }
@@ -184,9 +189,11 @@ void GLTF::ProcessPrimitive(cgltf_primitive *primitive, GLTFNode *node)
     cgltf_material *material = primitive->material;
     GLTFMaterial outMaterial = {};
     out.MaterialIndex = Materials.size();
-    outMaterial.AlphaTested = material->alpha_mode == cgltf_alpha_mode_mask;
-    outMaterial.AlphaCutoff = material->alpha_cutoff;
-
+    
+    if (material) {
+        outMaterial.AlphaTested = material->alpha_mode != cgltf_alpha_mode_opaque;
+        outMaterial.AlphaCutoff = material->alpha_cutoff;
+    }
     if (material && material->pbr_metallic_roughness.base_color_texture.texture) {
         std::string path = Directory + '/' + std::string(material->pbr_metallic_roughness.base_color_texture.texture->image->uri);
     

@@ -9,14 +9,16 @@
 
 Uploader::Data Uploader::sData;
 
-void Uploader::Init(Device::Ref device, DescriptorHeaps heaps, Queue::Ref queue)
+void Uploader::Init(RHI* rhi, Device::Ref device, DescriptorHeaps heaps, Queue::Ref queue)
 {
+    sData.Rhi = rhi;
     sData.Device = device;
     sData.Heaps = heaps;
     sData.UploadQueue = queue;
     sData.CmdBuffer = nullptr;
     sData.BufferRequests = 0;
     sData.TextureRequests = 0;
+    sData.UploadBatchSize = 0;
     sData.Requests.clear();
 }
 
@@ -49,7 +51,11 @@ void Uploader::EnqueueTextureUpload(Vector<UInt8> buffer, Ref<Resource> texture)
     }
     request.StagingBuffer->Unmap(0, 0);
 
+    sData.UploadBatchSize += totalSize;
     sData.Requests.push_back(request);
+
+    if (sData.UploadBatchSize >= MAX_UPLOAD_BATCH_SIZE)
+        Flush();
 }
 
 void Uploader::EnqueueTextureUpload(Image image, Ref<Resource> buffer)
@@ -81,7 +87,11 @@ void Uploader::EnqueueTextureUpload(Image image, Ref<Resource> buffer)
     }
     request.StagingBuffer->Unmap(0, 0);
 
+    sData.UploadBatchSize += totalSize;
     sData.Requests.push_back(request);
+
+    if (sData.UploadBatchSize >= MAX_UPLOAD_BATCH_SIZE)
+        Flush();
 }
 
 void Uploader::EnqueueBufferUpload(void* data, UInt64 size, Ref<Resource> buffer)
@@ -97,7 +107,11 @@ void Uploader::EnqueueBufferUpload(void* data, UInt64 size, Ref<Resource> buffer
     memcpy(mapped, data, size);
     request.StagingBuffer->Unmap(0, 0);
 
+    sData.UploadBatchSize += size;
     sData.Requests.push_back(request);
+
+    if (sData.UploadBatchSize >= MAX_UPLOAD_BATCH_SIZE)
+        Flush();
 }
 
 void Uploader::EnqueueAccelerationStructureBuild(Ref<AccelerationStructure> as)
@@ -151,19 +165,18 @@ void Uploader::Flush()
 
     sData.CmdBuffer->End();
     sData.UploadQueue->Submit({ sData.CmdBuffer });
+
+    // Wait and clear
+    sData.Rhi->Wait();
+    ClearRequests();
 }
 
 void Uploader::ClearRequests()
 {
+    sData.UploadBatchSize = 0;
     sData.BufferRequests = 0;
     sData.TextureRequests = 0;
     sData.ASRequests = 0;
-    for (auto& request : sData.Requests) {
-        if (request.StagingBuffer)
-            request.StagingBuffer.reset();
-        if (request.Acceleration)
-            request.Acceleration->FreeScratch();
-    }
     sData.CmdBuffer.reset();
     sData.Requests.clear();
 }

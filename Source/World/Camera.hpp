@@ -9,7 +9,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-constexpr float CAMERA_FAR = 100.0f;
+constexpr float CAMERA_FAR = 300.0f;
 constexpr float CAMERA_NEAR = 0.1f;
 
 class Camera
