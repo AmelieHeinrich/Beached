@@ -55,8 +55,6 @@ private:
         Array<Buffer::Ref, FRAMES_IN_FLIGHT> VertexBuffer;
     } sData;
 
-    bool mEnable = true;
-    bool mDrawLights = true;
     UInt64 mLineCount = 0;
 };
 

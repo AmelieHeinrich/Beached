@@ -6,11 +6,19 @@
 #pragma once
 
 #include <Core/Common.hpp>
+#include <Physics/Volume.hpp>
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
 constexpr float CAMERA_FAR = 300.0f;
 constexpr float CAMERA_NEAR = 0.1f;
+
+struct Plane
+{
+    glm::vec3 Normal;
+    float Distance;
+};
 
 class Camera
 {
@@ -24,8 +32,20 @@ public:
     glm::mat4 View() const { return mView; }
     glm::mat4 Projection() const { return mProjection; }
     glm::vec3 Position() const { return mPosition; }
+    
     Vector<glm::vec4> Corners() const;
+    Array<Plane, 6> Planes() const;
+
+    static Array<Plane, 6> FrustumPlanes(glm::mat4 projView);
     static Vector<glm::vec4> FrustumCorners(glm::mat4 view, glm::mat4 proj);
+
+    static bool IsBoxOutsidePlane(const Plane& plane, const Box& box);
+    static bool IsBoxOutsidePlane(const Plane& plane, const Box& box, const glm::mat4& transform);
+    bool IsBoxInFrustum(const Box& box) const;
+    bool IsBoxInFrustum(const Box& box, const glm::mat4& transform) const;
+    static bool IsBoxInFrustum(const glm::mat4& projView, const Box& box, const glm::mat4& transform);
+
+    void FreezeFrustum(bool freeze);
 private:
     glm::mat4 mView = glm::mat4(1.0f);
     glm::mat4 mProjection = glm::mat4(1.0f);
@@ -41,4 +61,8 @@ private:
     // Last mouse
     float mLastX = 0.0f;
     float mLastY = 0.0f;
+
+    // Saved frustum
+    bool mFreezeFrustum = false;
+    Array<Plane, 6> mSavedFrustum;
 };

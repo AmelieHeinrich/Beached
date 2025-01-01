@@ -11,6 +11,7 @@
 #include <Renderer/Techniques/Composite.hpp>
 #include <Renderer/Techniques/Debug.hpp>
 
+#include <Settings.hpp>
 #include <imgui.h>
 
 Renderer::Renderer(RHI::Ref rhi)
@@ -35,6 +36,11 @@ void Renderer::UI(const Frame& frame, bool *open)
 {
     if (*open) {
         ImGui::Begin("Renderer", open);
+        if (ImGui::TreeNodeEx("Global Settings", ImGuiTreeNodeFlags_Framed)) {
+            ImGui::Checkbox("Frustum Cull", &Settings::Get().FrustumCull);
+            ImGui::Checkbox("Freeze Frustum", &Settings::Get().FreezeFrustum);
+            ImGui::TreePop();
+        }
         for (RenderPass::Ref pass : mPasses) {
             pass->UI(frame);
         }

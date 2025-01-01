@@ -5,6 +5,8 @@
 
 #include <Renderer/Techniques/GBuffer.hpp>
 
+#include <Settings.hpp>
+
 GBuffer::GBuffer(RHI::Ref rhi)
     : RenderPass(rhi)
 { 
@@ -60,6 +62,10 @@ void GBuffer::Render(const Frame& frame, const Scene& scene)
         glm::mat4 globalTransform = transform * node->Transform;
         glm::mat4 invTransform = glm::inverse(globalTransform);
         for (GLTFPrimitive primitive : node->Primitives) {
+            if (!scene.Camera.IsBoxInFrustum(primitive.AABB, globalTransform) && Settings::Get().FrustumCull) {
+                continue;
+            }
+
             GLTFMaterial material = model->Materials[primitive.MaterialIndex];
 
             glm::mat4 matrices[] = {

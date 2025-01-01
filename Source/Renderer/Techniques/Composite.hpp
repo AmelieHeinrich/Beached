@@ -18,6 +18,4 @@ public:
 private:
     ComputePipeline::Ref mPipeline;
     RootSignature::Ref mSignature;
-
-    float mGamma = 2.2f;
 };

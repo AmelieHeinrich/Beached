@@ -7,6 +7,8 @@
 #include <Renderer/Techniques/CSM.hpp>
 #include <Renderer/Techniques/Debug.hpp>
 
+#include <Settings.hpp>
+
 #include <glm/gtc/type_ptr.hpp>
 #include <imgui.h>
 
@@ -41,6 +43,8 @@ void Forward::Render(const Frame& frame, const Scene& scene)
     ::Ref<RenderPassIO> white = PassManager::Get("WhiteTexture");
     ::Ref<RenderPassIO> cascade = PassManager::Get("CascadeRingBuffer");
 
+    mCulledOBBs = 0;
+
     struct UploadData {
         glm::mat4 View;
         glm::mat4 Projection;
@@ -72,8 +76,13 @@ void Forward::Render(const Frame& frame, const Scene& scene)
         glm::mat4 globalTransform = transform * node->Transform;
         glm::mat4 invTransform = glm::inverse(globalTransform);
         for (GLTFPrimitive primitive : node->Primitives) {
-            GLTFMaterial material = model->Materials[primitive.MaterialIndex];
+            // CPU cull
+            if (!scene.Camera.IsBoxInFrustum(primitive.AABB, globalTransform) && Settings::Get().FrustumCull) {
+                mCulledOBBs++;
+                continue;
+            }
 
+            GLTFMaterial material = model->Materials[primitive.MaterialIndex];
             glm::mat4 matrices[] = {
                 globalTransform,
                 invTransform
@@ -116,7 +125,7 @@ void Forward::Render(const Frame& frame, const Scene& scene)
             frame.CommandBuffer->SetIndexBuffer(primitive.IndexBuffer);
             frame.CommandBuffer->DrawIndexed(primitive.IndexCount);
 
-            if (mShowOBBs) {
+            if (Settings::Get().DebugDrawVolumes) {
                 Debug::DrawBox(globalTransform, primitive.AABB.Min, primitive.AABB.Max, glm::vec3(0.0f, 1.0, 0.0f));
             }
         }
@@ -136,7 +145,9 @@ void Forward::Render(const Frame& frame, const Scene& scene)
 void Forward::UI(const Frame& frame)
 {
     if (ImGui::TreeNodeEx("Forward", ImGuiTreeNodeFlags_Framed)) {
-        ImGui::Checkbox("Show Bounding Boxes", &mShowOBBs);
+        if (Settings::Get().FrustumCull) {
+            ImGui::Text("Culled OBBs : %d", mCulledOBBs);
+        }
         ImGui::TreePop();
     }
 }

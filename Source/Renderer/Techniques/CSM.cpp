@@ -7,6 +7,7 @@
 #include <Renderer/Techniques/Debug.hpp>
 
 #include <imgui.h>
+#include <Settings.hpp>
 
 #undef near
 #undef far
@@ -42,17 +43,7 @@ CSM::CSM(RHI::Ref rhi)
 void CSM::Render(const Frame& frame, const Scene& scene)
 {
     // Generate frustums
-    if (!mFreezeFrustum) {
-        mFrozenView = scene.Camera.View();
-        mFrozenProj = scene.Camera.Projection();
-
-        UpdateCascades(scene);
-    } else {
-        Debug::DrawFrustum(mFrozenProj * mFrozenView, glm::vec3(1.0f, 0.0f, 0.0f));
-        for (Cascade matrix : mCascades) {
-            Debug::DrawFrustum(matrix.ViewProj, glm::vec3(0.0f, 1.0f, 0.0f));
-        }
-    }
+    UpdateCascades(scene);
 
     // Draw
     Vector<::Ref<RenderPassIO>> cascades = {
@@ -88,6 +79,9 @@ void CSM::Render(const Frame& frame, const Scene& scene)
 
             glm::mat4 globalTransform = transform * node->Transform;
             for (GLTFPrimitive primitive : node->Primitives) {
+                if (!Camera::IsBoxInFrustum(mCascades[i].ViewProj, primitive.AABB, globalTransform) && Settings::Get().FrustumCull)
+                    continue;
+
                 struct PushConstants {
                     glm::mat4 transform;
                     glm::mat4 viewProjection;
@@ -126,8 +120,7 @@ void CSM::UI(const Frame& frame)
         PassManager::Get("ShadowCascade3"),
     };
 
-    if (ImGui::TreeNodeEx("Cascaded Shadow Maps", ImGuiTreeNodeFlags_Framed)) {
-        ImGui::Checkbox("Freeze Frustum", &mFreezeFrustum);
+    if (ImGui::TreeNodeEx("Cascaded Shadow Maps", ImGuiTreeNodeFlags_Framed)) {;
         for (int i = 0; i < SHADOW_CASCADE_COUNT; i++) {
             if (ImGui::TreeNodeEx(("Cascade " + std::to_string(i)).data(), ImGuiTreeNodeFlags_Framed)) {
                 frame.CommandBuffer->Barrier(cascades[i]->Texture, ResourceLayout::Shader);

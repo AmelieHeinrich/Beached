@@ -137,26 +137,21 @@ void GLTF::ProcessPrimitive(cgltf_primitive *primitive, GLTFNode *node)
     std::vector<Vertex> vertices = {};
     std::vector<UInt32> indices = {};
 
-    out.AABB.Min = glm::vec3(std::numeric_limits<float>::max());
-    out.AABB.Max = glm::vec3(std::numeric_limits<float>::min());
+    out.AABB = {};
+    out.AABB.Min = glm::vec3(FLT_MAX);
+    out.AABB.Max = glm::vec3(-FLT_MAX);
     for (int i = 0; i < vertexCount; i++) {
         Vertex vertex = {};
 
-        //u32 ids[4];
-
         if (!cgltf_accessor_read_float(posAttribute->data, i, glm::value_ptr(vertex.Position), 4)) {
+            vertex.Position = glm::vec3(0.0f);
         }
         if (!cgltf_accessor_read_float(uvAttribute->data, i, glm::value_ptr(vertex.UV), 4)) {
+            vertex.UV = glm::vec2(0.0f);
         }
         if (!cgltf_accessor_read_float(normAttribute->data, i, glm::value_ptr(vertex.Normal), 4)) {
+            vertex.Normal = glm::vec3(0.0f, 0.0f, 1.0f);
         }
-        //if (!cgltf_accessor_read_uint(joint_attribute->data, i, ids, 4)) {
-        //}
-        //if (!cgltf_accessor_read_float(weight_attribute->data, i, vertex.Weights, 4)) {
-        //}
-
-        //for (u32 i = 0; i < MAX_BONE_WEIGHTS; i++)
-        //    vertex.MaxBoneInfluence[i] = static_cast<int>(ids[i]);
 
         out.AABB.Min = glm::min(vertex.Position, out.AABB.Min);
         out.AABB.Max = glm::max(vertex.Position, out.AABB.Max);

@@ -5,6 +5,7 @@
 
 #include <Renderer/Techniques/Debug.hpp>
 #include <Core/Math.hpp>
+#include <Settings.hpp>
 
 #include <imgui.h>
 #include <glm/gtc/constants.hpp>
@@ -40,8 +41,8 @@ void Debug::Render(const Frame& frame, const Scene& scene)
 {
     ::Ref<RenderPassIO> cameraBuffer = PassManager::Get("CameraRingBuffer");
 
-    if (mEnable) {
-        if (mDrawLights) {
+    if (Settings::Get().DebugDraw) {
+        if (Settings::Get().DebugDrawLights) {
             for (PointLight light : scene.PointLights) {
                 DrawRings(light.Position, light.Radius, light.Color, 16);
             }
@@ -50,7 +51,7 @@ void Debug::Render(const Frame& frame, const Scene& scene)
     }
 
     if (!sData.Lines.empty()) {
-        if (mEnable) {
+        if (Settings::Get().DebugDraw) {
             mLineCount = sData.Lines.size();
 
             Vector<LineVertex> vertices;
@@ -94,9 +95,10 @@ void Debug::Render(const Frame& frame, const Scene& scene)
 void Debug::UI(const Frame& frame)
 {
     if (ImGui::TreeNodeEx("Debug", ImGuiTreeNodeFlags_Framed)) {
-        ImGui::Checkbox("Enable", &mEnable);
-        ImGui::Checkbox("Draw Point Lights", &mDrawLights);
-        if (mEnable)
+        ImGui::Checkbox("Enable", &Settings::Get().DebugDraw);
+        ImGui::Checkbox("Draw Volumes", &Settings::Get().DebugDrawVolumes);
+        ImGui::Checkbox("Draw Point Lights", &Settings::Get().DebugDrawLights);
+        if (Settings::Get().DebugDraw)
             ImGui::Text("Line Count: %llu", mLineCount);
         ImGui::TreePop();
     }
@@ -146,28 +148,29 @@ void Debug::DrawUnitBox(glm::mat4 transform, glm::vec3 color)
 
 void Debug::DrawBox(glm::mat4 transform, glm::vec3 min, glm::vec3 max, glm::vec3 color)
 {
-    glm::vec3 v1 = transform * glm::vec4(min.x, min.y, min.z, 1.0);
-	glm::vec3 v2 = transform * glm::vec4(min.x, min.y, max.z, 1.0);
-	glm::vec3 v3 = transform * glm::vec4(min.x, max.y, min.z, 1.0);
-	glm::vec3 v4 = transform * glm::vec4(min.x, max.y, max.z, 1.0);
-	glm::vec3 v5 = transform * glm::vec4(max.x, min.y, min.z, 1.0);
-	glm::vec3 v6 = transform * glm::vec4(max.x, min.y, max.z, 1.0);
-	glm::vec3 v7 = transform * glm::vec4(max.x, max.y, min.z, 1.0);
-	glm::vec3 v8 = transform * glm::vec4(max.x, max.y, max.z, 1.0);
+    // Transform corners from local space to world space
+    glm::vec3 v1 = glm::vec3(transform * glm::vec4(min.x, min.y, min.z, 1.0));
+    glm::vec3 v2 = glm::vec3(transform * glm::vec4(min.x, min.y, max.z, 1.0));
+    glm::vec3 v3 = glm::vec3(transform * glm::vec4(min.x, max.y, min.z, 1.0));
+    glm::vec3 v4 = glm::vec3(transform * glm::vec4(min.x, max.y, max.z, 1.0));
+    glm::vec3 v5 = glm::vec3(transform * glm::vec4(max.x, min.y, min.z, 1.0));
+    glm::vec3 v6 = glm::vec3(transform * glm::vec4(max.x, min.y, max.z, 1.0));
+    glm::vec3 v7 = glm::vec3(transform * glm::vec4(max.x, max.y, min.z, 1.0));
+    glm::vec3 v8 = glm::vec3(transform * glm::vec4(max.x, max.y, max.z, 1.0));
 
-	// 12 edges
-	DrawLine(v1, v2, color);
-	DrawLine(v1, v3, color);
-	DrawLine(v1, v5, color);
-	DrawLine(v2, v4, color);
-	DrawLine(v2, v6, color);
-	DrawLine(v3, v4, color);
-	DrawLine(v3, v7, color);
-	DrawLine(v4, v8, color);
-	DrawLine(v5, v6, color);
-	DrawLine(v5, v7, color);
-	DrawLine(v6, v8, color);
-	DrawLine(v7, v8, color);
+    // Draw 12 edges of the box
+    DrawLine(v1, v2, color); // Edge 1
+    DrawLine(v1, v3, color); // Edge 2
+    DrawLine(v1, v5, color); // Edge 3
+    DrawLine(v2, v4, color); // Edge 4
+    DrawLine(v2, v6, color); // Edge 5
+    DrawLine(v3, v4, color); // Edge 6
+    DrawLine(v3, v7, color); // Edge 7
+    DrawLine(v4, v8, color); // Edge 8
+    DrawLine(v5, v6, color); // Edge 9
+    DrawLine(v5, v7, color); // Edge 10
+    DrawLine(v6, v8, color); // Edge 11
+    DrawLine(v7, v8, color); // Edge 12
 }
 
 void Debug::DrawFrustum(glm::mat4 view, glm::mat4 projection, glm::vec3 color)

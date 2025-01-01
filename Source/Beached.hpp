@@ -19,6 +19,8 @@
 
 #include <Renderer/Renderer.hpp>
 
+#include <Settings.hpp>
+
 class Beached
 {
 public:
@@ -41,4 +43,8 @@ private:
     // UI settings
     bool mUI = false;
     bool mRendererUI = false;
+
+    // Saved data
+    glm::mat4 mFrozenProj;
+    glm::mat4 mFrozenView;
 };

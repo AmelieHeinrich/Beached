@@ -21,5 +21,5 @@ private:
     Sampler::Ref mShadowSampler;
     Permutation mPipeline;
 
-    bool mShowOBBs = false;
+    int mCulledOBBs = 0;
 };

@@ -4,6 +4,8 @@
 //
 
 #include <Renderer/Techniques/Composite.hpp>
+#include <Settings.hpp>
+
 #include <glm/gtc/type_ptr.hpp>
 
 #include <ImGui/imgui.h>
@@ -32,7 +34,7 @@ void Composite::Render(const Frame& frame, const Scene& scene)
     } PushConstants = {
         hdr->UnorderedAccessView->GetDescriptor().Index,
         ldr->UnorderedAccessView->GetDescriptor().Index,
-        mGamma,
+        Settings::Get().Gamma,
         0
     };
 
@@ -64,7 +66,7 @@ void Composite::Render(const Frame& frame, const Scene& scene)
 void Composite::UI(const Frame& frame)
 {
     if (ImGui::TreeNodeEx("Composite", ImGuiTreeNodeFlags_Framed)) {
-        ImGui::SliderFloat("Gamma", &mGamma, 0.0f, 5.0f, "%.1f");
+        ImGui::SliderFloat("Gamma", &Settings::Get().Gamma, 0.0f, 5.0f, "%.1f");
         ImGui::TreePop();
     }
 }

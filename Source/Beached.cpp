@@ -67,6 +67,14 @@ void Beached::Run()
         
         mWindow->PollEvents();
 
+        mScene.Camera.FreezeFrustum(Settings::Get().FreezeFrustum);
+        if (!Settings::Get().FreezeFrustum) {
+            mFrozenView = mScene.Camera.View();
+            mFrozenProj = mScene.Camera.Projection();
+        } else {
+            Debug::DrawFrustum(mFrozenProj * mFrozenView, glm::vec3(1.0f, 0.0f, 0.0f));
+        }
+
         mScene.Camera.Begin();
         if (ImGui::IsKeyPressed(ImGuiKey_F1, false)) {
             mUI = !mUI;
@@ -118,6 +126,8 @@ void Beached::Overlay()
 
 void Beached::UI(const Frame& frame)
 {
+    Settings& settings = Settings::Get();
+
     if (ImGui::BeginMainMenuBar()) {
         if (ImGui::BeginMenu("Window")) {
             if (ImGui::MenuItem("Quit")) {
