@@ -43,6 +43,7 @@ private:
     // UI settings
     bool mUI = false;
     bool mRendererUI = false;
+    bool mStatisticsUI = false;
 
     // Saved data
     glm::mat4 mFrozenProj;

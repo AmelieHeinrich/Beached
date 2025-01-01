@@ -10,6 +10,8 @@
 #include <imgui_impl_win32.h>
 #include <imgui_impl_dx12.h>
 
+#include <Statistics.hpp>
+
 RHI::RHI(Window::Ref window)
     : mWindow(window)
 {
@@ -79,6 +81,8 @@ void RHI::Submit(const Vector<CommandBuffer::Ref> buffers)
 
 Frame RHI::Begin()
 {
+    Statistics::Reset();
+
     Frame frame = {};
     frame.FrameIndex = mSurface->GetBackbufferIndex();
     frame.Backbuffer = mSurface->GetBackbuffer(frame.FrameIndex);

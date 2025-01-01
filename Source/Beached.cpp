@@ -12,9 +12,11 @@
 #include <Renderer/PassManager.hpp>
 #include <Renderer/Techniques/Debug.hpp>
 
+#include <Statistics.hpp>
 #include <imgui.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <sstream>
 
 Beached::Beached()
 {
@@ -135,9 +137,12 @@ void Beached::UI(const Frame& frame)
             }
             ImGui::EndMenu();
         }
-        if (ImGui::BeginMenu("Renderer")) {
+        if (ImGui::BeginMenu("Settings")) {
             if (ImGui::MenuItem("Render Settings")) {
                 mRendererUI = !mRendererUI;
+            }
+            if (ImGui::MenuItem("Statistics")) {
+                mStatisticsUI = !mStatisticsUI;
             }
             ImGui::EndMenu();
         }
@@ -151,4 +156,66 @@ void Beached::UI(const Frame& frame)
     ImGui::End();
 
     mRenderer->UI(frame, &mRendererUI);
+
+    if (mStatisticsUI) {
+        Statistics::Update();
+        ImGui::Begin("Statistics", &mStatisticsUI);
+
+        // Frame
+        ImGui::Text("Instance Count : %llu", Statistics::Get().InstanceCount);
+        ImGui::Text("Culled Instances : %llu", Statistics::Get().CulledInstances);
+        ImGui::Text("Triangle Count : %llu", Statistics::Get().TriangleCount);
+        ImGui::Text("Culled Triangles : %llu", Statistics::Get().CulledTriangles);
+        ImGui::Text("Draw Call Count : %llu", Statistics::Get().DrawCallCount);
+        ImGui::Text("Dispatch Count : %llu", Statistics::Get().DispatchCount);
+
+        //
+        ImGui::Separator();
+        //
+
+        // Resources
+        // VRAM
+        {
+            UInt64 percentage = (Statistics::Get().UsedVRAM * 100) / Statistics::Get().MaxVRAM;
+            float stupidVRAMPercetange = percentage / 100.0f;
+
+            std::stringstream ss;
+            ss << "VRAM Usage (" << percentage << "%%): " << (((Statistics::Get().UsedVRAM / 1024.0F) / 1024.0f) / 1024.0f) << "gb/" << (((Statistics::Get().MaxVRAM / 1024.0F) / 1024.0f) / 1024.0f) << "gb";
+
+            std::stringstream percents;
+            percents << percentage << "%";
+
+            ImGui::Text(ss.str().c_str());
+            ImGui::ProgressBar(stupidVRAMPercetange, ImVec2(0, 0), percents.str().c_str());
+        }
+
+        // RAM
+        {
+            UInt64 percentage = (Statistics::Get().UsedRAM * 100) / Statistics::Get().MaxRAM;
+            float stupidRAMPercetange = percentage / 100.0f;
+
+            std::stringstream ss;
+            ss << "RAM Usage (" << percentage << "%%): " << (((Statistics::Get().UsedRAM / 1024.0F) / 1024.0f) / 1024.0f) << "gb/" << (((Statistics::Get().MaxRAM / 1024.0F) / 1024.0f) / 1024.0f) << "gb";
+
+            std::stringstream percents;
+            percents << percentage << "%";
+
+            ImGui::Text(ss.str().c_str());
+            ImGui::ProgressBar(stupidRAMPercetange, ImVec2(0, 0), percents.str().c_str());
+        }
+
+        // Battery
+        {
+            std::stringstream ss;
+            ss << "Battery (" << Statistics::Get().Battery << "%%)";
+
+            std::stringstream percentss;
+            percentss << Statistics::Get().Battery << "%";
+
+            ImGui::Text(ss.str().c_str());
+            ImGui::ProgressBar(Statistics::Get().Battery / 100.0f, ImVec2(0, 0), percentss.str().c_str());
+        }
+
+        ImGui::End();
+    }
 }

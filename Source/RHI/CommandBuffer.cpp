@@ -12,6 +12,7 @@
 #include <imgui_impl_win32.h>
 
 #include <PIX/pix3.h>
+#include <Statistics.hpp>
 
 CommandBuffer::CommandBuffer(Device::Ref device, Queue::Ref queue, DescriptorHeaps heaps, bool singleTime)
     : mSingleTime(singleTime), mParentQueue(queue), mHeaps(heaps), mDevice(device)
@@ -163,16 +164,20 @@ void CommandBuffer::ClearRenderTarget(View::Ref view, float r, float g, float b)
 void CommandBuffer::Draw(int vertexCount)
 {
     mList->DrawInstanced(vertexCount, 1, 0, 0);
+    Statistics::Get().DrawCallCount++;
 }
 
 void CommandBuffer::DrawIndexed(int indexCount)
 {
     mList->DrawIndexedInstanced(indexCount, 1, 0, 0, 0);
+    Statistics::Get().TriangleCount += indexCount / 3;
+    Statistics::Get().DrawCallCount++;
 }
 
 void CommandBuffer::Dispatch(int x, int y, int z)
 {
     mList->Dispatch(x, y, z);
+    Statistics::Get().DispatchCount += 1;
 }
 
 void CommandBuffer::CopyBufferToBuffer(::Ref<Resource> dst, ::Ref<Resource> src)

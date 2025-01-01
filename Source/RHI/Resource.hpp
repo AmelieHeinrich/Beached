@@ -62,4 +62,6 @@ protected:
     String mName;
 
     void CreateResource(D3D12_HEAP_PROPERTIES* heapProps, D3D12_RESOURCE_DESC* resourceDesc, D3D12_RESOURCE_STATES state);
+private:
+    UInt64 mAllocSize;
 };

@@ -145,9 +145,6 @@ void Forward::Render(const Frame& frame, const Scene& scene)
 void Forward::UI(const Frame& frame)
 {
     if (ImGui::TreeNodeEx("Forward", ImGuiTreeNodeFlags_Framed)) {
-        if (Settings::Get().FrustumCull) {
-            ImGui::Text("Culled OBBs : %d", mCulledOBBs);
-        }
         ImGui::TreePop();
     }
 }
