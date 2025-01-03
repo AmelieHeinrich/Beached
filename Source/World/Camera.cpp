@@ -16,6 +16,10 @@ void Camera::Begin()
 
 void Camera::Update(float dt, int width, int height)
 {
+    // Save width and height
+    mWidth = width;
+    mHeight = height;
+
     // Update frustum
     mSavedFrustum = Planes();
 
@@ -56,6 +60,11 @@ void Camera::Update(float dt, int width, int height)
 Vector<glm::vec4> Camera::Corners() const
 {
     return FrustumCorners(mView, mProjection);
+}
+
+Vector<glm::vec4> Camera::CornersForCascade(float near, float far) const
+{
+    return FrustumCorners(mView, glm::perspective(glm::radians(90.0f), (float)mWidth / (float)mHeight, near, far));
 }
 
 Array<Plane, 6> Camera::FrustumPlanes(glm::mat4 projView)
@@ -111,7 +120,7 @@ Array<Plane, 6> Camera::FrustumPlanes(glm::mat4 projView)
 
 Vector<glm::vec4> Camera::FrustumCorners(glm::mat4 view, glm::mat4 proj)
 {
-    glm::mat4 inv = glm::inverse(view * proj);
+    glm::mat4 inv = glm::inverse(proj * view);
 
     Vector<glm::vec4> corners = {
         glm::vec4(-1.0f,  1.0f, 0.0f, 1.0f),

@@ -14,7 +14,7 @@ struct Settings
     bool FreezeFrustum = false;
 
     // Debug
-    bool DebugDraw = false;
+    bool DebugDraw = true;
     bool DebugDrawLights = false;
     bool DebugDrawVolumes = false;
     

@@ -11,7 +11,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-constexpr float CAMERA_FAR = 300.0f;
+constexpr float CAMERA_FAR = 150.0f;
 constexpr float CAMERA_NEAR = 0.1f;
 
 struct Plane
@@ -34,6 +34,7 @@ public:
     glm::vec3 Position() const { return mPosition; }
     
     Vector<glm::vec4> Corners() const;
+    Vector<glm::vec4> CornersForCascade(float near, float far) const;
     Array<Plane, 6> Planes() const;
 
     static Array<Plane, 6> FrustumPlanes(glm::mat4 projView);
@@ -65,4 +66,6 @@ private:
     // Saved frustum
     bool mFreezeFrustum = false;
     Array<Plane, 6> mSavedFrustum;
+    int mWidth;
+    int mHeight;
 };

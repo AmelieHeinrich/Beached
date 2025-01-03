@@ -13,4 +13,4 @@ struct Camera
 };
 
 static const float CAMERA_NEAR = 0.1f;
-static const float CAMERA_FAR = 300.0f;
+static const float CAMERA_FAR = 150.0f;

@@ -96,9 +96,66 @@ float3 GetNormal(FragmentIn Input)
     return normalize(result);
 }
 
-float CalculateShadowCascade(FragmentIn input, uint cascadeIndex)
+float CalculateShadowCascade(FragmentIn input, DirectionalLight Light)
 {
-    return 1.0;
+    // Accessing the cascade buffer from the descriptor heap.
+    ConstantBuffer<CascadeBuffer> cascades = ResourceDescriptorHeap[PushConstants.CascadeBufferIndex];
+
+    // Ensure depth value is positive and consistent.
+    float depthValue = abs(input.FragPosView.z);
+
+    // Determine the cascade layer based on depth.
+    int layer = 0;
+    // for (int i = 0; i < SHADOW_CASCADE_COUNT; i++) {
+    //     if (depthValue < cascades.Cascades[i].Split) {
+    //         layer = i;
+    //         break;
+    //     }
+    // }
+    // if (layer == -1) {
+    //     layer = SHADOW_CASCADE_COUNT - 1; // Use the last cascade if no match.
+    // }
+
+    // Ensure proper sampler and shadow map access.
+    SamplerState sampler = SamplerDescriptorHeap[PushConstants.SamplerIndex];
+    Texture2D<float> shadowMap = ResourceDescriptorHeap[cascades.Cascades[layer].SRVIndex];
+
+    // Transform world position to light's view space and then to light's clip space.
+    float4 lightViewPosition = mul(cascades.Cascades[layer].View, float4(input.FragPosWorld, 1.0));
+    float4 fragPosLightSpace = mul(cascades.Cascades[layer].Proj, lightViewPosition);
+
+    // Handle perspective division and normalize to [0, 1] space.
+    float3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    projCoords.xy = projCoords.xy * 0.5 + 0.5;
+    projCoords.y = 1.0 - projCoords.y;
+
+    // Avoid accessing out-of-bounds texels.
+    if (projCoords.x < 0.0 || projCoords.x > 1.0 || projCoords.y < 0.0 || projCoords.y > 1.0) {
+        return 1.0;
+    }
+
+    float currentDepth = projCoords.z;
+
+    // Calculate the shadow bias dynamically based on surface normal and light direction.
+    float3 N = GetNormal(input);
+    float bias = max(0.05 * (1.0 - dot(N, Light.Direction)), 0.005);
+
+    // PCF sampling for soft shadows.
+    uint shadowWidth, shadowHeight;
+    shadowMap.GetDimensions(shadowWidth, shadowHeight);
+
+    float shadow = AMBIENT;
+    float2 texelSize = 1.0 / float2(shadowWidth, shadowHeight);
+    for (int x = -1; x <= 1; ++x) {
+        for (int y = -1; y <= 1; ++y) {
+            float2 offset = float2(x, y) * texelSize;
+            float pcfDepth = shadowMap.Sample(sampler, projCoords.xy + offset).r;
+            shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;
+        }
+    }
+    shadow /= 9.0; // Average over the 3x3 kernel.
+
+    return 0.0;
 }
 
 float3 CalculatePoint(PointLight Light, FragmentIn Input, float3 Albedo)
@@ -173,7 +230,7 @@ float4 PSMain(FragmentIn Input) : SV_Target
     float4 Color = Albedo.Sample(Sampler, Input.UV);    
     float3 Lo = Color.xyz * AMBIENT;
     
-    float shadow = 1.0;
+    float shadow = CalculateShadowCascade(Input, Lights.Sun);
     Lo += CalculateSun(Lights.Sun, Input, Color.xyz) * shadow;
     
     for (int i = 0; i < Lights.LightCount; i++) {

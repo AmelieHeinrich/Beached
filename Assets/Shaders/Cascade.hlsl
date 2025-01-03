@@ -9,7 +9,8 @@ struct Cascade
 {
     int SRVIndex;
     float Split;
-    column_major float4x4 ViewProj;
+    column_major float4x4 View;
+    column_major float4x4 Proj;
 };
 
 struct CascadeBuffer

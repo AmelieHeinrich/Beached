@@ -6,6 +6,8 @@
 #include <Renderer/Techniques/CSM.hpp>
 #include <Renderer/Techniques/Debug.hpp>
 
+#include <Core/Logger.hpp>
+
 #include <imgui.h>
 #include <Settings.hpp>
 
@@ -25,8 +27,8 @@ CSM::CSM(RHI::Ref rhi)
         cascade->ShaderResourceView = mRHI->CreateView(cascade->Texture, ViewType::ShaderResource, ViewDimension::Texture, TextureFormat::R32Float);
     }
 
-    Asset::Handle vertexShader = AssetManager::Get("Assets/Shaders/CSM/Vertex.hlsl", AssetType::Shader);
-    Asset::Handle fragmentShader = AssetManager::Get("Assets/Shaders/CSM/Fragment.hlsl", AssetType::Shader);
+    Asset::Handle vertexShader = AssetManager::Get("Assets/Shaders/Shadow/Vertex.hlsl", AssetType::Shader);
+    Asset::Handle fragmentShader = AssetManager::Get("Assets/Shaders/Shadow/Fragment.hlsl", AssetType::Shader);
 
     GraphicsPipelineSpecs specs;
     specs.Bytecodes[ShaderType::Vertex] = vertexShader->Shader;
@@ -43,7 +45,13 @@ CSM::CSM(RHI::Ref rhi)
 void CSM::Render(const Frame& frame, const Scene& scene)
 {
     // Generate frustums
-    UpdateCascades(scene);
+    if (!mFreezeCascades) {
+        UpdateCascades(scene);
+    } else {
+        for (int i = 0; i < SHADOW_CASCADE_COUNT; i++) {
+            Debug::DrawFrustum(mCascades[i].View, mCascades[i].Proj, glm::vec3(0.3f, 0.5f, 0.8f));
+        }
+    }
 
     // Draw
     Vector<::Ref<RenderPassIO>> cascades = {
@@ -79,15 +87,20 @@ void CSM::Render(const Frame& frame, const Scene& scene)
 
             glm::mat4 globalTransform = transform * node->Transform;
             for (GLTFPrimitive primitive : node->Primitives) {
-                if (!Camera::IsBoxInFrustum(mCascades[i].ViewProj, primitive.AABB, globalTransform) && Settings::Get().FrustumCull)
+                // Cull objects that are not seen
+                if (!scene.Camera.IsBoxInFrustum(primitive.AABB, globalTransform) && Settings::Get().FrustumCull)
+                    continue;
+                if (!Camera::IsBoxInFrustum(mCascades[i].Proj * mCascades[i].View, primitive.AABB, globalTransform))
                     continue;
 
                 struct PushConstants {
                     glm::mat4 transform;
-                    glm::mat4 viewProjection;
+                    glm::mat4 view;
+                    glm::mat4 proj;
                 } Constants = {
                     globalTransform,
-                    mCascades[i].ViewProj,
+                    mCascades[i].View,
+                    mCascades[i].Proj
                 };
                 frame.CommandBuffer->GraphicsPushConstants(&Constants, sizeof(Constants), 0);
                 frame.CommandBuffer->SetVertexBuffer(primitive.VertexBuffer);
@@ -120,7 +133,8 @@ void CSM::UI(const Frame& frame)
         PassManager::Get("ShadowCascade3"),
     };
 
-    if (ImGui::TreeNodeEx("Cascaded Shadow Maps", ImGuiTreeNodeFlags_Framed)) {;
+    if (ImGui::TreeNodeEx("Cascaded Shadow Maps", ImGuiTreeNodeFlags_Framed)) {
+        ImGui::Checkbox("Freeze Cascades", &mFreezeCascades);
         for (int i = 0; i < SHADOW_CASCADE_COUNT; i++) {
             if (ImGui::TreeNodeEx(("Cascade " + std::to_string(i)).data(), ImGuiTreeNodeFlags_Framed)) {
                 frame.CommandBuffer->Barrier(cascades[i]->Texture, ResourceLayout::Shader);
@@ -134,36 +148,57 @@ void CSM::UI(const Frame& frame)
 
 void CSM::UpdateCascades(const Scene& scene)
 {
-    float splits[SHADOW_CASCADE_COUNT];
+    Vector<float> splits(SHADOW_CASCADE_COUNT + 1);
 
-    float nearClip = CAMERA_NEAR;
-    float farClip = CAMERA_FAR;
-    float clipRange = farClip - nearClip;
-
-    float minZ = nearClip;
-    float maxZ = nearClip + clipRange;
-
-    float range = maxZ - minZ;
-    float ratio = maxZ / minZ;
-
-    // Calculate split depths based on view camera frustum
-    for (int i = 0; i < SHADOW_CASCADE_COUNT; i++) {
-        float p = (i + 1) / static_cast<float>(SHADOW_CASCADE_COUNT);
-        float log = minZ + range * p;
-        float uniform = minZ + range * p;
-        float d = CASCADE_SPLIT_LAMBDA * (log - uniform) + uniform;
-        mSplits[i] = (d - nearClip) / clipRange;
+    // Precompute cascade splits using logarithmic split
+    float range = CAMERA_FAR - CAMERA_NEAR;
+    for (int i = 0; i <= SHADOW_CASCADE_COUNT; ++i) {
+        float uniformSplit = CAMERA_NEAR + i * range / SHADOW_CASCADE_COUNT;
+        float logSplit = CAMERA_NEAR * std::pow(CAMERA_FAR / CAMERA_NEAR, static_cast<float>(i) / SHADOW_CASCADE_COUNT);
+        splits[i] = SHADOW_SPLIT_LAMBDA * uniformSplit + (1.0f - SHADOW_SPLIT_LAMBDA) * logSplit;
     }
 
-	// Based on method presented in https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch10.html
-    // Calculate orthographic projection matrix for each cascade
-    float lastSplitDist = 0.0f;
-    for (int i = 0; i < SHADOW_CASCADE_COUNT; i++) {
-        float splitDist = mSplits[i];
+    for (int i = 0; i < SHADOW_CASCADE_COUNT; ++i) {
+        // Get frustum corners for the cascade in view space
+        Vector<glm::vec4> corners = scene.Camera.CornersForCascade(splits[i], splits[i + 1]);
 
-        mCascades[i].Split = (CAMERA_NEAR + splitDist * clipRange);
-        mCascades[i].ViewProj = glm::mat4(0.0f);
+        // Calculate center
+        glm::vec3 center(0.0f);
+        for (const glm::vec4& corner : corners) {
+            center += glm::vec3(corner);
+        }
+        center /= corners.size();
 
-        lastSplitDist = mSplits[i];
+        // Adjust light's up vector
+        glm::vec3 up(0.0f, 1.0f, 0.0f);
+        if (glm::abs(glm::dot(scene.Sun.Direction, up)) > 0.999f) {
+            up = glm::vec3(1.0f, 0.0f, 0.0f);
+        }
+
+        // Light's view matrix
+        glm::mat4 lightView = glm::lookAt(center - scene.Sun.Direction, center, up);
+
+        // Calculate light-space bounding box
+        glm::vec3 minBounds(FLT_MAX), maxBounds(-FLT_MAX);
+        for (glm::vec4 corner : corners) {
+            glm::vec4 lightSpaceCorner = lightView * corner;
+            minBounds = glm::min(minBounds, glm::vec3(lightSpaceCorner));
+            maxBounds = glm::max(maxBounds, glm::vec3(lightSpaceCorner));
+        }
+
+        // Projection matrix
+        glm::mat4 lightProjection = glm::ortho(
+            minBounds.x,  // Left
+            maxBounds.x,  // Right
+            minBounds.y,  // Bottom
+            maxBounds.y,  // Top
+            minBounds.z,    // Near
+            maxBounds.z      // Far
+        );
+
+        // Store results
+        mCascades[i].View = lightView;
+        mCascades[i].Proj = lightProjection;
+        mCascades[i].Split = splits[i];
     }
 }

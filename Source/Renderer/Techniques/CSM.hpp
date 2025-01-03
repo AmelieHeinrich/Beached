@@ -8,13 +8,14 @@
 #include <Renderer/RenderPass.hpp>
 
 constexpr int SHADOW_CASCADE_COUNT = 4;
-constexpr float CASCADE_SPLIT_LAMBDA = 0.95f;
+constexpr float SHADOW_SPLIT_LAMBDA = 0.5f;
 
 struct Cascade
 {
     int SRVIndex;
     float Split;
-    glm::mat4 ViewProj;
+    glm::mat4 View;
+    glm::mat4 Proj;
 };
 
 class CSM : public RenderPass
@@ -30,10 +31,6 @@ private:
 
     GraphicsPipeline::Ref mPipeline;
 
-    bool mFreezeFrustum = false;
-    glm::mat4 mFrozenView;
-    glm::mat4 mFrozenProj;
-
-    Array<float, SHADOW_CASCADE_COUNT> mSplits;
-    Array<Cascade, SHADOW_CASCADE_COUNT> mCascades;
+    bool mFreezeCascades = false;
+    Array<Cascade, SHADOW_CASCADE_COUNT + 1> mCascades;
 };

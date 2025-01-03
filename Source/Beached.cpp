@@ -34,7 +34,7 @@ Beached::Beached()
         mRenderer = MakeRef<Renderer>(mRHI);
 
         // Loading and setup
-        mScene.Models.push_back(AssetManager::Get("Assets/Models/Sponza/Sponza.gltf", AssetType::GLTF));
+        mScene.Models.push_back(AssetManager::Get("Assets/Models/EmeraldSquare/EmeraldSquare.gltf", AssetType::GLTF));
         mScene.Sun.Direction = glm::vec3(0.0f, -1.0f, 0.2f);
         mScene.Sun.Color = glm::vec4(1.0f);
         mScene.Sun.Strenght = 1.0f;
@@ -161,7 +161,9 @@ void Beached::UI(const Frame& frame)
         Statistics::Update();
         ImGui::Begin("Statistics", &mStatisticsUI);
 
-        // Frame
+        // TODO: Frame times
+
+        // Geometry and RHI
         ImGui::Text("Instance Count : %llu", Statistics::Get().InstanceCount);
         ImGui::Text("Culled Instances : %llu", Statistics::Get().CulledInstances);
         ImGui::Text("Triangle Count : %llu", Statistics::Get().TriangleCount);
