@@ -16,7 +16,7 @@ Forward::Forward(RHI::Ref rhi)
     : RenderPass(rhi)
 {
     mSampler = mRHI->CreateSampler(SamplerAddress::Wrap, SamplerFilter::Linear, true);
-    mShadowSampler = mRHI->CreateSampler(SamplerAddress::Clamp, SamplerFilter::Nearest, false);
+    mShadowSampler = mRHI->CreateSampler(SamplerAddress::Clamp, SamplerFilter::Linear, false);
 
     ::Ref<RenderPassIO> color = PassManager::Get("MainColorBuffer");
 

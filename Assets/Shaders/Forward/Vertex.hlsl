@@ -17,8 +17,8 @@ struct VertexOut
     float4 Position : SV_Position;
     float2 UV : TEXCOORD;
     float3 Normal : NORMAL;
-    float3 FragPosWorld : POSITION;
-    float3 FragPosView : POSITION1;
+    float4 FragPosWorld : POSITION;
+    float4 FragPosView : POSITION1;
 };
 
 struct Model
@@ -70,7 +70,7 @@ VertexOut VSMain(VertexIn Input)
     Output.Position = NDCPosition;
     Output.UV = Input.UV;
     Output.Normal = normalize(float4(mul(transpose(Instance.InvTransform), float4(Input.Normal, 1.0))).xyz);
-    Output.FragPosWorld = WorldPosition.xyz;
-    Output.FragPosView = ViewPosition.xyz;
+    Output.FragPosWorld = WorldPosition;
+    Output.FragPosView = ViewPosition;
     return Output;
 }

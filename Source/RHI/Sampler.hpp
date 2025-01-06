@@ -42,8 +42,8 @@ public:
 private:
     SamplerAddress mAddress;
     SamplerFilter mFilter;
-    bool mMips;
-    int mAnisotropyLevel;
+    bool mMips = false;
+    int mAnisotropyLevel = 0;
 
     DescriptorHeap::Descriptor mDescriptor;
     DescriptorHeaps mHeaps;

@@ -33,7 +33,7 @@ CSM::CSM(RHI::Ref rhi)
     GraphicsPipelineSpecs specs;
     specs.Bytecodes[ShaderType::Vertex] = vertexShader->Shader;
     specs.Bytecodes[ShaderType::Fragment] = fragmentShader->Shader;
-    specs.Cull = CullMode::Front;
+    specs.Cull = CullMode::Back;
     specs.DepthEnabled = true;
     specs.Depth = DepthOperation::Less;
     specs.DepthFormat = TextureFormat::Depth32;
@@ -88,7 +88,8 @@ void CSM::Render(const Frame& frame, const Scene& scene)
             glm::mat4 globalTransform = transform * node->Transform;
             for (GLTFPrimitive primitive : node->Primitives) {
                 // Cull objects that are not seen
-                if (!scene.Camera.IsBoxInFrustum(primitive.AABB, globalTransform) && Settings::Get().FrustumCull)
+                glm::mat4 widePerspective = glm::perspective(glm::radians(180.0f), (float)frame.Width / (float)frame.Height, CAMERA_NEAR, CAMERA_FAR);
+                if (!Camera::IsBoxInFrustum(widePerspective * scene.Camera.View(), primitive.AABB, globalTransform) && Settings::Get().FrustumCull)
                     continue;
                 if (!Camera::IsBoxInFrustum(mCascades[i].Proj * mCascades[i].View, primitive.AABB, globalTransform))
                     continue;
@@ -151,11 +152,16 @@ void CSM::UpdateCascades(const Scene& scene)
     Vector<float> splits(SHADOW_CASCADE_COUNT + 1);
 
     // Precompute cascade splits using logarithmic split
-    float range = CAMERA_FAR - CAMERA_NEAR;
-    for (int i = 0; i <= SHADOW_CASCADE_COUNT; ++i) {
-        float uniformSplit = CAMERA_NEAR + i * range / SHADOW_CASCADE_COUNT;
-        float logSplit = CAMERA_NEAR * std::pow(CAMERA_FAR / CAMERA_NEAR, static_cast<float>(i) / SHADOW_CASCADE_COUNT);
-        splits[i] = SHADOW_SPLIT_LAMBDA * uniformSplit + (1.0f - SHADOW_SPLIT_LAMBDA) * logSplit;
+    splits[0] = CAMERA_NEAR;
+    for (int i = 1; i <= SHADOW_CASCADE_COUNT; ++i) {
+        // Uniform split
+        float uniformSplit = CAMERA_NEAR + (CAMERA_FAR - CAMERA_NEAR) * (float(i) / SHADOW_CASCADE_COUNT);
+
+        // Logarithmic split
+        float logSplit = CAMERA_NEAR * std::pow(CAMERA_FAR / CAMERA_NEAR, float(i) / SHADOW_CASCADE_COUNT);
+
+        // Blend using lambda
+        splits[i] = SHADOW_SPLIT_LAMBDA * logSplit + (1.0f - SHADOW_SPLIT_LAMBDA) * uniformSplit;
     }
 
     for (int i = 0; i < SHADOW_CASCADE_COUNT; ++i) {
@@ -185,20 +191,28 @@ void CSM::UpdateCascades(const Scene& scene)
             minBounds = glm::min(minBounds, glm::vec3(lightSpaceCorner));
             maxBounds = glm::max(maxBounds, glm::vec3(lightSpaceCorner));
         }
+        
+        float min = 0.0f;
+        min = glm::min(min, minBounds.x);
+        min = glm::min(min, minBounds.y);
+
+        float max = 0.0f;
+        max = glm::max(max, maxBounds.x);
+        max = glm::max(max, maxBounds.y);
 
         // Projection matrix
         glm::mat4 lightProjection = glm::ortho(
-            minBounds.x,  // Left
-            maxBounds.x,  // Right
-            minBounds.y,  // Bottom
-            maxBounds.y,  // Top
-            minBounds.z,    // Near
-            maxBounds.z      // Far
+            min,  // Left
+            max,  // Right
+            min,  // Bottom
+            max,  // Top
+            minBounds.z,  // Near
+            maxBounds.z   // Far
         );
 
         // Store results
+        mCascades[i].Split = splits[i + 1];
         mCascades[i].View = lightView;
         mCascades[i].Proj = lightProjection;
-        mCascades[i].Split = splits[i];
     }
 }

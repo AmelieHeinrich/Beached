@@ -35,6 +35,9 @@ constexpr Ref<T> MakeRef(Arguments&&... arguments)
 }
 
 template<typename T>
+using Weak = std::weak_ptr<T>;
+
+template<typename T>
 using Vector = std::vector<T>;
 
 template<typename T, UInt64 Size>

@@ -65,16 +65,16 @@ public:
     BLAS::Ref CreateBLAS(Buffer::Ref vertex, Buffer::Ref index, UInt32 vtxCount, UInt32 idxCount, const String& name = "BLAS");
     TLAS::Ref CreateTLAS(Buffer::Ref instanceBuffer, UInt32 numInstance, const String& name = "TLAS");
 private:
-    Window::Ref mWindow;
-    Device::Ref mDevice;
-    Queue::Ref mGraphicsQueue;
+    Window::Ref mWindow = nullptr;
+    Device::Ref mDevice = nullptr;
+    Queue::Ref mGraphicsQueue = nullptr;
     DescriptorHeaps mDescriptorHeaps;
-    Surface::Ref mSurface;
+    Surface::Ref mSurface = nullptr;
 
-    Fence::Ref mFrameFence;
+    Fence::Ref mFrameFence = nullptr;
     Array<UInt64, FRAMES_IN_FLIGHT> mFrameValues;
     Array<CommandBuffer::Ref, FRAMES_IN_FLIGHT> mCommandBuffers;
-    UInt32 mFrameIndex;
+    UInt32 mFrameIndex = 0;
 
     DescriptorHeap::Descriptor mFontDescriptor;
 };

@@ -6,6 +6,7 @@
 #include "Assets/Shaders/Lights.hlsl"
 #include "Assets/Shaders/Camera.hlsl"
 #include "Assets/Shaders/Cascade.hlsl"
+#include "Assets/Shaders/Shadow.hlsl"
 
 static const float AMBIENT = 0.01;
 
@@ -21,8 +22,8 @@ struct FragmentIn
     float4 Position : SV_Position;
     float2 UV : TEXCOORD;
     float3 Normal : NORMAL;
-    float3 FragPosWorld : POSITION;
-    float3 FragPosView : POSITION1;
+    float4 FragPosWorld : POSITION;
+    float4 FragPosView : POSITION1;
 };
 
 struct Settings
@@ -96,66 +97,32 @@ float3 GetNormal(FragmentIn Input)
     return normalize(result);
 }
 
-float CalculateShadowCascade(FragmentIn input, DirectionalLight Light)
+float CalculateShadowCascade(FragmentIn input, DirectionalLight Light, int layer)
 {
-    // Accessing the cascade buffer from the descriptor heap.
     ConstantBuffer<CascadeBuffer> cascades = ResourceDescriptorHeap[PushConstants.CascadeBufferIndex];
-
-    // Ensure depth value is positive and consistent.
-    float depthValue = abs(input.FragPosView.z);
-
-    // Determine the cascade layer based on depth.
-    int layer = 0;
-    // for (int i = 0; i < SHADOW_CASCADE_COUNT; i++) {
-    //     if (depthValue < cascades.Cascades[i].Split) {
-    //         layer = i;
-    //         break;
-    //     }
-    // }
-    // if (layer == -1) {
-    //     layer = SHADOW_CASCADE_COUNT - 1; // Use the last cascade if no match.
-    // }
-
-    // Ensure proper sampler and shadow map access.
-    SamplerState sampler = SamplerDescriptorHeap[PushConstants.SamplerIndex];
+    
+    Cascade cascade = cascades.Cascades[layer];
+    SamplerState sampler = SamplerDescriptorHeap[PushConstants.ShadowSamplerIndex];
     Texture2D<float> shadowMap = ResourceDescriptorHeap[cascades.Cascades[layer].SRVIndex];
-
-    // Transform world position to light's view space and then to light's clip space.
-    float4 lightViewPosition = mul(cascades.Cascades[layer].View, float4(input.FragPosWorld, 1.0));
-    float4 fragPosLightSpace = mul(cascades.Cascades[layer].Proj, lightViewPosition);
-
-    // Handle perspective division and normalize to [0, 1] space.
-    float3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    projCoords.xy = projCoords.xy * 0.5 + 0.5;
-    projCoords.y = 1.0 - projCoords.y;
-
-    // Avoid accessing out-of-bounds texels.
-    if (projCoords.x < 0.0 || projCoords.x > 1.0 || projCoords.y < 0.0 || projCoords.y > 1.0) {
-        return 1.0;
-    }
-
-    float currentDepth = projCoords.z;
-
-    // Calculate the shadow bias dynamically based on surface normal and light direction.
     float3 N = GetNormal(input);
+
     float bias = max(0.05 * (1.0 - dot(N, Light.Direction)), 0.005);
-
-    // PCF sampling for soft shadows.
-    uint shadowWidth, shadowHeight;
-    shadowMap.GetDimensions(shadowWidth, shadowHeight);
-
-    float shadow = AMBIENT;
-    float2 texelSize = 1.0 / float2(shadowWidth, shadowHeight);
-    for (int x = -1; x <= 1; ++x) {
-        for (int y = -1; y <= 1; ++y) {
-            float2 offset = float2(x, y) * texelSize;
-            float pcfDepth = shadowMap.Sample(sampler, projCoords.xy + offset).r;
-            shadow += (currentDepth - bias) > pcfDepth ? 1.0 : 0.0;
-        }
+    if (layer == SHADOW_CASCADE_COUNT) {
+        bias *= 1 / (CAMERA_FAR * 0.5);
+    } else {
+        bias *= 1 / (cascade.Split * 0.5);
     }
-    shadow /= 9.0; // Average over the 3x3 kernel.
 
-    return 0.0;
+    int kernelSize = SHADOW_PCF_KERNELS[layer];
+    return ComputePCF(shadowMap,
+                      sampler,
+                      input.FragPosWorld,
+                      N,
+                      Light.Direction,
+                      cascade.View,
+                      cascade.Proj,
+                      bias,
+                      kernelSize);
 }
 
 float3 CalculatePoint(PointLight Light, FragmentIn Input, float3 Albedo)
@@ -163,11 +130,11 @@ float3 CalculatePoint(PointLight Light, FragmentIn Input, float3 Albedo)
     ConstantBuffer<Camera> Cam = ResourceDescriptorHeap[PushConstants.CameraIndex];
 
     float3 N = GetNormal(Input);
-    float Distance = length(Light.Position - Input.FragPosWorld);
+    float Distance = length(Light.Position - Input.FragPosWorld.xyz);
     float Attenuation = 1.0 / (Distance * Distance);
 
     if (Attenuation > 0.0) {
-        float3 LightDirection = normalize(Light.Position - Input.FragPosWorld);
+        float3 LightDirection = normalize(Light.Position - Input.FragPosWorld.xyz);
         float NdotL = max(dot(N, LightDirection) * Light.Radius, AMBIENT);
         return (NdotL * Albedo * Attenuation * Light.Color.xyz);
     } else {
@@ -175,64 +142,48 @@ float3 CalculatePoint(PointLight Light, FragmentIn Input, float3 Albedo)
     }
 }
 
-float3 CalculateSun(DirectionalLight Light, FragmentIn Input, float3 Albedo)
+float3 CalculateSun(DirectionalLight Light, FragmentIn Input, float3 Albedo, int layer)
 {
     ConstantBuffer<Camera> Cam = ResourceDescriptorHeap[PushConstants.CameraIndex];
 
-    float3 N = GetNormal(Input);
-    if (any(isnan(N))) {
-        return float3(1.0, 0.0, 1.0); // Return a magenta color for NaN debugging
-    }
+    float shadow = CalculateShadowCascade(Input, Light, layer);
 
+    float3 N = GetNormal(Input);
     float attenuation = clamp(dot(N, -Light.Direction), 0.0, 1.0);
     if (attenuation > 0.0f) {
         float NdotL = max(dot(N, -Light.Direction), AMBIENT);
-        return (NdotL * Albedo * Light.Strength * Light.Color.xyz);
+        return (NdotL * Albedo * Light.Strength * Light.Color.xyz) * shadow;
     } else {
-        return Albedo * AMBIENT;
+        return Albedo * AMBIENT * shadow;
     }
-}
-
-float TraceShadow(DirectionalLight Light, FragmentIn Input)
-{
-    RaytracingAccelerationStructure TLAS = ResourceDescriptorHeap[PushConstants.AccelStructure];
-
-    float3 N = GetNormal(Input);
-    float attenuation = clamp(dot(N, -Light.Direction), 0.0, 1.0);
-    if (true) {
-        RayDesc desc;
-        desc.Origin = Input.FragPosWorld.xyz;
-        desc.Direction = -Light.Direction;
-        desc.TMin = 0.01;
-        desc.TMax = 5000.0;
-
-        RayQuery<RAY_FLAG_CULL_NON_OPAQUE | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES> q;
-        q.TraceRayInline(TLAS, RAY_FLAG_CULL_NON_OPAQUE | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, 0xFF, desc);
-        q.Proceed();
-
-        if (q.CommittedStatus() == COMMITTED_TRIANGLE_HIT) {
-            return AMBIENT;
-        } else {
-            return 1.0;
-        }
-    }
-
-    return 1.0f;
 }
 
 float4 PSMain(FragmentIn Input) : SV_Target
 {
+    // Resources
     ConstantBuffer<CascadeBuffer> CascadeInfo = ResourceDescriptorHeap[PushConstants.CascadeBufferIndex];
     ConstantBuffer<LightData> Lights = ResourceDescriptorHeap[PushConstants.LightIndex];
     Texture2D Albedo = ResourceDescriptorHeap[PushConstants.TextureIndex];
     SamplerState Sampler = SamplerDescriptorHeap[PushConstants.SamplerIndex];
+    
+    // Get cascade layer
+    int layer = -1;
+    for (int i = 0; i < SHADOW_CASCADE_COUNT; i++) {
+        if (abs(Input.FragPosView.z) < CascadeInfo.Cascades[i].Split) {
+            layer = i;
+            break;
+        }
+    }
+    if (layer == -1) {
+        layer = SHADOW_CASCADE_COUNT - 1;
+    }
 
-    float4 Color = Albedo.Sample(Sampler, Input.UV);    
+    //
+    float4 Color = GetCascadeColor(layer);    
     float3 Lo = Color.xyz * AMBIENT;
-    
-    float shadow = CalculateShadowCascade(Input, Lights.Sun);
-    Lo += CalculateSun(Lights.Sun, Input, Color.xyz) * shadow;
-    
+
+    // Light calculations
+    Lo += CalculateSun(Lights.Sun, Input, Color.xyz, layer);
     for (int i = 0; i < Lights.LightCount; i++) {
         Lo += CalculatePoint(Lights.Lights[i], Input, Color.xyz);
     }

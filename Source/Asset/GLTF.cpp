@@ -174,12 +174,12 @@ void GLTF::ProcessPrimitive(cgltf_primitive *primitive, GLTFNode *node)
     Uploader::EnqueueBufferUpload(vertices.data(), out.VertexBuffer->GetSize(), out.VertexBuffer);
     Uploader::EnqueueBufferUpload(indices.data(), out.IndexBuffer->GetSize(), out.IndexBuffer);
 
-    out.Instance = {};
-    out.Instance.AccelerationStructure = out.GeometryStructure->GetAddress();
-    out.Instance.InstanceMask = 1;
-    out.Instance.InstanceID = 0;
-    out.Instance.Transform = glm::mat3x4(glm::transpose(node->Transform));
-    out.Instance.Flags = 0x4;
+    // out.Instance = {};
+    // out.Instance.AccelerationStructure = out.GeometryStructure->GetAddress();
+    // out.Instance.InstanceMask = 1;
+    // out.Instance.InstanceID = 0;
+    // out.Instance.Transform = glm::mat3x4(glm::transpose(node->Transform));
+    // out.Instance.Flags = 0x4;
 
     cgltf_material *material = primitive->material;
     GLTFMaterial outMaterial = {};

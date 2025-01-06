@@ -59,29 +59,29 @@ Size = 1024
 
 [ShadowCascade0]
 Type = "Texture"
-Width = 4096
-Height = 4096
+Width = 2048
+Height = 2048
 Format = "D32"
 Usage = "Depth"
 
 [ShadowCascade1]
 Type = "Texture"
-Width = 4096
-Height = 4096
+Width = 2048
+Height = 2048
 Format = "D32"
 Usage = "Depth"
 
 [ShadowCascade2]
 Type = "Texture"
-Width = 4096
-Height = 4096
+Width = 2048
+Height = 2048
 Format = "D32"
 Usage = "Depth"
 
 [ShadowCascade3]
 Type = "Texture"
-Width = 4096
-Height = 4096
+Width = 2048
+Height = 2048
 Format = "D32"
 Usage = "Depth"
 #############################

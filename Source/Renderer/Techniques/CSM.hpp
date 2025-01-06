@@ -14,6 +14,8 @@ struct Cascade
 {
     int SRVIndex;
     float Split;
+    glm::ivec2 Pad;
+
     glm::mat4 View;
     glm::mat4 Proj;
 };
@@ -29,8 +31,8 @@ public:
 private:
     void UpdateCascades(const Scene& scene);
 
-    GraphicsPipeline::Ref mPipeline;
+    GraphicsPipeline::Ref mPipeline = nullptr;
 
     bool mFreezeCascades = false;
-    Array<Cascade, SHADOW_CASCADE_COUNT + 1> mCascades;
+    Array<Cascade, SHADOW_CASCADE_COUNT> mCascades;
 };

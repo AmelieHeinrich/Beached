@@ -51,16 +51,16 @@ private:
 
     static struct Data
     {
-        RHI* Rhi;
+        RHI* Rhi = nullptr;
         DescriptorHeaps Heaps;
-        Device::Ref Device;
-        Queue::Ref UploadQueue;
-        CommandBuffer::Ref CmdBuffer;
+        Device::Ref Device = nullptr;
+        Queue::Ref UploadQueue = nullptr;
+        CommandBuffer::Ref CmdBuffer = nullptr;
         Vector<UploadRequest> Requests;
 
-        int TextureRequests;
-        int BufferRequests;
-        int ASRequests;
-        int UploadBatchSize;
+        int TextureRequests = 0;
+        int BufferRequests = 0;
+        int ASRequests = 0;
+        int UploadBatchSize = 0;
     } sData;
 };

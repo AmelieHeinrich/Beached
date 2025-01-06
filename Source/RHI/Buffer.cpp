@@ -11,6 +11,7 @@
 Buffer::Buffer(Device::Ref device, DescriptorHeaps heaps, UInt64 size, UInt64 stride, BufferType type, const String& name)
     : Resource(device), mType(type), mHeaps(heaps)
 {
+    mShouldFree = true;
     mSize = size;
     mStride = stride;
 

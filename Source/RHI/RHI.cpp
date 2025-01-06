@@ -59,8 +59,6 @@ RHI::RHI(Window::Ref window)
 
 RHI::~RHI()
 {
-    Wait();
-
     ImGui_ImplDX12_Shutdown();
     ImGui_ImplWin32_Shutdown();
     ImGui::DestroyContext();

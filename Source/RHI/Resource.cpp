@@ -12,15 +12,16 @@
 #include <Statistics.hpp>
 
 Resource::Resource(Device::Ref device)
-    : mParentDevice(device), mResource(nullptr), mShouldFree(true), mLayout(ResourceLayout::Common)
+    : mParentDevice(device), mResource(nullptr), mLayout(ResourceLayout::Common)
 {
 }
 
 Resource::~Resource()
 {
-    if (mShouldFree)
+    if (mShouldFree) {
         D3DUtils::Release(mResource);
-    Statistics::Get().UsedVRAM -= mAllocSize;
+        Statistics::Get().UsedVRAM -= mAllocSize;
+    }   
 }
 
 void Resource::SetName(const String& string)

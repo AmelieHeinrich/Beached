@@ -97,7 +97,7 @@ void Debug::UI(const Frame& frame)
     if (ImGui::TreeNodeEx("Debug", ImGuiTreeNodeFlags_Framed)) {
         ImGui::Checkbox("Enable", &Settings::Get().DebugDraw);
         ImGui::Checkbox("Draw Volumes", &Settings::Get().DebugDrawVolumes);
-        ImGui::Checkbox("Draw Point Lights", &Settings::Get().DebugDrawLights);
+        ImGui::Checkbox("Draw Lights", &Settings::Get().DebugDrawLights);
         if (Settings::Get().DebugDraw)
             ImGui::Text("Line Count: %llu", mLineCount);
         ImGui::TreePop();

@@ -16,6 +16,8 @@ Texture::Texture(Device::Ref device, ID3D12Resource* resource, TextureDesc desc)
 Texture::Texture(Device::Ref device, TextureDesc desc)
     : Resource(device), mDesc(desc)
 {
+    mShouldFree = true;
+
     D3D12_HEAP_PROPERTIES heapProperties = {};
     heapProperties.Type = D3D12_HEAP_TYPE_DEFAULT;
     

@@ -52,14 +52,16 @@ public:
     ResourceLayout GetLayout() { return mLayout; };
     void SetLayout(ResourceLayout layout) { mLayout = layout; }
 protected:
-    bool mShouldFree;
     Device::Ref mParentDevice;
     ID3D12Resource* mResource = nullptr;
+    
+    bool mShouldFree = false;
     UInt64 mSize;
     UInt64 mStride;
-    Vector<ResourceTag> mTags;
     ResourceLayout mLayout;
     String mName;
+
+    Vector<ResourceTag> mTags;
 
     void CreateResource(D3D12_HEAP_PROPERTIES* heapProps, D3D12_RESOURCE_DESC* resourceDesc, D3D12_RESOURCE_STATES state);
 private:

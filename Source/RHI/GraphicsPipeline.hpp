@@ -59,6 +59,6 @@ public:
     ID3D12PipelineState* GetPipeline() { return mPipeline; }
     RootSignature::Ref GetRootSignature() { return mSignature; }
 private:
-    ID3D12PipelineState* mPipeline;
-    RootSignature::Ref mSignature;
+    ID3D12PipelineState* mPipeline = nullptr;
+    RootSignature::Ref mSignature = nullptr;
 };

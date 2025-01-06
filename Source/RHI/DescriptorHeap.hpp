@@ -54,9 +54,9 @@ private:
     DescriptorHeapType mType;
     ID3D12DescriptorHeap* mHeap = nullptr;
 
-    int mIncrementSize;
-    UInt32 mHeapSize;
-    bool mShaderVisible;
+    int mIncrementSize = 0;
+    UInt32 mHeapSize = 0;
+    bool mShaderVisible = false;
     Vector<bool> mLookupTable;
 };
 

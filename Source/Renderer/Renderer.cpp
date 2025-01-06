@@ -25,9 +25,14 @@ Renderer::Renderer(RHI::Ref rhi)
     };
 }
 
+Renderer::~Renderer()
+{
+    mPasses.clear();
+}
+
 void Renderer::Render(const Frame& frame, const Scene& scene)
 {
-    for (RenderPass::Ref pass : mPasses) {
+    for (auto& pass : mPasses) {
         pass->Render(frame, scene);
     }
 }
@@ -41,7 +46,7 @@ void Renderer::UI(const Frame& frame, bool *open)
             ImGui::Checkbox("Freeze Frustum", &Settings::Get().FreezeFrustum);
             ImGui::TreePop();
         }
-        for (RenderPass::Ref pass : mPasses) {
+        for (auto& pass : mPasses) {
             pass->UI(frame);
         }
         ImGui::End();

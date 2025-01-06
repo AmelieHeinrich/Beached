@@ -34,7 +34,7 @@ Beached::Beached()
         mRenderer = MakeRef<Renderer>(mRHI);
 
         // Loading and setup
-        mScene.Models.push_back(AssetManager::Get("Assets/Models/EmeraldSquare/EmeraldSquare.gltf", AssetType::GLTF));
+        mScene.Models.push_back(AssetManager::Get("Assets/Models/ShadowTest/ShadowTest.gltf", AssetType::GLTF));
         mScene.Sun.Direction = glm::vec3(0.0f, -1.0f, 0.2f);
         mScene.Sun.Color = glm::vec4(1.0f);
         mScene.Sun.Strenght = 1.0f;
@@ -56,7 +56,7 @@ Beached::Beached()
 
 Beached::~Beached()
 {
-
+    
 }
 
 void Beached::Run()

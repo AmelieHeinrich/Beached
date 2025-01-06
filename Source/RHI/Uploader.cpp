@@ -19,7 +19,6 @@ void Uploader::Init(RHI* rhi, Device::Ref device, DescriptorHeaps heaps, Queue::
     sData.BufferRequests = 0;
     sData.TextureRequests = 0;
     sData.UploadBatchSize = 0;
-    sData.Requests.clear();
 }
 
 void Uploader::EnqueueTextureUpload(Vector<UInt8> buffer, Ref<Resource> texture)
@@ -51,9 +50,9 @@ void Uploader::EnqueueTextureUpload(Vector<UInt8> buffer, Ref<Resource> texture)
     }
     request.StagingBuffer->Unmap(0, 0);
 
-    sData.UploadBatchSize += totalSize;
     sData.Requests.push_back(request);
 
+    sData.UploadBatchSize += totalSize;
     if (sData.UploadBatchSize >= MAX_UPLOAD_BATCH_SIZE)
         Flush();
 }
@@ -87,9 +86,9 @@ void Uploader::EnqueueTextureUpload(Image image, Ref<Resource> buffer)
     }
     request.StagingBuffer->Unmap(0, 0);
 
-    sData.UploadBatchSize += totalSize;
     sData.Requests.push_back(request);
 
+    sData.UploadBatchSize += totalSize;
     if (sData.UploadBatchSize >= MAX_UPLOAD_BATCH_SIZE)
         Flush();
 }
@@ -97,6 +96,7 @@ void Uploader::EnqueueTextureUpload(Image image, Ref<Resource> buffer)
 void Uploader::EnqueueBufferUpload(void* data, UInt64 size, Ref<Resource> buffer)
 {
     sData.BufferRequests++;
+
     UploadRequest request = {};
     request.Type = UploadRequestType::BufferCPUToGPU;
     request.Resource = buffer;
@@ -107,9 +107,9 @@ void Uploader::EnqueueBufferUpload(void* data, UInt64 size, Ref<Resource> buffer
     memcpy(mapped, data, size);
     request.StagingBuffer->Unmap(0, 0);
 
-    sData.UploadBatchSize += size;
     sData.Requests.push_back(request);
 
+    sData.UploadBatchSize += size;
     if (sData.UploadBatchSize >= MAX_UPLOAD_BATCH_SIZE)
         Flush();
 }
@@ -177,6 +177,10 @@ void Uploader::ClearRequests()
     sData.BufferRequests = 0;
     sData.TextureRequests = 0;
     sData.ASRequests = 0;
+    for (auto& request : sData.Requests) {
+        if (request.StagingBuffer)
+            request.StagingBuffer.reset();
+    }
     sData.CmdBuffer.reset();
     sData.Requests.clear();
 }

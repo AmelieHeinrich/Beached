@@ -13,7 +13,7 @@ public:
     using Ref = Ref<Renderer>;
 
     Renderer(RHI::Ref rhi);
-    ~Renderer() = default;
+    ~Renderer();
 
     void Render(const Frame& frame, const Scene& scene);
     void UI(const Frame& frame, bool *open);

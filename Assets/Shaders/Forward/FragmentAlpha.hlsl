@@ -6,6 +6,7 @@
 #include "Assets/Shaders/Lights.hlsl"
 #include "Assets/Shaders/Camera.hlsl"
 #include "Assets/Shaders/Cascade.hlsl"
+#include "Assets/Shaders/Shadow.hlsl"
 
 static const float AMBIENT = 0.01;
 
@@ -21,8 +22,8 @@ struct FragmentIn
     float4 Position : SV_Position;
     float2 UV : TEXCOORD;
     float3 Normal : NORMAL;
-    float3 FragPosWorld : POSITION;
-    float3 FragPosView : POSITION1;
+    float4 FragPosWorld : POSITION;
+    float4 FragPosView : POSITION1;
 };
 
 struct Settings
@@ -96,9 +97,32 @@ float3 GetNormal(FragmentIn Input)
     return normalize(result);
 }
 
-float CalculateShadowCascade(FragmentIn input, uint cascadeIndex)
+float CalculateShadowCascade(FragmentIn input, DirectionalLight Light, int layer)
 {
-    return 1.0;
+    ConstantBuffer<CascadeBuffer> cascades = ResourceDescriptorHeap[PushConstants.CascadeBufferIndex];
+    
+    Cascade cascade = cascades.Cascades[layer];
+    SamplerState sampler = SamplerDescriptorHeap[PushConstants.ShadowSamplerIndex];
+    Texture2D<float> shadowMap = ResourceDescriptorHeap[cascades.Cascades[layer].SRVIndex];
+    float3 N = GetNormal(input);
+
+    float bias = max(0.05 * (1.0 - dot(N, Light.Direction)), 0.005);
+    if (layer == SHADOW_CASCADE_COUNT) {
+        bias *= 1 / (CAMERA_FAR * 0.5);
+    } else {
+        bias *= 1 / (cascade.Split * 0.5);
+    }
+
+    int kernelSize = SHADOW_PCF_KERNELS[layer];
+    return ComputePCF(shadowMap,
+                      sampler,
+                      input.FragPosWorld,
+                      N,
+                      Light.Direction,
+                      cascade.View,
+                      cascade.Proj,
+                      bias,
+                      kernelSize);
 }
 
 float3 CalculatePoint(PointLight Light, FragmentIn Input, float3 Albedo)
@@ -106,11 +130,11 @@ float3 CalculatePoint(PointLight Light, FragmentIn Input, float3 Albedo)
     ConstantBuffer<Camera> Cam = ResourceDescriptorHeap[PushConstants.CameraIndex];
 
     float3 N = GetNormal(Input);
-    float Distance = length(Light.Position - Input.FragPosWorld);
+    float Distance = length(Light.Position - Input.FragPosWorld.xyz);
     float Attenuation = 1.0 / (Distance * Distance);
 
     if (Attenuation > 0.0) {
-        float3 LightDirection = normalize(Light.Position - Input.FragPosWorld);
+        float3 LightDirection = normalize(Light.Position - Input.FragPosWorld.xyz);
         float NdotL = max(dot(N, LightDirection) * Light.Radius, AMBIENT);
         return (NdotL * Albedo * Attenuation * Light.Color.xyz);
     } else {

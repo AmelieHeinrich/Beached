@@ -72,8 +72,8 @@ public:
     operator ID3D12CommandList*() { return mList; }
 private:
     bool mSingleTime;
-    Device::Ref mDevice;
-    Queue::Ref mParentQueue;
+    Device::Ref mDevice = nullptr;
+    Queue::Ref mParentQueue = nullptr;
     DescriptorHeaps mHeaps;
     ID3D12CommandAllocator* mAllocator = nullptr;
     ID3D12GraphicsCommandList10* mList = nullptr;

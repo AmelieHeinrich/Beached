@@ -11,6 +11,7 @@ target("Beached")
     set_rundir(".")
     set_languages("c++20")
     set_encodings("utf-8")
+    -- set_policy("build.sanitizer.address", true)
 
     if is_plat("windows") then
         add_syslinks("user32",
