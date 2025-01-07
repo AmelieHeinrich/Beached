@@ -25,6 +25,13 @@ View::View(Device::Ref device, DescriptorHeaps heaps, ::Ref<Resource> resource, 
             desc.Format = format == TextureFormat::Unknown ? DXGI_FORMAT(texture.Format) : DXGI_FORMAT(format);
             desc.Texture2D.MipLevels = mip == VIEW_ALL_MIPS ? texture.Levels : 1;
             desc.Texture2D.MostDetailedMip = mip == VIEW_ALL_MIPS ? 0 : mip;
+        } else if (dimension == ViewDimension::TextureCube) {
+            TextureDesc texture = static_cast<Texture*>(resource.get())->GetDesc();
+            desc.Format = format == TextureFormat::Unknown ? DXGI_FORMAT(texture.Format) : DXGI_FORMAT(format);
+            desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
+            desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+            desc.TextureCube.MipLevels = 1;
+            desc.TextureCube.MostDetailedMip = 0;
         } else {
             desc.Buffer.FirstElement = 0;
             desc.Buffer.NumElements = resource->GetSize() / resource->GetStride();
@@ -45,6 +52,12 @@ View::View(Device::Ref device, DescriptorHeaps heaps, ::Ref<Resource> resource, 
             desc.Format = format == TextureFormat::Unknown ? DXGI_FORMAT(texture.Format) : DXGI_FORMAT(format);
             desc.Texture2D.MipSlice = mip == VIEW_ALL_MIPS ? 0 : mip;
             desc.Texture2D.PlaneSlice = 0;
+        } else if (dimension == ViewDimension::TextureCube) {
+            TextureDesc texture = static_cast<Texture*>(resource.get())->GetDesc();
+            desc.ViewDimension = D3D12_UAV_DIMENSION_TEXTURE2DARRAY;
+            desc.Format = format == TextureFormat::Unknown ? DXGI_FORMAT(texture.Format) : DXGI_FORMAT(format);
+            desc.Texture2DArray.ArraySize = 6;
+            desc.Texture2DArray.FirstArraySlice = 0;
         } else {
             desc.Buffer.FirstElement = 0;
             desc.Buffer.NumElements = resource->GetSize();
@@ -63,6 +76,7 @@ View::View(Device::Ref device, DescriptorHeaps heaps, ::Ref<Resource> resource, 
         D3D12_RENDER_TARGET_VIEW_DESC desc = {};
         desc.Format = format == TextureFormat::Unknown ? DXGI_FORMAT(texture.Format) : DXGI_FORMAT(format);
         desc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+        desc.Texture2D.PlaneSlice = depthSlice;
 
         device->GetDevice()->CreateRenderTargetView(resource->GetResource(), &desc, mDescriptor.CPU);
         break;
@@ -74,8 +88,17 @@ View::View(Device::Ref device, DescriptorHeaps heaps, ::Ref<Resource> resource, 
         TextureDesc texture = static_cast<Texture*>(resource.get())->GetDesc();
 
         D3D12_DEPTH_STENCIL_VIEW_DESC desc = {};
-        desc.Format = format == TextureFormat::Unknown ? DXGI_FORMAT(texture.Format) : DXGI_FORMAT(format);
-        desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+        if (dimension == ViewDimension::Texture) {
+            desc.Format = format == TextureFormat::Unknown ? DXGI_FORMAT(texture.Format) : DXGI_FORMAT(format);
+            desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+        } else {
+            desc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2DARRAY;
+            desc.Format = DXGI_FORMAT(texture.Format);
+
+            desc.Texture2DArray.ArraySize = 1;
+            desc.Texture2DArray.FirstArraySlice = depthSlice;
+            desc.Texture2DArray.MipSlice = 0;
+        }
         
         device->GetDevice()->CreateDepthStencilView(resource->GetResource(), &desc, mDescriptor.CPU);
         break;

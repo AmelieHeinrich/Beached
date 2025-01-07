@@ -13,7 +13,7 @@ public:
     Composite(RHI::Ref rhi);
     ~Composite() = default;
 
-    void Render(const Frame& frame, const Scene& scene) override;
+    void Render(const Frame& frame, Scene& scene) override;
     void UI(const Frame& frame) override;
 private:
     ComputePipeline::Ref mPipeline;

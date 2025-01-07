@@ -14,7 +14,7 @@ public:
     Forward(RHI::Ref rhi);
     ~Forward() = default;
 
-    void Render(const Frame& frame, const Scene& scene) override;
+    void Render(const Frame& frame, Scene& scene) override;
     void UI(const Frame& frame) override;
 private:
     Sampler::Ref mSampler;

@@ -37,7 +37,7 @@ Debug::Debug(RHI::Ref rhi)
     }
 }
 
-void Debug::Render(const Frame& frame, const Scene& scene)
+void Debug::Render(const Frame& frame, Scene& scene)
 {
     ::Ref<RenderPassIO> cameraBuffer = PassManager::Get("CameraRingBuffer");
 

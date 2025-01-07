@@ -21,7 +21,7 @@ public:
     Debug(RHI::Ref rhi);
     ~Debug() = default;
 
-    void Render(const Frame& frame, const Scene& scene) override;
+    void Render(const Frame& frame, Scene& scene) override;
     void UI(const Frame& frame) override;
 
     static void DrawLine(glm::vec3 from, glm::vec3 to, glm::vec3 color = glm::vec3(1.0f));

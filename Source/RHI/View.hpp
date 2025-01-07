@@ -21,7 +21,8 @@ enum class ViewType
 enum class ViewDimension
 {
     Buffer,
-    Texture
+    Texture,
+    TextureCube
 };
 
 constexpr UInt64 VIEW_ALL_MIPS = 0xFFFFFFFF;

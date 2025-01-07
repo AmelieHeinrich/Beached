@@ -167,14 +167,9 @@ float3 CalculateSun(DirectionalLight Light, FragmentIn Input, float3 Albedo, int
 }
 
 float4 PSMain(FragmentIn Input) : SV_Target
-{
-    // Resources
-    ConstantBuffer<CascadeBuffer> CascadeInfo = ResourceDescriptorHeap[PushConstants.CascadeBufferIndex];
-    ConstantBuffer<LightData> Lights = ResourceDescriptorHeap[PushConstants.LightIndex];
-    Texture2D Albedo = ResourceDescriptorHeap[PushConstants.TextureIndex];
-    SamplerState Sampler = SamplerDescriptorHeap[PushConstants.SamplerIndex];
-    
+{    
     // Get cascade layer
+    ConstantBuffer<CascadeBuffer> CascadeInfo = ResourceDescriptorHeap[PushConstants.CascadeBufferIndex];
     int layer = -1;
     for (int i = 0; i < SHADOW_CASCADE_COUNT; i++) {
         if (abs(Input.FragPosView.z) < CascadeInfo.Cascades[i].Split) {
@@ -186,14 +181,20 @@ float4 PSMain(FragmentIn Input) : SV_Target
         layer = SHADOW_CASCADE_COUNT - 1;
     }
 
-    //
+    // Get texture data
+    Texture2D Albedo = ResourceDescriptorHeap[PushConstants.TextureIndex];
+    SamplerState Sampler = SamplerDescriptorHeap[PushConstants.SamplerIndex];
     float4 Color = Albedo.Sample(Sampler, Input.UV);
+    
+    // Get light data
+    ConstantBuffer<LightData> Lights = ResourceDescriptorHeap[PushConstants.LightIndex];
+    StructuredBuffer<PointLight> PointLights = ResourceDescriptorHeap[Lights.PointLightBuffer];
+    
     float3 Lo = Color.xyz * AMBIENT;
-
-    // Light calculations
-    // Lo += CalculateSun(Lights.Sun, Input, Color.xyz, layer);
-    for (int i = 0; i < Lights.LightCount; i++) {
-        Lo += CalculatePoint(Lights.Lights[i], Input, Color.xyz);
+    if (Lights.UseSun)
+        Lo += CalculateSun(Lights.Sun, Input, Color.xyz, layer);
+    for (int i = 0; i < Lights.PointLightCount; i++) {
+        Lo += CalculatePoint(PointLights[i], Input, Color.xyz);
     }
     return float4(Lo, 1.0);
 }

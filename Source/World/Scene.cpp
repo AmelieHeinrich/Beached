@@ -4,6 +4,7 @@
 //
 
 #include <World/Scene.hpp>
+#include <Settings.hpp>
 
 #include <RHI/Uploader.hpp>
 
@@ -38,8 +39,11 @@ void Scene::BakeTLAS(RHI::Ref rhi)
 void Scene::Init(RHI::Ref rhi)
 {
     for (int i = 0; i < FRAMES_IN_FLIGHT; i++) {
-        LightBuffer[i] = rhi->CreateBuffer(65536, 0, BufferType::Constant, "Light CBV");
+        LightBuffer[i] = rhi->CreateBuffer(256, 0, BufferType::Constant, "Light CBV");
         LightBuffer[i]->BuildCBV();
+
+        PointLightBuffer[i] = rhi->CreateBuffer(16384, sizeof(PointLight), BufferType::Constant, "Point Light UAV");
+        PointLightBuffer[i]->BuildSRV();
     }
 
     std::function<void(GLTFNode*, glm::mat4 transform)> traverseScene = [&](GLTFNode* node, glm::mat4 transform) {
@@ -84,25 +88,11 @@ void Scene::Init(RHI::Ref rhi)
 void Scene::Update(const Frame& frame, UInt32 frameIndex)
 {
     // Update light buffer
-    mData.LightCount = PointLights.size();
     mData.Sun = Sun;
-    if (PointLights.size() > 0) {
-        memcpy(mData.Lights.data(), PointLights.data(), PointLights.size() * sizeof(PointLight));
-    }
-    LightBuffer[frameIndex]->CopyMapped(&mData, sizeof(mData));
+    mData.PointLightSRV = PointLightBuffer[frameIndex]->SRV();
+    mData.PointLightCount = PointLights.size();
+    mData.UseSun = Settings::Get().SceneUseSun;
 
-    // Update instances
-    // Instances.clear();
-    // for (auto& model : Models) {
-    //     model->Model.TraverseNode(model->Model.Root, [&](GLTFNode* node){
-    //         for (auto& primitive : node->Primitives) {
-    //             Instances.push_back(primitive.Instance);
-    //         }
-    //     });
-    // }
-    // InstanceBuffer->CopyMapped(Instances.data(), Instances.size() * sizeof(RaytracingInstance));
-
-    // Update TLAS
-    // frame.CommandBuffer->UpdateTLAS(TLAS, InstanceBuffer, Instances.size());
-    // frame.CommandBuffer->UAVBarrier(TLAS);
+    PointLightBuffer[frameIndex]->CopyMapped(PointLights.data(), PointLights.size() * sizeof(PointLight));
+    LightBuffer[frameIndex]->CopyMapped(&mData, sizeof(LightData));
 }

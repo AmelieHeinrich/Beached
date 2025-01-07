@@ -42,7 +42,7 @@ CSM::CSM(RHI::Ref rhi)
     mPipeline = rhi->CreateGraphicsPipeline(specs);
 }
 
-void CSM::Render(const Frame& frame, const Scene& scene)
+void CSM::Render(const Frame& frame, Scene& scene)
 {
     // Generate frustums
     if (!mFreezeCascades) {

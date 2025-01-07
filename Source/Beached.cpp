@@ -37,16 +37,18 @@ Beached::Beached()
         mScene.Models.push_back(AssetManager::Get("Assets/Models/PointShadowTest/PointShadowTest.gltf", AssetType::GLTF));
         mScene.Sun.Direction = glm::vec3(0.0f, -1.0f, 0.2f);
         mScene.Sun.Color = glm::vec4(1.0f);
-        mScene.Sun.Strenght = 1.0f;
+        mScene.Sun.Strength = 1.0f;
 
         // Add lights
-        mScene.PointLights.push_back({
-            glm::vec3(0.0f, 0.0f, 0.0f),
-            10.0f,
-            glm::vec4(1.0f)
-        });
+        PointLight light;
+        light.Position = glm::vec3(0.0f);
+        light.Radius = 10.0f;
+        light.Color = glm::vec3(1.0f);
+        light.CastShadows = true;
+        mScene.PointLights.push_back(light);
 
         mScene.Init(mRHI);
+        mRenderer->Bake(mScene);
         Uploader::Flush();
     }
     LOG_INFO("Starting renderer. Startup took {0} seconds", TO_SECONDS(startupTimer.GetElapsed()));
@@ -60,13 +62,16 @@ Beached::~Beached()
 void Beached::Run()
 {
     while (mWindow->IsOpen()) {
+        // Calculate DT
         float time = mTimer.GetElapsed();
         float dt = time - mLastFrame;
         mLastFrame = time;
         dt /= 1000.0f;
         
+        // Update window
         mWindow->PollEvents();
 
+        // Handle settings and do camera input
         mScene.Camera.FreezeFrustum(Settings::Get().FreezeFrustum);
         if (!Settings::Get().FreezeFrustum) {
             mFrozenView = mScene.Camera.View();
@@ -74,12 +79,16 @@ void Beached::Run()
         } else {
             Debug::DrawFrustum(mFrozenProj * mFrozenView, glm::vec3(1.0f, 0.0f, 0.0f));
         }
+        if (Settings::Get().DebugDrawSceneOOB) {
+            Debug::DrawBox(glm::mat4(1.0f), mScene.SceneOBB.Min, mScene.SceneOBB.Max, glm::vec3(1.0f, 1.0f, 0.0f));
+        }
 
         mScene.Camera.Begin();
         if (ImGui::IsKeyPressed(ImGuiKey_F1, false)) {
             mUI = !mUI;
         }
 
+        // Start frame
         Frame frame = mRHI->Begin();
         frame.CommandBuffer->Begin();
 
@@ -105,6 +114,7 @@ void Beached::Run()
             frame.CommandBuffer->EndMarker();
         }
         
+        // End frame
         frame.CommandBuffer->End();
         mRHI->Submit({ frame.CommandBuffer });
         mRHI->End();
@@ -151,7 +161,6 @@ void Beached::UI(const Frame& frame)
     UI::BeginCornerOverlay();
     ImGui::Text("Version 0.0.1");
     ImGui::Text("Renderer: Direct3D 12");
-    ImGui::Checkbox("Draw Scene OBB", &mDrawSceneOBB);
     ImGui::End();
 
     mRenderer->UI(frame, &mRendererUI);
@@ -218,9 +227,5 @@ void Beached::UI(const Frame& frame)
         }
 
         ImGui::End();
-    }
-    
-    if (mDrawSceneOBB) {
-        Debug::DrawBox(glm::mat4(1.0f), mScene.SceneOBB.Min, mScene.SceneOBB.Max, glm::vec3(1.0f, 1.0f, 0.0f));
     }
 }

@@ -166,41 +166,10 @@ float3 CalculateSun(DirectionalLight Light, FragmentIn Input, float3 Albedo, int
     }
 }
 
-float TraceShadow(DirectionalLight Light, FragmentIn Input)
-{
-    RaytracingAccelerationStructure TLAS = ResourceDescriptorHeap[PushConstants.AccelStructure];
-
-    float3 N = GetNormal(Input);
-    float attenuation = clamp(dot(N, -Light.Direction), 0.0, 1.0);
-    if (true) {
-        RayDesc desc;
-        desc.Origin = Input.FragPosWorld.xyz;
-        desc.Direction = -Light.Direction;
-        desc.TMin = 0.01;
-        desc.TMax = 5000.0;
-
-        RayQuery<RAY_FLAG_CULL_NON_OPAQUE | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES> q;
-        q.TraceRayInline(TLAS, RAY_FLAG_CULL_NON_OPAQUE | RAY_FLAG_SKIP_PROCEDURAL_PRIMITIVES | RAY_FLAG_ACCEPT_FIRST_HIT_AND_END_SEARCH, 0xFF, desc);
-        q.Proceed();
-
-        if (q.CommittedStatus() == COMMITTED_TRIANGLE_HIT) {
-            return AMBIENT;
-        } else {
-            return 1.0;
-        }
-    }
-
-    return 1.0f;
-}
-
 float4 PSMain(FragmentIn Input) : SV_Target
-{
-    ConstantBuffer<CascadeBuffer> CascadeInfo = ResourceDescriptorHeap[PushConstants.CascadeBufferIndex];
-    ConstantBuffer<LightData> Lights = ResourceDescriptorHeap[PushConstants.LightIndex];
-    Texture2D Albedo = ResourceDescriptorHeap[PushConstants.TextureIndex];
-    SamplerState Sampler = SamplerDescriptorHeap[PushConstants.SamplerIndex];
-
+{    
     // Get cascade layer
+    ConstantBuffer<CascadeBuffer> CascadeInfo = ResourceDescriptorHeap[PushConstants.CascadeBufferIndex];
     int layer = -1;
     for (int i = 0; i < SHADOW_CASCADE_COUNT; i++) {
         if (abs(Input.FragPosView.z) < CascadeInfo.Cascades[i].Split) {
@@ -212,15 +181,22 @@ float4 PSMain(FragmentIn Input) : SV_Target
         layer = SHADOW_CASCADE_COUNT - 1;
     }
 
+    // Get texture data
+    Texture2D Albedo = ResourceDescriptorHeap[PushConstants.TextureIndex];
+    SamplerState Sampler = SamplerDescriptorHeap[PushConstants.SamplerIndex];
     float4 Color = Albedo.Sample(Sampler, Input.UV);
     if (Color.a < 0.5)
         discard;
     
-    float3 Lo = Color.xyz * AMBIENT;
-    // Lo += CalculateSun(Lights.Sun, Input, Color.xyz, layer);
+    // Get light data
+    ConstantBuffer<LightData> Lights = ResourceDescriptorHeap[PushConstants.LightIndex];
+    StructuredBuffer<PointLight> PointLights = ResourceDescriptorHeap[Lights.PointLightBuffer];
     
-    for (int i = 0; i < Lights.LightCount; i++) {
-        Lo += CalculatePoint(Lights.Lights[i], Input, Color.xyz);
+    float3 Lo = Color.xyz * AMBIENT;
+    if (Lights.UseSun)
+        Lo += CalculateSun(Lights.Sun, Input, Color.xyz, layer);
+    for (int i = 0; i < Lights.PointLightCount; i++) {
+        Lo += CalculatePoint(PointLights[i], Input, Color.xyz);
     }
     return float4(Lo, 1.0);
 }

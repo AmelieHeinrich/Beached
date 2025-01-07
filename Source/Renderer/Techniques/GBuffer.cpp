@@ -27,7 +27,7 @@ GBuffer::GBuffer(RHI::Ref rhi)
     mPipeline.AddPermutation("Alpha", "Assets/Shaders/GBuffer/Vertex.hlsl", "Assets/Shaders/GBuffer/FragmentAlpha.hlsl");
 }
 
-void GBuffer::Render(const Frame& frame, const Scene& scene)
+void GBuffer::Render(const Frame& frame, Scene& scene)
 {
     ::Ref<RenderPassIO> white = PassManager::Get("WhiteTexture");
     ::Ref<RenderPassIO> depth = PassManager::Get("GBufferDepth");

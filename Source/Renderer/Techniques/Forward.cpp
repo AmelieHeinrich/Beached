@@ -35,7 +35,7 @@ Forward::Forward(RHI::Ref rhi)
     mPipeline.AddPermutation("NoAlpha", "Assets/Shaders/Forward/Vertex.hlsl", "Assets/Shaders/Forward/FragmentNoAlpha.hlsl");
 }
 
-void Forward::Render(const Frame& frame, const Scene& scene)
+void Forward::Render(const Frame& frame, Scene& scene)
 {
     ::Ref<RenderPassIO> color = PassManager::Get("MainColorBuffer");
     ::Ref<RenderPassIO> depth = PassManager::Get("GBufferDepth");

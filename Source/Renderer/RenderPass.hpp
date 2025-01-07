@@ -17,7 +17,8 @@ public:
     RenderPass(RHI::Ref rhi);
     ~RenderPass() = default;
 
-    virtual void Render(const Frame& frame, const Scene& scene) = 0;
+    virtual void Bake(const Scene& scene) {}
+    virtual void Render(const Frame& frame, Scene& scene) = 0;
     virtual void UI(const Frame& frame) = 0;
 protected:
     RHI::Ref mRHI;

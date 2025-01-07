@@ -12,23 +12,28 @@ struct PointLight
 {
     glm::vec3 Position;
     float Radius;
-    glm::vec4 Color; // W channel is for pad
+    glm::vec3 Color;
+    int ShadowCubemap;
+
+    bool CastShadows;
+    glm::ivec3 Pad;
 };
 
 struct DirectionalLight
 {
     glm::vec3 Direction;
-    float Strenght;
+    float Strength;
     glm::vec4 Color;
 };
 
 struct LightData
 {
-    Array<PointLight, 1024> Lights;
-    int LightCount;
-    glm::vec3 Pad;
-
     DirectionalLight Sun;
+
+    int PointLightSRV;
+    int PointLightCount;
+    int UseSun;
+    int Pad;
 };
 
 class Scene
@@ -46,6 +51,7 @@ public:
 
     Vector<Asset::Handle> Models;
     Array<Buffer::Ref, FRAMES_IN_FLIGHT> LightBuffer;
+    Array<Buffer::Ref, FRAMES_IN_FLIGHT> PointLightBuffer;
 
     void Init(RHI::Ref rhi);
     void BakeBLAS(RHI::Ref rhi);

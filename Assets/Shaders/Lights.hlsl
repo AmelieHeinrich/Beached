@@ -7,7 +7,11 @@ struct PointLight
 {
     float3 Position;
     float Radius;
-    float4 Color;
+    float3 Color;
+    int ShadowCubemap;
+
+    bool CastShadows;
+    int3 Pad;
 };
 
 struct DirectionalLight
@@ -19,9 +23,14 @@ struct DirectionalLight
 
 struct LightData
 {
-    PointLight Lights[1024];
-    int LightCount;
-    float3 Pad;
-
+    // Sun
     DirectionalLight Sun;
+
+    // Point lights
+    int PointLightBuffer;
+    int PointLightCount;
+    int UseSun;
+    int Pad;
+
+    // TODO: Spot lights
 };

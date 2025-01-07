@@ -14,9 +14,13 @@ struct Settings
     bool FreezeFrustum = false;
 
     // Debug
+    bool DebugDrawSceneOOB = false;
     bool DebugDraw = true;
     bool DebugDrawLights = false;
     bool DebugDrawVolumes = false;
+
+    // Lighting
+    bool SceneUseSun = false;
     
     // Composite
     float Gamma = 2.2f;

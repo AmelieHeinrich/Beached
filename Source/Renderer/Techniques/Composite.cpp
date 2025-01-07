@@ -19,7 +19,7 @@ Composite::Composite(RHI::Ref rhi)
     mPipeline = mRHI->CreateComputePipeline(computeShader->Shader, mSignature);
 }
 
-void Composite::Render(const Frame& frame, const Scene& scene)
+void Composite::Render(const Frame& frame, Scene& scene)
 {
     ::Ref<RenderPassIO> hdr = PassManager::Get("MainColorBuffer");
     ::Ref<RenderPassIO> ldr = PassManager::Get("OutputLDR");
