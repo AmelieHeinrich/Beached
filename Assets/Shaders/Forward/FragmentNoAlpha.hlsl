@@ -102,26 +102,34 @@ float CalculateShadowCascade(FragmentIn input, DirectionalLight Light, int layer
     ConstantBuffer<CascadeBuffer> cascades = ResourceDescriptorHeap[PushConstants.CascadeBufferIndex];
     
     Cascade cascade = cascades.Cascades[layer];
-    SamplerState sampler = SamplerDescriptorHeap[PushConstants.ShadowSamplerIndex];
+    SamplerComparisonState sampler = SamplerDescriptorHeap[PushConstants.ShadowSamplerIndex];
     Texture2D<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(cascades.Cascades[layer].SRVIndex)];
     float3 N = GetNormal(input);
 
-    float bias = 0.005;
+    float baseBias = 0.005;
     if (layer == SHADOW_CASCADE_COUNT) {
-        bias *= 1 / (CAMERA_FAR * 0.5);
+        baseBias *= 1 / (CAMERA_FAR * 0.5);
     } else {
-        bias *= 1 / (cascade.Split * 0.5);
+        baseBias *= 1 / (cascade.Split * 0.5);
     }
+
+    // Calculate dynamic slope-scaled bias
+    float3 lightDir = normalize(Light.Direction);
+    float3 fragToLight = normalize(lightDir);
+    float NdotL = abs(dot(N, fragToLight));
+
+    // Apply slope-scaled bias
+    float slopeBias = saturate(1.0 - NdotL) * 0.01; // Tweak the scale factor (0.01) as needed.
+    float finalBias = baseBias + slopeBias;
 
     int kernelSize = SHADOW_PCF_KERNELS[layer];
     return ComputePCF(shadowMap,
                       sampler,
                       input.FragPosWorld,
-                      N,
                       Light.Direction,
                       cascade.View,
                       cascade.Proj,
-                      bias,
+                      finalBias,
                       kernelSize);
 }
 
@@ -183,7 +191,7 @@ float4 PSMain(FragmentIn Input) : SV_Target
     float3 Lo = Color.xyz * AMBIENT;
 
     // Light calculations
-    Lo += CalculateSun(Lights.Sun, Input, Color.xyz, layer);
+    // Lo += CalculateSun(Lights.Sun, Input, Color.xyz, layer);
     for (int i = 0; i < Lights.LightCount; i++) {
         Lo += CalculatePoint(Lights.Lights[i], Input, Color.xyz);
     }

@@ -145,9 +145,9 @@ View::Ref RHI::CreateView(::Ref<Resource> resource, ViewType type, ViewDimension
     return MakeRef<View>(mDevice, mDescriptorHeaps, resource, type, dimension, format, mip, depthSlice);
 }
 
-Sampler::Ref RHI::CreateSampler(SamplerAddress address, SamplerFilter filter, bool mips, int anisotropyLevel)
+Sampler::Ref RHI::CreateSampler(SamplerAddress address, SamplerFilter filter, bool mips, int anisotropyLevel, bool comparison)
 {
-    return MakeRef<Sampler>(mDevice, mDescriptorHeaps, address, filter, mips, anisotropyLevel);
+    return MakeRef<Sampler>(mDevice, mDescriptorHeaps, address, filter, mips, anisotropyLevel, comparison);
 }
 
 BLAS::Ref RHI::CreateBLAS(Buffer::Ref vertex, Buffer::Ref index, UInt32 vtxCount, UInt32 idxCount, const String& name)

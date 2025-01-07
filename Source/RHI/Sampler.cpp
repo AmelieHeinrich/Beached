@@ -5,7 +5,7 @@
 
 #include <RHI/Sampler.hpp>
 
-Sampler::Sampler(Device::Ref device, DescriptorHeaps heaps, SamplerAddress address, SamplerFilter filter, bool mips, int anisotropyLevel)
+Sampler::Sampler(Device::Ref device, DescriptorHeaps heaps, SamplerAddress address, SamplerFilter filter, bool mips, int anisotropyLevel, bool comparison)
     : mHeaps(heaps), mAddress(address), mFilter(filter), mMips(mips), mAnisotropyLevel(anisotropyLevel)
 {
     D3D12_SAMPLER_DESC samplerDesc = {};
@@ -24,6 +24,10 @@ Sampler::Sampler(Device::Ref device, DescriptorHeaps heaps, SamplerAddress addre
     samplerDesc.BorderColor[1] = 1.0f;
     samplerDesc.BorderColor[2] = 1.0f;
     samplerDesc.BorderColor[3] = 1.0f;
+    if (comparison) {
+        samplerDesc.Filter = D3D12_FILTER_COMPARISON_MIN_MAG_LINEAR_MIP_POINT;
+        samplerDesc.ComparisonFunc = D3D12_COMPARISON_FUNC_LESS_EQUAL;
+    }
 
     mDescriptor = heaps[DescriptorHeapType::Sampler]->Allocate();
     device->GetDevice()->CreateSampler(&samplerDesc, mDescriptor.CPU);

@@ -4,11 +4,19 @@ Work in progress
 
 ## Current features
 
+### Renderer
+- Cascaded Shadow Maps
 - Z-Prepass
+
+### Engine
 - CPU side frustum culling
-- Simple NdotL lighting
 - Asset caching for shaders and textures
-- Fully fledged debug renderer (lines, triangles, arrows, boxes, frustum, coordinate systems, spheres, rings)
 
 ## WIP
-- Cascaded Shadow Maps
+
+- Point Shadows
+
+## Screenshots
+
+### Cascaded Shadow Mapping
+![CSM](.github/CSM.png)

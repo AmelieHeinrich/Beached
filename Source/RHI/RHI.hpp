@@ -60,7 +60,7 @@ public:
     
     View::Ref CreateView(::Ref<Resource> resource, ViewType type, ViewDimension dimension = ViewDimension::Texture, TextureFormat format = TextureFormat::Unknown, UInt64 mip = VIEW_ALL_MIPS, UInt64 depthSlice = 0);
     
-    Sampler::Ref CreateSampler(SamplerAddress address, SamplerFilter filter, bool mips = false, int anisotropyLevel = 4);
+    Sampler::Ref CreateSampler(SamplerAddress address, SamplerFilter filter, bool mips = false, int anisotropyLevel = 4, bool comparison = false);
 
     BLAS::Ref CreateBLAS(Buffer::Ref vertex, Buffer::Ref index, UInt32 vtxCount, UInt32 idxCount, const String& name = "BLAS");
     TLAS::Ref CreateTLAS(Buffer::Ref instanceBuffer, UInt32 numInstance, const String& name = "TLAS");

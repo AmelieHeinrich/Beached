@@ -28,7 +28,7 @@ class Sampler
 public:
     using Ref = Ref<Sampler>;
 
-    Sampler(Device::Ref device, DescriptorHeaps heaps, SamplerAddress address, SamplerFilter filter, bool mips = false, int anisotropyLevel = 4);
+    Sampler(Device::Ref device, DescriptorHeaps heaps, SamplerAddress address, SamplerFilter filter, bool mips = false, int anisotropyLevel = 1, bool comparison = false);
     ~Sampler();
 
     DescriptorHeap::Descriptor GetDescriptor() { return mDescriptor; }
