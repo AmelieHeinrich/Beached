@@ -30,16 +30,14 @@ float ComputePCF(
     ShadowMap.GetDimensions(shadowWidth, shadowHeight);
     float2 texelSize = 1.0 / float2(shadowWidth, shadowHeight);
     
-    //float shadow = 0.0;
-    //for (int x = -kernelSize; x <= kernelSize; x++) {
-    //    for (int y = -kernelSize; y <= kernelSize; y++) {
-    //        float pcfDepth = ShadowMap.Sample(sampler, float2(shadowUV + float2(x, y) * texelSize)).r;
-    //        shadow += currentDepth > pcfDepth ? 0.0 : 1.0;
-    //    }
-    //}
-    //shadow /= (kernelSize + 2) * (kernelSize + 2);
+    float shadow = 0.0;
+    for (int x = -kernelSize; x <= kernelSize; x++) {
+        for (int y = -kernelSize; y <= kernelSize; y++) {
+            float pcfDepth = ShadowMap.Sample(sampler, float2(shadowUV + float2(x, y) * texelSize)).r;
+            shadow += currentDepth - bias > pcfDepth ? 0.0 : 1.0;
+        }
+    }
+    shadow /= (kernelSize + 2) * (kernelSize + 2);
 
-    float shadowDepth = ShadowMap.Sample(sampler, shadowUV).r;
-    float shadow = currentDepth - 0.001 > shadowDepth ? 0.0 : 1.0;
     return shadow;
 }

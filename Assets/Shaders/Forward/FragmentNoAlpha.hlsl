@@ -103,10 +103,10 @@ float CalculateShadowCascade(FragmentIn input, DirectionalLight Light, int layer
     
     Cascade cascade = cascades.Cascades[layer];
     SamplerState sampler = SamplerDescriptorHeap[PushConstants.ShadowSamplerIndex];
-    Texture2D<float> shadowMap = ResourceDescriptorHeap[cascades.Cascades[layer].SRVIndex];
+    Texture2D<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(cascades.Cascades[layer].SRVIndex)];
     float3 N = GetNormal(input);
 
-    float bias = max(0.05 * (1.0 - dot(N, Light.Direction)), 0.01);
+    float bias = 0.005;
     if (layer == SHADOW_CASCADE_COUNT) {
         bias *= 1 / (CAMERA_FAR * 0.5);
     } else {
