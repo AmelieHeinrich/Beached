@@ -24,7 +24,7 @@ float ComputePCF(
     float shadowMapDepth = ShadowMap.Sample(sampler, shadowUV);
     float currentDepth = ndcPosition.z;
     if (currentDepth > 1.0)
-        return 0.0;
+        return 1.0;
 
     uint shadowWidth, shadowHeight;
     ShadowMap.GetDimensions(shadowWidth, shadowHeight);

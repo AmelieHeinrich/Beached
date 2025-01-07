@@ -41,6 +41,44 @@ void Scene::Init(RHI::Ref rhi)
         LightBuffer[i] = rhi->CreateBuffer(65536, 0, BufferType::Constant, "Light CBV");
         LightBuffer[i]->BuildCBV();
     }
+
+    std::function<void(GLTFNode*, glm::mat4 transform)> traverseScene = [&](GLTFNode* node, glm::mat4 transform) {
+        if (!node) {
+            return;
+        }
+
+        glm::mat4 globalTransform = transform * node->Transform;
+        for (GLTFPrimitive primitive : node->Primitives) {
+            Box& box = primitive.AABB;
+            glm::vec3 corners[8] = {
+                glm::vec3(box.Min.x, box.Min.y, box.Min.z),
+                glm::vec3(box.Min.x, box.Min.y, box.Max.z),
+                glm::vec3(box.Min.x, box.Max.y, box.Min.z),
+                glm::vec3(box.Min.x, box.Max.y, box.Max.z),
+                glm::vec3(box.Max.x, box.Min.y, box.Min.z),
+                glm::vec3(box.Max.x, box.Min.y, box.Max.z),
+                glm::vec3(box.Max.x, box.Max.y, box.Min.z),
+                glm::vec3(box.Max.x, box.Max.y, box.Max.z),
+            };
+
+            // Transform each corner by the matrix
+            for (auto& corner : corners) {
+                corner = glm::vec3(node->Transform * glm::vec4(corner, 1.0f));
+                this->SceneOBB.Min = glm::min(corner, this->SceneOBB.Min);
+                this->SceneOBB.Max = glm::max(corner, this->SceneOBB.Max);
+            }
+        }
+        if (!node->Children.empty()) {
+            for (GLTFNode* child : node->Children) {
+                traverseScene(child, globalTransform);
+            }
+        }
+    };
+
+    // Compute scene OBB
+    for (auto& model : Models) {
+        traverseScene(model->Model.Root, glm::mat4(1.0f));
+    }
 }
 
 void Scene::Update(const Frame& frame, UInt32 frameIndex)

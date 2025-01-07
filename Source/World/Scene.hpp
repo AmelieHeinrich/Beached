@@ -35,6 +35,7 @@ class Scene
 {
 public:
     Camera Camera;
+    Box SceneOBB;
 
     Vector<PointLight> PointLights;
     DirectionalLight Sun;

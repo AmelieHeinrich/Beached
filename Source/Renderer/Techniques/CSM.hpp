@@ -33,6 +33,8 @@ private:
 
     GraphicsPipeline::Ref mPipeline = nullptr;
 
+    float mZMult = 10.0f;
+    float mShadowSplitLambda = 0.80f;
     bool mFreezeCascades = false;
     Array<Cascade, SHADOW_CASCADE_COUNT> mCascades;
 };

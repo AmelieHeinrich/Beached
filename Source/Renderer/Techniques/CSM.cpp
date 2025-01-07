@@ -87,10 +87,6 @@ void CSM::Render(const Frame& frame, const Scene& scene)
 
             glm::mat4 globalTransform = transform * node->Transform;
             for (GLTFPrimitive primitive : node->Primitives) {
-                // Cull objects that are not seen
-                glm::mat4 widePerspective = glm::perspective(glm::radians(180.0f), (float)frame.Width / (float)frame.Height, CAMERA_NEAR, CAMERA_FAR);
-                if (!Camera::IsBoxInFrustum(widePerspective * scene.Camera.View(), primitive.AABB, globalTransform) && Settings::Get().FrustumCull)
-                    continue;
                 if (!Camera::IsBoxInFrustum(mCascades[i].Proj * mCascades[i].View, primitive.AABB, globalTransform))
                     continue;
 
@@ -135,6 +131,8 @@ void CSM::UI(const Frame& frame)
     };
 
     if (ImGui::TreeNodeEx("Cascaded Shadow Maps", ImGuiTreeNodeFlags_Framed)) {
+        ImGui::SliderFloat("Far Plane Multiplier", &mZMult, 1.0f, 10.0f, "%.1f");
+        ImGui::SliderFloat("Shadow Split Lambda", &mShadowSplitLambda, 0.0f, 1.0f, "%.2f");
         ImGui::Checkbox("Freeze Cascades", &mFreezeCascades);
         for (int i = 0; i < SHADOW_CASCADE_COUNT; i++) {
             if (ImGui::TreeNodeEx(("Cascade " + std::to_string(i)).data(), ImGuiTreeNodeFlags_Framed)) {
@@ -149,19 +147,18 @@ void CSM::UI(const Frame& frame)
 
 void CSM::UpdateCascades(const Scene& scene)
 {
+    UInt32 cascadeSize = PassManager::Get("ShadowCascade0")->Desc.Width;
     Vector<float> splits(SHADOW_CASCADE_COUNT + 1);
 
     // Precompute cascade splits using logarithmic split
     splits[0] = CAMERA_NEAR;
+    splits[SHADOW_CASCADE_COUNT] = CAMERA_FAR;
     for (int i = 1; i <= SHADOW_CASCADE_COUNT; ++i) {
-        // Uniform split
-        float uniformSplit = CAMERA_NEAR + (CAMERA_FAR - CAMERA_NEAR) * (float(i) / SHADOW_CASCADE_COUNT);
+        float linearSplit = CAMERA_NEAR + (CAMERA_FAR - CAMERA_NEAR) * (static_cast<float>(i) / SHADOW_CASCADE_COUNT);
+        float logSplit = CAMERA_NEAR * std::pow(CAMERA_FAR / CAMERA_NEAR, static_cast<float>(i) / SHADOW_CASCADE_COUNT);
 
-        // Logarithmic split
-        float logSplit = CAMERA_NEAR * std::pow(CAMERA_FAR / CAMERA_NEAR, float(i) / SHADOW_CASCADE_COUNT);
-
-        // Blend using lambda
-        splits[i] = SHADOW_SPLIT_LAMBDA * logSplit + (1.0f - SHADOW_SPLIT_LAMBDA) * uniformSplit;
+        // Blend the splits using the lambda parameter
+        splits[i] = mShadowSplitLambda * logSplit + (1.0f - mShadowSplitLambda) * linearSplit;
     }
 
     for (int i = 0; i < SHADOW_CASCADE_COUNT; ++i) {
@@ -181,34 +178,45 @@ void CSM::UpdateCascades(const Scene& scene)
             up = glm::vec3(1.0f, 0.0f, 0.0f);
         }
 
-        // Light's view matrix
-        glm::mat4 lightView = glm::lookAt(center - scene.Sun.Direction, center, up);
-
-        // Calculate light-space bounding box
+        // Calculate light-space bounding sphere
         glm::vec3 minBounds(FLT_MAX), maxBounds(-FLT_MAX);
-        for (glm::vec4 corner : corners) {
-            glm::vec4 lightSpaceCorner = lightView * corner;
-            minBounds = glm::min(minBounds, glm::vec3(lightSpaceCorner));
-            maxBounds = glm::max(maxBounds, glm::vec3(lightSpaceCorner));
+        float sphereRadius = 0.0f;
+        for (auto& corner : corners) {
+            float dist = glm::length(glm::vec3(corner) - center);
+            sphereRadius = std::max(sphereRadius, dist);
         }
-        
-        float min = 0.0f;
-        min = glm::min(min, minBounds.x);
-        min = glm::min(min, minBounds.y);
+        sphereRadius = std::ceil(sphereRadius * 16.0f) / 16.0f;
+        maxBounds = glm::vec3(sphereRadius);
+        minBounds = -maxBounds;
 
-        float max = 0.0f;
-        max = glm::max(max, maxBounds.x);
-        max = glm::max(max, maxBounds.y);
+        // Get extents and create view matrix
+        glm::vec3 cascadeExtents = maxBounds - minBounds;
+        glm::vec3 shadowCameraPos = center - scene.Sun.Direction * -minBounds.z;
 
-        // Projection matrix
+        glm::mat4 lightView = glm::lookAt(shadowCameraPos, center, up);
         glm::mat4 lightProjection = glm::ortho(
-            min,  // Left
-            max,  // Right
-            min,  // Bottom
-            max,  // Top
-            minBounds.z,  // Near
-            maxBounds.z   // Far
+            minBounds.x,
+            maxBounds.x,
+            minBounds.y,
+            maxBounds.y,
+            minBounds.z,
+            maxBounds.z * mZMult
         );
+
+        // Texel snap
+        {
+            glm::mat4 shadowMatrix = lightProjection * lightView;
+            glm::vec4 shadowOrigin = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+            shadowOrigin = shadowMatrix * shadowOrigin;
+            shadowOrigin = glm::scale(glm::mat4(1.0f), glm::vec3(cascadeSize / 2)) * shadowOrigin;
+    
+            glm::vec4 roundedOrigin = glm::round(shadowOrigin);
+            glm::vec4 roundOffset = roundedOrigin - shadowOrigin;
+            roundOffset = roundOffset * (2.0f / cascadeSize);
+            roundOffset.z = 0.0f;
+            roundOffset.w = 0.0f;
+            lightProjection[3] += roundOffset;
+        }
 
         // Store results
         mCascades[i].Split = splits[i + 1];

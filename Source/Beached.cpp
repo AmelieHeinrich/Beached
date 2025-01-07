@@ -34,7 +34,7 @@ Beached::Beached()
         mRenderer = MakeRef<Renderer>(mRHI);
 
         // Loading and setup
-        mScene.Models.push_back(AssetManager::Get("Assets/Models/ShadowTest/ShadowTest.gltf", AssetType::GLTF));
+        mScene.Models.push_back(AssetManager::Get("Assets/Models/Sponza/Sponza.gltf", AssetType::GLTF));
         mScene.Sun.Direction = glm::vec3(0.0f, -1.0f, 0.2f);
         mScene.Sun.Color = glm::vec4(1.0f);
         mScene.Sun.Strenght = 1.0f;
@@ -153,6 +153,7 @@ void Beached::UI(const Frame& frame)
     UI::BeginCornerOverlay();
     ImGui::Text("Version 0.0.1");
     ImGui::Text("Renderer: Direct3D 12");
+    ImGui::Checkbox("Draw Scene OBB", &mDrawSceneOBB);
     ImGui::End();
 
     mRenderer->UI(frame, &mRendererUI);
@@ -219,5 +220,9 @@ void Beached::UI(const Frame& frame)
         }
 
         ImGui::End();
+    }
+    
+    if (mDrawSceneOBB) {
+        Debug::DrawBox(glm::mat4(1.0f), mScene.SceneOBB.Min, mScene.SceneOBB.Max, glm::vec3(1.0f, 1.0f, 0.0f));
     }
 }

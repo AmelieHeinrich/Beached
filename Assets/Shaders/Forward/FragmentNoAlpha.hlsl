@@ -106,7 +106,7 @@ float CalculateShadowCascade(FragmentIn input, DirectionalLight Light, int layer
     Texture2D<float> shadowMap = ResourceDescriptorHeap[cascades.Cascades[layer].SRVIndex];
     float3 N = GetNormal(input);
 
-    float bias = max(0.05 * (1.0 - dot(N, Light.Direction)), 0.005);
+    float bias = max(0.05 * (1.0 - dot(N, Light.Direction)), 0.01);
     if (layer == SHADOW_CASCADE_COUNT) {
         bias *= 1 / (CAMERA_FAR * 0.5);
     } else {
@@ -179,7 +179,7 @@ float4 PSMain(FragmentIn Input) : SV_Target
     }
 
     //
-    float4 Color = GetCascadeColor(layer);    
+    float4 Color = Albedo.Sample(Sampler, Input.UV);
     float3 Lo = Color.xyz * AMBIENT;
 
     // Light calculations

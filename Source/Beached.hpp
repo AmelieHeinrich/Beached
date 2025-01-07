@@ -41,6 +41,7 @@ private:
     Scene mScene;
 
     // UI settings
+    bool mDrawSceneOBB = false;
     bool mUI = false;
     bool mRendererUI = false;
     bool mStatisticsUI = false;

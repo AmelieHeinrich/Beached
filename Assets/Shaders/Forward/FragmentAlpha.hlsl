@@ -106,7 +106,7 @@ float CalculateShadowCascade(FragmentIn input, DirectionalLight Light, int layer
     Texture2D<float> shadowMap = ResourceDescriptorHeap[cascades.Cascades[layer].SRVIndex];
     float3 N = GetNormal(input);
 
-    float bias = max(0.05 * (1.0 - dot(N, Light.Direction)), 0.005);
+    float bias = max(0.05 * (1.0 - dot(N, Light.Direction)), 0.01);
     if (layer == SHADOW_CASCADE_COUNT) {
         bias *= 1 / (CAMERA_FAR * 0.5);
     } else {
@@ -142,21 +142,19 @@ float3 CalculatePoint(PointLight Light, FragmentIn Input, float3 Albedo)
     }
 }
 
-float3 CalculateSun(DirectionalLight Light, FragmentIn Input, float3 Albedo)
+float3 CalculateSun(DirectionalLight Light, FragmentIn Input, float3 Albedo, int layer)
 {
     ConstantBuffer<Camera> Cam = ResourceDescriptorHeap[PushConstants.CameraIndex];
 
-    float3 N = GetNormal(Input);
-    if (any(isnan(N))) {
-        return float3(1.0, 0.0, 1.0); // Return a magenta color for NaN debugging
-    }
+    float shadow = CalculateShadowCascade(Input, Light, layer);
 
+    float3 N = GetNormal(Input);
     float attenuation = clamp(dot(N, -Light.Direction), 0.0, 1.0);
     if (attenuation > 0.0f) {
         float NdotL = max(dot(N, -Light.Direction), AMBIENT);
-        return (NdotL * Albedo * Light.Strength * Light.Color.xyz);
+        return (NdotL * Albedo * Light.Strength * Light.Color.xyz) * shadow;
     } else {
-        return Albedo * AMBIENT;
+        return Albedo * AMBIENT * shadow;
     }
 }
 
@@ -194,14 +192,24 @@ float4 PSMain(FragmentIn Input) : SV_Target
     Texture2D Albedo = ResourceDescriptorHeap[PushConstants.TextureIndex];
     SamplerState Sampler = SamplerDescriptorHeap[PushConstants.SamplerIndex];
 
+    // Get cascade layer
+    int layer = -1;
+    for (int i = 0; i < SHADOW_CASCADE_COUNT; i++) {
+        if (abs(Input.FragPosView.z) < CascadeInfo.Cascades[i].Split) {
+            layer = i;
+            break;
+        }
+    }
+    if (layer == -1) {
+        layer = SHADOW_CASCADE_COUNT - 1;
+    }
+
     float4 Color = Albedo.Sample(Sampler, Input.UV);
     if (Color.a < 0.5)
         discard;
     
     float3 Lo = Color.xyz * AMBIENT;
-    
-    float shadow = 1.0;
-    Lo += CalculateSun(Lights.Sun, Input, Color.xyz) * shadow;
+    Lo += CalculateSun(Lights.Sun, Input, Color.xyz, layer);
     
     for (int i = 0; i < Lights.LightCount; i++) {
         Lo += CalculatePoint(Lights.Lights[i], Input, Color.xyz);
