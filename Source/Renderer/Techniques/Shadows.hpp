@@ -7,6 +7,8 @@
 
 #include <Renderer/RenderPass.hpp>
 
+static const int POINT_LIGHT_SHADOW_DIMENSION = 1024;
+
 struct PointLightShadow
 {
     PointLight* Parent;
@@ -22,10 +24,10 @@ public:
     Shadows(RHI::Ref rhi);
     ~Shadows() = default;
 
-    void Bake(const Scene& scene);
+    void Bake(Scene& scene) override;
     void Render(const Frame& frame, Scene& scene) override;
     void UI(const Frame& frame) override;
 private:
-    GraphicsPipeline::Ref mPipeline = nullptr;
+    GraphicsPipeline::Ref mPointPipeline = nullptr;
     Vector<PointLightShadow> mPointLightShadows;
 };

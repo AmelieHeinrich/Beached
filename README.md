@@ -20,3 +20,44 @@ Work in progress
 
 ### Cascaded Shadow Mapping
 ![CSM](.github/CSM.png)
+
+## Roadmap
+
+### In progress
+- Point Shadows
+- Spot Shadows
+
+### Planned
+- Deferred
+- Motion Blur
+- Bokeh DOF
+- SSAO
+- Bloom
+- TAA
+- Auto Exposure
+- Color Grading
+
+- Draw Indirect
+- Tiled Forward
+- Clustered Forward
+- Compute Frustum/Occlusion culling
+
+- Reference path-tracer
+- PBR
+- Reflective Shadow Maps
+
+- Raytraced Soft Shadows
+- Raytraced Reflections
+- Raytraced Ambient Occlusion
+- Raytraced Global Illumination
+
+### Maybe...
+
+- GPU particles (rain & snow effect)
+- Sum of sines ocean
+- Multithreading
+- DirectStorage support
+- Frame upscaling with FSR/XeSS/DLSS
+- Pixel Sorter using GPU Work Graphs
+- Physics
+- Audio

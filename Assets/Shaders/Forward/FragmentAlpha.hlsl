@@ -133,9 +133,33 @@ float CalculateShadowCascade(FragmentIn input, DirectionalLight Light, int layer
                       kernelSize);
 }
 
+float CalculateShadowPoint(FragmentIn input, PointLight light)
+{
+    SamplerComparisonState sampler = SamplerDescriptorHeap[PushConstants.ShadowSamplerIndex];
+    TextureCube<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(light.ShadowCubemap)];
+    float3 N = GetNormal(input);
+
+    float baseBias = 0.005;
+    float3 fragToLight = normalize(input.FragPosWorld.xyz - light.Position.xyz);
+    float NdotL = abs(dot(N, fragToLight));
+
+    // Apply slope-scaled bias
+    float slopeBias = saturate(1.0 - NdotL) * 0.01; // Tweak the scale factor (0.01) as needed.
+    float finalBias = baseBias + slopeBias;
+    
+    return ComputePCFPoint(shadowMap,
+                           sampler,
+                           input.FragPosWorld,
+                           light.Position,
+                           finalBias,
+                           1);
+}
+
 float3 CalculatePoint(PointLight Light, FragmentIn Input, float3 Albedo)
 {
     ConstantBuffer<Camera> Cam = ResourceDescriptorHeap[PushConstants.CameraIndex];
+
+    float shadow = Light.CastShadows ? CalculateShadowPoint(Input, Light) : 1.0;
 
     float3 N = GetNormal(Input);
     float Distance = length(Light.Position - Input.FragPosWorld.xyz);
@@ -144,7 +168,7 @@ float3 CalculatePoint(PointLight Light, FragmentIn Input, float3 Albedo)
     if (Attenuation > 0.0) {
         float3 LightDirection = normalize(Light.Position - Input.FragPosWorld.xyz);
         float NdotL = max(dot(N, LightDirection) * Light.Radius, AMBIENT);
-        return (NdotL * Albedo * Attenuation * Light.Color.xyz);
+        return (NdotL * Albedo * Attenuation * Light.Color.xyz) * shadow;
     } else {
         return Albedo * AMBIENT;
     }

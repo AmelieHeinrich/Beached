@@ -26,6 +26,7 @@ public:
     CSM(RHI::Ref rhi);
     ~CSM() = default;
 
+    void Bake(Scene& scene) {}
     void Render(const Frame& frame, Scene& scene) override;
     void UI(const Frame& frame) override;
 private:

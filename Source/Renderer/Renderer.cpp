@@ -32,7 +32,7 @@ Renderer::~Renderer()
     mPasses.clear();
 }
 
-void Renderer::Bake(const Scene& scene)
+void Renderer::Bake(Scene& scene)
 {
     for (auto& pass : mPasses) {
         pass->Bake(scene);

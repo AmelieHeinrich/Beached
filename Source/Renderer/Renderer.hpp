@@ -15,7 +15,7 @@ public:
     Renderer(RHI::Ref rhi);
     ~Renderer();
 
-    void Bake(const Scene& scene);
+    void Bake(Scene& scene);
     void Render(const Frame& frame, Scene& scene);
     void UI(const Frame& frame, bool *open);
 private:
