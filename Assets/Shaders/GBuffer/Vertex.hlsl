@@ -25,6 +25,7 @@ struct Model
 {
     column_major float4x4 Transform;
     column_major float4x4 InvTransform;
+    float4 MaterialColor;
 };
 
 struct Settings

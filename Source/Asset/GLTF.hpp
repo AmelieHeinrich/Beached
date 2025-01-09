@@ -34,6 +34,8 @@ struct GLTFMaterial
 
     bool AlphaTested;
     float AlphaCutoff;
+
+    glm::vec3 MaterialColor;
 };
 
 struct GLTFPrimitive

@@ -84,11 +84,17 @@ void Forward::Render(const Frame& frame, Scene& scene)
             }
 
             GLTFMaterial material = model->Materials[primitive.MaterialIndex];
-            glm::mat4 matrices[] = {
+
+            struct ModelData {
+                glm::mat4 transform;
+                glm::mat4 invTransform;
+                glm::vec3 materialColor;
+            } modelData = {
                 globalTransform,
-                invTransform
+                invTransform,
+                glm::vec4(material.MaterialColor, 1.0)
             };
-            node->ModelBuffer[frame.FrameIndex]->CopyMapped(matrices, sizeof(glm::mat4) * 2);
+            node->ModelBuffer[frame.FrameIndex]->CopyMapped(&modelData, sizeof(modelData));
             
             int albedoIndex = material.Albedo ? material.AlbedoView->GetDescriptor().Index : white->ShaderResourceView->GetDescriptor().Index;
             int normalIndex = material.Normal ? material.NormalView->GetDescriptor().Index : -1;

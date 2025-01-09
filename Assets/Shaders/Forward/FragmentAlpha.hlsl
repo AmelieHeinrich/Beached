@@ -47,6 +47,13 @@ struct Settings
     int AccelStructure;
 };
 
+struct Model
+{
+    column_major float4x4 Transform;
+    column_major float4x4 InvTransform;
+    float4 MaterialColor;
+};
+
 ConstantBuffer<Settings> PushConstants : register(b0);
 
 float3 GetNormal(FragmentIn Input)
@@ -188,6 +195,8 @@ float4 PSMain(FragmentIn Input) : SV_Target
 {    
     // Get cascade layer
     ConstantBuffer<CascadeBuffer> CascadeInfo = ResourceDescriptorHeap[PushConstants.CascadeBufferIndex];
+    ConstantBuffer<Model> Instance = ResourceDescriptorHeap[PushConstants.ModelIndex];
+    
     int layer = -1;
     for (int i = 0; i < SHADOW_CASCADE_COUNT; i++) {
         if (abs(Input.FragPosView.z) < CascadeInfo.Cascades[i].Split) {
@@ -205,6 +214,7 @@ float4 PSMain(FragmentIn Input) : SV_Target
     float4 Color = Albedo.Sample(Sampler, Input.UV);
     if (Color.a < 0.5)
         discard;
+    Color *= Instance.MaterialColor;
     
     // Get light data
     ConstantBuffer<LightData> Lights = ResourceDescriptorHeap[PushConstants.LightIndex];

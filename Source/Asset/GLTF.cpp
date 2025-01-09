@@ -146,7 +146,11 @@ void GLTF::ProcessPrimitive(cgltf_primitive *primitive, GLTFNode *node)
         if (!cgltf_accessor_read_float(posAttribute->data, i, glm::value_ptr(vertex.Position), 4)) {
             vertex.Position = glm::vec3(0.0f);
         }
-        if (!cgltf_accessor_read_float(uvAttribute->data, i, glm::value_ptr(vertex.UV), 4)) {
+        if (uvAttribute) {
+            if (!cgltf_accessor_read_float(uvAttribute->data, i, glm::value_ptr(vertex.UV), 4)) {
+                vertex.UV = glm::vec2(0.0f);
+            }
+        } else {
             vertex.UV = glm::vec2(0.0f);
         }
         if (!cgltf_accessor_read_float(normAttribute->data, i, glm::value_ptr(vertex.Normal), 4)) {
@@ -182,10 +186,18 @@ void GLTF::ProcessPrimitive(cgltf_primitive *primitive, GLTFNode *node)
     // out.Instance.Flags = 0x4;
 
     cgltf_material *material = primitive->material;
+    
     GLTFMaterial outMaterial = {};
+    outMaterial.MaterialColor = glm::vec3(1.0f);
+
     out.MaterialIndex = Materials.size();
     
     if (material) {
+        outMaterial.MaterialColor = glm::vec3(
+            material->pbr_metallic_roughness.base_color_factor[0],
+            material->pbr_metallic_roughness.base_color_factor[1],
+            material->pbr_metallic_roughness.base_color_factor[2]
+        );
         outMaterial.AlphaTested = material->alpha_mode != cgltf_alpha_mode_opaque;
         outMaterial.AlphaCutoff = material->alpha_cutoff;
     }

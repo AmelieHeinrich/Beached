@@ -29,10 +29,4 @@ ConstantBuffer<Settings> PushConstants : register(b0);
 
 void PSMain(FragmentIn Input)
 {
-    Texture2D Albedo = ResourceDescriptorHeap[PushConstants.TextureIndex];
-    SamplerState Sampler = SamplerDescriptorHeap[PushConstants.SamplerIndex];
-
-    float4 Color = Albedo.Sample(Sampler, Input.UV);
-    if (Color.a < 0.1)
-        discard;
 }
