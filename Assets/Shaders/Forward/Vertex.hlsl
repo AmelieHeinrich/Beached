@@ -41,6 +41,7 @@ struct Settings
 
     // Samplers
     int SamplerIndex;
+    int ClampSamplerIndex;
     int ShadowSamplerIndex;
 
     // Acceleration structures

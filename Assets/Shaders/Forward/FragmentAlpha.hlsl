@@ -40,6 +40,7 @@ struct Settings
 
     // Samplers
     int SamplerIndex;
+    int ClampSamplerIndex;
     int ShadowSamplerIndex;
 
     // Acceleration structures
@@ -135,23 +136,16 @@ float CalculateShadowCascade(FragmentIn input, DirectionalLight Light, int layer
 
 float CalculateShadowPoint(FragmentIn input, PointLight light)
 {
-    SamplerComparisonState sampler = SamplerDescriptorHeap[PushConstants.ShadowSamplerIndex];
-    TextureCube<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(light.ShadowCubemap)];
+    ConstantBuffer<Camera> Cam = ResourceDescriptorHeap[PushConstants.CameraIndex];
+    SamplerState sampler = SamplerDescriptorHeap[PushConstants.ClampSamplerIndex];
+    TextureCube<float> shadowMap = ResourceDescriptorHeap[light.ShadowCubemap];
     float3 N = GetNormal(input);
-
-    float baseBias = 0.005;
-    float3 fragToLight = normalize(input.FragPosWorld.xyz - light.Position.xyz);
-    float NdotL = abs(dot(N, fragToLight));
-
-    // Apply slope-scaled bias
-    float slopeBias = saturate(1.0 - NdotL) * 0.01; // Tweak the scale factor (0.01) as needed.
-    float finalBias = baseBias + slopeBias;
     
     return ComputePCFPoint(shadowMap,
                            sampler,
                            input.FragPosWorld,
+                           Cam.Position,
                            light.Position,
-                           finalBias,
                            1);
 }
 

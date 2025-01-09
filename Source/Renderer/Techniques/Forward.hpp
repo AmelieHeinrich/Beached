@@ -19,6 +19,7 @@ public:
     void UI(const Frame& frame) override;
 private:
     Sampler::Ref mSampler;
+    Sampler::Ref mClampSampler;
     Sampler::Ref mShadowSampler;
     Permutation mPipeline;
 

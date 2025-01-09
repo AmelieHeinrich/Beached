@@ -6,6 +6,7 @@ Work in progress
 
 ### Renderer
 - Cascaded Shadow Maps
+- Point Shadows
 - Z-Prepass
 
 ### Engine
@@ -14,18 +15,9 @@ Work in progress
 
 ## WIP
 
-- Point Shadows
-
-## Screenshots
-
-### Cascaded Shadow Mapping
-![CSM](.github/CSM.png)
+- Spot Shadows
 
 ## Roadmap
-
-### In progress
-- Point Shadows
-- Spot Shadows
 
 ### Planned
 - Deferred
@@ -61,3 +53,12 @@ Work in progress
 - Pixel Sorter using GPU Work Graphs
 - Physics
 - Audio
+
+## Screenshots
+
+### Cascaded Shadow Mapping
+![CSM](.github/CSM.png)
+
+### Point Shadows
+
+![PointShadows](.github/PS.png)

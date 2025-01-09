@@ -16,6 +16,7 @@ Forward::Forward(RHI::Ref rhi)
     : RenderPass(rhi)
 {
     mSampler = mRHI->CreateSampler(SamplerAddress::Wrap, SamplerFilter::Linear, true);
+    mClampSampler = mRHI->CreateSampler(SamplerAddress::Clamp, SamplerFilter::Nearest, false);
     mShadowSampler = mRHI->CreateSampler(SamplerAddress::Clamp, SamplerFilter::Nearest, false, 1, true);
 
     ::Ref<RenderPassIO> color = PassManager::Get("MainColorBuffer");
@@ -28,7 +29,7 @@ Forward::Forward(RHI::Ref rhi)
     specs.DepthEnabled = true;
     specs.DepthFormat = TextureFormat::Depth32;
     specs.Formats.push_back(color->Desc.Format);
-    specs.Signature = mRHI->CreateRootSignature({ RootType::PushConstant }, sizeof(int) * 9);
+    specs.Signature = mRHI->CreateRootSignature({ RootType::PushConstant }, sizeof(int) * 10);
     
     mPipeline.Init(rhi, specs);
     mPipeline.AddPermutation("Alpha", "Assets/Shaders/Forward/Vertex.hlsl", "Assets/Shaders/Forward/FragmentAlpha.hlsl");
@@ -102,6 +103,7 @@ void Forward::Render(const Frame& frame, Scene& scene)
                 int NormalIndex;
 
                 int SamplerIndex;
+                int ClampSamplerIndex;
                 int ShadowSamplerIndex;
 
                 int Accel;
@@ -115,6 +117,7 @@ void Forward::Render(const Frame& frame, Scene& scene)
                 normalIndex,
 
                 mSampler->BindlesssSampler(),
+                mClampSampler->BindlesssSampler(),
                 mShadowSampler->BindlesssSampler(),
 
                 -1

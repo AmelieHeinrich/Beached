@@ -69,8 +69,8 @@ void Shadows::Render(const Frame& frame, Scene& scene)
             Vector<glm::mat4> shadowTransforms;
             shadowTransforms.push_back(glm::lookAt(light.Parent->Position, light.Parent->Position + glm::vec3( 1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
             shadowTransforms.push_back(glm::lookAt(light.Parent->Position, light.Parent->Position + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)));
-            shadowTransforms.push_back(glm::lookAt(light.Parent->Position, light.Parent->Position + glm::vec3( 0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)));
-            shadowTransforms.push_back(glm::lookAt(light.Parent->Position, light.Parent->Position + glm::vec3( 0.0,-1.0, 0.0), glm::vec3(0.0, 0.0,-1.0)));
+            shadowTransforms.push_back(glm::lookAt(light.Parent->Position, light.Parent->Position + glm::vec3( 0.0, 1.0, 0.0), glm::vec3(0.0, 0.0,  1.0)));
+            shadowTransforms.push_back(glm::lookAt(light.Parent->Position, light.Parent->Position + glm::vec3( 0.0,-1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)));
             shadowTransforms.push_back(glm::lookAt(light.Parent->Position, light.Parent->Position + glm::vec3( 0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)));
             shadowTransforms.push_back(glm::lookAt(light.Parent->Position, light.Parent->Position + glm::vec3( 0.0, 0.0,-1.0), glm::vec3(0.0, -1.0, 0.0)));
 

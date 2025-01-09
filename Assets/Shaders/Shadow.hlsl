@@ -3,6 +3,14 @@
 // > Create Time: 2025-01-04 06:40:39
 //
 
+static const float3 PCF_POISSON_DISK[20] = {
+   float3( 1,  1,  1), float3( 1, -1,  1), float3(-1, -1,  1), float3(-1,  1,  1), 
+   float3( 1,  1, -1), float3( 1, -1, -1), float3(-1, -1, -1), float3(-1,  1, -1),
+   float3( 1,  1,  0), float3( 1, -1,  0), float3(-1, -1,  0), float3(-1,  1,  0),
+   float3( 1,  0,  1), float3(-1,  0,  1), float3( 1,  0, -1), float3(-1,  0, -1),
+   float3( 0,  1,  1), float3( 0, -1,  1), float3( 0, -1, -1), float3( 0,  1, -1)
+};
+
 float ComputePCF(
     Texture2D<float> ShadowMap,
     SamplerComparisonState comparisonSampler,
@@ -52,20 +60,41 @@ float ComputePCF(
 
 float ComputePCFPoint(
     TextureCube<float> ShadowMap,
-    SamplerComparisonState comparisonSampler,
+    SamplerState comparisonSampler,
     float4 WorldSpacePosition,
+    float3 CameraPosition,
     float3 LightPosition,
-    float bias,
     int kernelSize)
 {
     float3 fragToLight = WorldSpacePosition.xyz - LightPosition;
-    float currentDepth = length(fragToLight);
- 
-    float closestDepth = ShadowMap.SampleCmpLevelZero(comparisonSampler, fragToLight, 1.0).r;
-    closestDepth *= 25.0;
+    fragToLight.y = -fragToLight.y;
 
-    float myBias = 0.05;
-    float shadow = currentDepth - myBias > closestDepth ? 0.0 : 1.0;
+    float currentDepth = length(fragToLight);
+
+    float shadow = 0.0;
+    float bias = 0.05;
+
+    // Define an offset array for 2x2 sampling (cheap PCF)
+    float3 offset[4] = {
+        float3( 0.5,  0.5, 0.0),
+        float3(-0.5,  0.5, 0.0),
+        float3( 0.5, -0.5, 0.0),
+        float3(-0.5, -0.5, 0.0)
+    };
+
+    // Sample multiple points within the kernel
+    for (int i = 0; i < 4; ++i)
+    {
+        float3 sampleDirection = fragToLight + offset[i] * 0.01; // Small jitter for sampling
+        float closestDepth = ShadowMap.Sample(comparisonSampler, sampleDirection).r;
+        closestDepth *= 25;
+
+        // Accumulate shadow contribution
+        if (currentDepth - bias <= closestDepth)
+        {
+            shadow += 0.25; // Weight of each sample (1/4 for 2x2 PCF)
+        }
+    }
 
     return shadow;
 }
