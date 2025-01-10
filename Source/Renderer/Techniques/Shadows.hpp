@@ -8,6 +8,7 @@
 #include <Renderer/RenderPass.hpp>
 
 static const int POINT_LIGHT_SHADOW_DIMENSION = 1024;
+static const int SPOT_LIGHT_SHADOW_DIMENSION = 1024;
 
 struct PointLightShadow
 {
@@ -16,6 +17,15 @@ struct PointLightShadow
 
     View::Ref SRV;
     Array<View::Ref, 6> DepthViews;
+};
+
+struct SpotLightShadow
+{
+    SpotLight* Parent;
+    Texture::Ref ShadowMap;
+    
+    View::Ref SRV;
+    View::Ref DSV;
 };
 
 class Shadows : public RenderPass
@@ -28,6 +38,9 @@ public:
     void Render(const Frame& frame, Scene& scene) override;
     void UI(const Frame& frame) override;
 private:
-    GraphicsPipeline::Ref mPointPipeline = nullptr;
+    Vector<SpotLightShadow> mSpotLightShadows;
+    GraphicsPipeline::Ref mSpotPipeline = nullptr;
+
     Vector<PointLightShadow> mPointLightShadows;
+    GraphicsPipeline::Ref mPointPipeline = nullptr;
 };

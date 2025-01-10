@@ -14,9 +14,23 @@ struct PointLight
     float Radius;
     glm::vec3 Color;
     int ShadowCubemap;
-
     bool CastShadows;
     glm::ivec3 Pad;
+};
+
+struct SpotLight
+{
+    glm::vec3 Position;
+    float Radius;
+    glm::vec3 Direction;
+    int ShadowMap;
+    glm::vec3 Color;
+    bool CastShadows;
+    float OuterRadius;
+    glm::vec3 Pad;
+
+    glm::mat4 LightView;
+    glm::mat4 LightProj;
 };
 
 struct DirectionalLight
@@ -32,8 +46,11 @@ struct LightData
 
     int PointLightSRV;
     int PointLightCount;
+    int SpotLightSRV;
+    int SpotLightCount;
+
     int UseSun;
-    int Pad;
+    glm::ivec3 Pad;
 };
 
 class Scene
@@ -42,6 +59,7 @@ public:
     Camera Camera;
     Box SceneOBB;
 
+    Vector<SpotLight> SpotLights;
     Vector<PointLight> PointLights;
     DirectionalLight Sun;
 
@@ -52,6 +70,7 @@ public:
     Vector<Asset::Handle> Models;
     Array<Buffer::Ref, FRAMES_IN_FLIGHT> LightBuffer;
     Array<Buffer::Ref, FRAMES_IN_FLIGHT> PointLightBuffer;
+    Array<Buffer::Ref, FRAMES_IN_FLIGHT> SpotLightBuffer;
 
     void Init(RHI::Ref rhi);
     void BakeBLAS(RHI::Ref rhi);

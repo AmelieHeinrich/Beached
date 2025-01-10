@@ -11,7 +11,7 @@ static const float3 PCF_POISSON_DISK[20] = {
    float3( 0,  1,  1), float3( 0, -1,  1), float3( 0, -1, -1), float3( 0,  1, -1)
 };
 
-float ComputePCF(
+float PCFCascade(
     Texture2D<float> ShadowMap,
     SamplerComparisonState comparisonSampler,
     float4 WorldSpacePosition,
@@ -58,7 +58,7 @@ float ComputePCF(
     return shadow;
 }
 
-float ComputePCFPoint(
+float PCFPoint(
     TextureCube<float> ShadowMap,
     SamplerState comparisonSampler,
     float4 WorldSpacePosition,
@@ -90,11 +90,34 @@ float ComputePCFPoint(
         closestDepth *= 25;
 
         // Accumulate shadow contribution
-        if (currentDepth - bias <= closestDepth)
-        {
+        if (currentDepth - bias <= closestDepth) {
             shadow += 0.25; // Weight of each sample (1/4 for 2x2 PCF)
         }
     }
 
     return shadow;
+}
+
+float PCFSpot(
+    Texture2D<float> ShadowMap,
+    SamplerState sampler,
+    float4 WorldSpacePosition,
+    column_major float4x4 LightView,
+    column_major float4x4 LightProj)
+{
+    // Transform world-space position into light space
+    float4 lightSpacePosition = mul(LightView, WorldSpacePosition);
+    float4 ndcPosition = mul(LightProj, lightSpacePosition);
+    ndcPosition.xyz /= ndcPosition.w;
+
+    // Compute shadow map UV coordinates
+    float2 shadowUV = ndcPosition.xy * 0.5 + 0.5;
+    shadowUV.y = 1.0 - shadowUV.y;
+
+    // Perform PCF with the comparison sampler
+    float currentDepth = ShadowMap.Sample(sampler, shadowUV);
+    if (currentDepth - 0.005 < ndcPosition.z) {
+        return 0.0;
+    }
+    return 1.0;
 }

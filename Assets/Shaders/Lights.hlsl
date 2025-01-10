@@ -3,6 +3,21 @@
 // > Create Time: 2024-12-07 17:41:08
 //
 
+struct SpotLight
+{
+    float3 Position;
+    float Radius;
+    float3 Direction;
+    int ShadowMap;
+    float3 Color;
+    bool CastShadows;
+    float OuterRadius;
+    float3 Pad;
+
+    column_major float4x4 LightView;
+    column_major float4x4 LightProj;
+};
+
 struct PointLight
 {
     float3 Position;
@@ -23,14 +38,13 @@ struct DirectionalLight
 
 struct LightData
 {
-    // Sun
     DirectionalLight Sun;
 
-    // Point lights
-    int PointLightBuffer;
+    int PointLightSRV;
     int PointLightCount;
-    int UseSun;
-    int Pad;
+    int SpotLightSRV;
+    int SpotLightCount;
 
-    // TODO: Spot lights
+    int UseSun;
+    int3 Pad;
 };

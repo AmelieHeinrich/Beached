@@ -44,6 +44,9 @@ void Scene::Init(RHI::Ref rhi)
 
         PointLightBuffer[i] = rhi->CreateBuffer(16384, sizeof(PointLight), BufferType::Constant, "Point Light UAV");
         PointLightBuffer[i]->BuildSRV();
+
+        SpotLightBuffer[i] = rhi->CreateBuffer(16384, sizeof(SpotLight), BufferType::Constant, "Spot Light UAV");
+        SpotLightBuffer[i]->BuildSRV();
     }
 
     std::function<void(GLTFNode*, glm::mat4 transform)> traverseScene = [&](GLTFNode* node, glm::mat4 transform) {
@@ -91,8 +94,11 @@ void Scene::Update(const Frame& frame, UInt32 frameIndex)
     mData.Sun = Sun;
     mData.PointLightSRV = PointLightBuffer[frameIndex]->SRV();
     mData.PointLightCount = PointLights.size();
+    mData.SpotLightSRV = SpotLightBuffer[frameIndex]->SRV();
+    mData.SpotLightCount = SpotLights.size();
     mData.UseSun = Settings::Get().SceneUseSun;
 
     PointLightBuffer[frameIndex]->CopyMapped(PointLights.data(), PointLights.size() * sizeof(PointLight));
+    SpotLightBuffer[frameIndex]->CopyMapped(SpotLights.data(), SpotLights.size() * sizeof(SpotLight));
     LightBuffer[frameIndex]->CopyMapped(&mData, sizeof(LightData));
 }

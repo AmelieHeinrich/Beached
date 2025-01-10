@@ -131,7 +131,7 @@ float CalculateShadowCascade(FragmentIn input, DirectionalLight Light, int layer
     float finalBias = baseBias + slopeBias;
 
     int kernelSize = SHADOW_PCF_KERNELS[layer];
-    return ComputePCF(shadowMap,
+    return PCFCascade(shadowMap,
                       sampler,
                       input.FragPosWorld,
                       Light.Direction,
@@ -148,12 +148,26 @@ float CalculateShadowPoint(FragmentIn input, PointLight light)
     TextureCube<float> shadowMap = ResourceDescriptorHeap[light.ShadowCubemap];
     float3 N = GetNormal(input);
     
-    return ComputePCFPoint(shadowMap,
-                           sampler,
-                           input.FragPosWorld,
-                           Cam.Position,
-                           light.Position,
-                           1);
+    return PCFPoint(shadowMap,
+                    sampler,
+                    input.FragPosWorld,
+                    Cam.Position,
+                    light.Position,
+                    1);
+}
+
+float CalculateShadowSpot(FragmentIn input, SpotLight light)
+{
+    ConstantBuffer<Camera> Cam = ResourceDescriptorHeap[PushConstants.CameraIndex];
+    SamplerState sampler = SamplerDescriptorHeap[PushConstants.ClampSamplerIndex];
+    Texture2D<float> shadowMap = ResourceDescriptorHeap[light.ShadowMap];
+    float3 N = GetNormal(input);
+    
+    return PCFSpot(shadowMap,
+                   sampler,
+                   input.FragPosWorld,
+                   light.LightView,
+                   light.LightProj);
 }
 
 float3 CalculatePoint(PointLight Light, FragmentIn Input, float3 Albedo)
@@ -170,6 +184,27 @@ float3 CalculatePoint(PointLight Light, FragmentIn Input, float3 Albedo)
         float3 LightDirection = normalize(Light.Position - Input.FragPosWorld.xyz);
         float NdotL = max(dot(N, LightDirection) * Light.Radius, AMBIENT);
         return (NdotL * Albedo * Attenuation * Light.Color.xyz) * shadow;
+    } else {
+        return Albedo * AMBIENT;
+    }
+}
+
+float3 CalculateSpot(SpotLight light, FragmentIn input, float3 Albedo)
+{
+    ConstantBuffer<Camera> Cam = ResourceDescriptorHeap[PushConstants.CameraIndex];
+
+    float3 N = GetNormal(input);
+    float3 V = normalize(light.Position - input.FragPosWorld.xyz);
+    float distance = length(light.Position - input.FragPosWorld.xyz);
+
+    float shadow = CalculateShadowSpot(input, light);
+    float theta = dot(V, normalize(-light.Direction));
+    float epsilon = cos(light.Radius) - cos(light.OuterRadius);
+    float intensity = clamp((theta - cos(light.OuterRadius)) / epsilon, 0.0, 1.0);
+    float attenuation = 1.0 / (1.0 + 0.09 * distance + 0.032 * (distance * distance));    
+    if (theta >= cos(light.Radius)) {
+        float NdotL = max(dot(N, -light.Direction), AMBIENT);
+        return (NdotL * Albedo * intensity * attenuation * light.Color.xyz) * shadow;
     } else {
         return Albedo * AMBIENT;
     }
@@ -218,13 +253,18 @@ float4 PSMain(FragmentIn Input) : SV_Target
     
     // Get light data
     ConstantBuffer<LightData> Lights = ResourceDescriptorHeap[PushConstants.LightIndex];
-    StructuredBuffer<PointLight> PointLights = ResourceDescriptorHeap[Lights.PointLightBuffer];
+    StructuredBuffer<PointLight> PointLights = ResourceDescriptorHeap[Lights.PointLightSRV];
+    StructuredBuffer<SpotLight> SpotLights = ResourceDescriptorHeap[Lights.SpotLightSRV];
     
     float3 Lo = Color.xyz * AMBIENT;
-    if (Lights.UseSun)
-        Lo += CalculateSun(Lights.Sun, Input, Color.xyz, layer);
+    if (Lights.UseSun) {
+        Lo += CalculateSun(Lights.Sun, Input, Color.xyz, layer) * 0.5;
+    }
     for (int i = 0; i < Lights.PointLightCount; i++) {
         Lo += CalculatePoint(PointLights[i], Input, Color.xyz);
+    }
+    for (int i = 0; i < Lights.SpotLightCount; i++) {
+        Lo += CalculateSpot(SpotLights[i], Input, Color.xyz);
     }
     return float4(Lo, 1.0);
 }

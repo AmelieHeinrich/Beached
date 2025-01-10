@@ -9,19 +9,36 @@
 Shadows::Shadows(RHI::Ref rhi)
     : RenderPass(rhi)
 {
-    Asset::Handle vertexShader = AssetManager::Get("Assets/Shaders/PointShadow/Vertex.hlsl", AssetType::Shader);
+    {
+        Asset::Handle vertexShader = AssetManager::Get("Assets/Shaders/PointShadow/Vertex.hlsl", AssetType::Shader);
     Asset::Handle fragmentShader = AssetManager::Get("Assets/Shaders/PointShadow/Fragment.hlsl", AssetType::Shader);
 
-    GraphicsPipelineSpecs specs;
-    specs.Bytecodes[ShaderType::Vertex] = vertexShader->Shader;
-    specs.Bytecodes[ShaderType::Fragment] = fragmentShader->Shader;
-    specs.Cull = CullMode::Back;
-    specs.DepthEnabled = true;
-    specs.Depth = DepthOperation::Less;
-    specs.DepthFormat = TextureFormat::Depth32;
-    specs.Signature = rhi->CreateRootSignature({ RootType::PushConstant }, sizeof(glm::mat4) * 3 + sizeof(glm::vec4));
+        GraphicsPipelineSpecs specs;
+        specs.Bytecodes[ShaderType::Vertex] = vertexShader->Shader;
+        specs.Bytecodes[ShaderType::Fragment] = fragmentShader->Shader;
+        specs.Cull = CullMode::Back;
+        specs.DepthEnabled = true;
+        specs.Depth = DepthOperation::Less;
+        specs.DepthFormat = TextureFormat::Depth32;
+        specs.Signature = rhi->CreateRootSignature({ RootType::PushConstant }, sizeof(glm::mat4) * 3 + sizeof(glm::vec4));
 
-    mPointPipeline = rhi->CreateGraphicsPipeline(specs);
+        mPointPipeline = rhi->CreateGraphicsPipeline(specs);
+    }
+    {
+        Asset::Handle vertexShader = AssetManager::Get("Assets/Shaders/Shadow/Vertex.hlsl", AssetType::Shader);
+        Asset::Handle fragmentShader = AssetManager::Get("Assets/Shaders/Shadow/Fragment.hlsl", AssetType::Shader);
+
+        GraphicsPipelineSpecs specs;
+        specs.Bytecodes[ShaderType::Vertex] = vertexShader->Shader;
+        specs.Bytecodes[ShaderType::Fragment] = fragmentShader->Shader;
+        specs.Cull = CullMode::Back;
+        specs.DepthEnabled = true;
+        specs.Depth = DepthOperation::Less;
+        specs.DepthFormat = TextureFormat::Depth32;
+        specs.Signature = rhi->CreateRootSignature({ RootType::PushConstant }, sizeof(glm::mat4) * 3);
+
+        mSpotPipeline = rhi->CreateGraphicsPipeline(specs);
+    }
 }
 
 void Shadows::Bake(Scene& scene)
@@ -48,6 +65,28 @@ void Shadows::Bake(Scene& scene)
             
             scene.PointLights[i].ShadowCubemap = shadow.SRV->GetDescriptor().Index;
             mPointLightShadows.push_back(shadow);
+        }
+    }
+    for (int i = 0; i < scene.SpotLights.size(); i++) {
+        if (scene.SpotLights[i].CastShadows) {
+            SpotLightShadow shadow;
+            shadow.Parent = &scene.SpotLights[i];
+        
+            TextureDesc desc;
+            desc.Name = "Spot Light Shadow Map";
+            desc.Usage = TextureUsage::DepthTarget;
+            desc.Width = SPOT_LIGHT_SHADOW_DIMENSION;
+            desc.Height = SPOT_LIGHT_SHADOW_DIMENSION;
+            desc.Depth = 1;
+            desc.Format = TextureFormat::Depth32;
+            desc.Levels = 1;
+            shadow.ShadowMap = mRHI->CreateTexture(desc);
+
+            shadow.SRV = mRHI->CreateView(shadow.ShadowMap, ViewType::ShaderResource, ViewDimension::Texture, TextureFormat::R32Float);
+            shadow.DSV = mRHI->CreateView(shadow.ShadowMap, ViewType::DepthTarget, ViewDimension::Texture);
+            
+            scene.SpotLights[i].ShadowMap = shadow.SRV->GetDescriptor().Index;
+            mSpotLightShadows.push_back(shadow);
         }
     }
 }
@@ -123,7 +162,61 @@ void Shadows::Render(const Frame& frame, Scene& scene)
         frame.CommandBuffer->EndMarker();
     }
 
-    // TODO: Spot shadows
+    // Spot shadows
+    {
+        frame.CommandBuffer->BeginMarker("Spot Shadows");
+        frame.CommandBuffer->SetGraphicsPipeline(mSpotPipeline);
+        for (auto& light : mSpotLightShadows) {
+            float aspect = (float)SPOT_LIGHT_SHADOW_DIMENSION / (float)SPOT_LIGHT_SHADOW_DIMENSION;
+            float nearPlane = 0.1f;
+            float farPlane = 25.0f;
+
+            glm::mat4 shadowProj = glm::perspective(light.Parent->OuterRadius, aspect, nearPlane, farPlane); 
+            glm::mat4 shadowView = glm::lookAt(light.Parent->Position, light.Parent->Position + light.Parent->Direction, glm::vec3(0.0f, 1.0f, 0.0f));
+            light.Parent->LightView = shadowView;
+            light.Parent->LightProj = shadowProj;
+
+            frame.CommandBuffer->Barrier(light.ShadowMap, ResourceLayout::DepthWrite);
+            frame.CommandBuffer->SetRenderTargets({}, light.DSV);
+            frame.CommandBuffer->ClearDepth(light.DSV);
+            frame.CommandBuffer->SetViewport(0, 0, SPOT_LIGHT_SHADOW_DIMENSION, SPOT_LIGHT_SHADOW_DIMENSION);
+            frame.CommandBuffer->SetTopology(Topology::TriangleList);
+            std::function<void(Frame frame, GLTFNode*, GLTF* model, glm::mat4 transform)> drawNode = [&](Frame frame, GLTFNode* node, GLTF* model, glm::mat4 transform) {
+                if (!node) {
+                    return;
+                }
+
+                glm::mat4 globalTransform = transform * node->Transform;
+                for (GLTFPrimitive primitive : node->Primitives) {
+                    if (!Camera::IsBoxInFrustum(shadowProj * shadowView, primitive.AABB, globalTransform))
+                        continue;
+                    struct PushConstants {
+                        glm::mat4 transform;
+                        glm::mat4 view;
+                        glm::mat4 proj;
+                    } Constants = {
+                        globalTransform,
+                        shadowView,
+                        shadowProj
+                    };
+                    frame.CommandBuffer->GraphicsPushConstants(&Constants, sizeof(Constants), 0);
+                    frame.CommandBuffer->SetVertexBuffer(primitive.VertexBuffer);
+                    frame.CommandBuffer->SetIndexBuffer(primitive.IndexBuffer);
+                    frame.CommandBuffer->DrawIndexed(primitive.IndexCount);
+                }
+                if (!node->Children.empty()) {
+                    for (GLTFNode* child : node->Children) {
+                        drawNode(frame, child, model, globalTransform);
+                    }
+                }
+            };
+            for (auto& model : scene.Models) {
+                drawNode(frame, model->Model.Root, &model->Model, glm::mat4(1.0f));
+            }
+            frame.CommandBuffer->Barrier(light.ShadowMap, ResourceLayout::Shader);
+        }
+        frame.CommandBuffer->EndMarker();
+    }
 
     frame.CommandBuffer->EndMarker();
 }
