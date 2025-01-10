@@ -30,16 +30,13 @@ Work in progress
 - TAA
 - Auto Exposure
 - Color Grading
-
 - Draw Indirect
 - Tiled Forward
 - Clustered Forward
 - Compute Frustum/Occlusion culling
-
 - Reference path-tracer
 - PBR
 - Reflective Shadow Maps
-
 - Raytraced Soft Shadows
 - Raytraced Reflections
 - Raytraced Ambient Occlusion
@@ -58,13 +55,8 @@ Work in progress
 
 ## Screenshots
 
-### Cascaded Shadow Mapping
-![CSM](.github/CSM.png)
+### Shadows
 
-### Point Shadows
-
-![PointShadows](.github/PS.png)
-
-### Spot Shadows
-
-![SpotShadows](.github/SS.png)
+| CSM         | Point       | Spot |
+| ----------- | ----------- | ---- |
+| ![CSM](.github/CSM.png) | ![PointShadows](.github/PS.png) | ![SpotShadows](.github/SS.png) |
