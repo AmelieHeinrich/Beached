@@ -16,8 +16,7 @@ Work in progress
 
 ## WIP
 
-- Shadow refactor
-- CSM near plane projection
+- Bokeh DOF
 
 ## Roadmap
 

@@ -4,7 +4,7 @@
 //
 
 #include <Renderer/Techniques/Forward.hpp>
-#include <Renderer/Techniques/CSM.hpp>
+#include <Renderer/Techniques/Shadows.hpp>
 #include <Renderer/Techniques/Debug.hpp>
 
 #include <Settings.hpp>

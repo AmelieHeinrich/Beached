@@ -7,8 +7,20 @@
 
 #include <Renderer/RenderPass.hpp>
 
-static const int POINT_LIGHT_SHADOW_DIMENSION = 1024;
-static const int SPOT_LIGHT_SHADOW_DIMENSION = 2048;
+constexpr int POINT_LIGHT_SHADOW_DIMENSION = 1024;
+constexpr int SPOT_LIGHT_SHADOW_DIMENSION = 2048;
+constexpr int SHADOW_CASCADE_COUNT = 4;
+constexpr float SHADOW_SPLIT_LAMBDA = 0.5f;
+
+struct Cascade
+{
+    int SRVIndex;
+    float Split;
+    glm::ivec2 Pad;
+
+    glm::mat4 View;
+    glm::mat4 Proj;
+};
 
 struct PointLightShadow
 {
@@ -38,6 +50,15 @@ public:
     void Render(const Frame& frame, Scene& scene) override;
     void UI(const Frame& frame) override;
 private:
+    void UpdateCascades(const Scene& scene);
+
+    float mZMult = 10.0f;
+    float mShadowSplitLambda = 0.80f;
+    bool mFreezeCascades = false;
+
+    GraphicsPipeline::Ref mCascadePipeline = nullptr;
+    Array<Cascade, SHADOW_CASCADE_COUNT> mCascades;
+
     Vector<SpotLightShadow> mSpotLightShadows;
     GraphicsPipeline::Ref mSpotPipeline = nullptr;
 

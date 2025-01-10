@@ -5,7 +5,6 @@
 
 #include <Renderer/Renderer.hpp>
 
-#include <Renderer/Techniques/CSM.hpp>
 #include <Renderer/Techniques/Shadows.hpp>
 #include <Renderer/Techniques/GBuffer.hpp>
 #include <Renderer/Techniques/Forward.hpp>
@@ -18,7 +17,6 @@
 Renderer::Renderer(RHI::Ref rhi)
 {
     mPasses = {
-        MakeRef<CSM>(rhi),
         MakeRef<Shadows>(rhi),
         MakeRef<GBuffer>(rhi),
         MakeRef<Forward>(rhi),
