@@ -64,7 +64,7 @@ void Forward::Render(const Frame& frame, Scene& scene)
     frame.CommandBuffer->BeginMarker("Forward");
     frame.CommandBuffer->Barrier(color->Texture, ResourceLayout::ColorWrite);
     frame.CommandBuffer->Barrier(depth->Texture, ResourceLayout::DepthWrite);
-    frame.CommandBuffer->ClearRenderTarget(color->RenderTargetView, 0.1f, 0.1f, 0.1f);
+    frame.CommandBuffer->ClearRenderTarget(color->RenderTargetView, 0.0f, 0.0f, 0.0f);
     frame.CommandBuffer->SetRenderTargets({ color->RenderTargetView }, depth->DepthTargetView);
     frame.CommandBuffer->SetTopology(Topology::TriangleList);
     frame.CommandBuffer->SetViewport(0, 0, (float)frame.Width, (float)frame.Height);

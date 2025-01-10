@@ -8,7 +8,7 @@
 #include <Renderer/RenderPass.hpp>
 
 static const int POINT_LIGHT_SHADOW_DIMENSION = 1024;
-static const int SPOT_LIGHT_SHADOW_DIMENSION = 1024;
+static const int SPOT_LIGHT_SHADOW_DIMENSION = 2048;
 
 struct PointLightShadow
 {

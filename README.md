@@ -7,6 +7,7 @@ Work in progress
 ### Renderer
 - Cascaded Shadow Maps
 - Point Shadows
+- Spot Shadows
 - Z-Prepass
 
 ### Engine
@@ -15,7 +16,8 @@ Work in progress
 
 ## WIP
 
-- Spot Shadows
+- Shadow refactor
+- CSM near plane projection
 
 ## Roadmap
 
@@ -62,3 +64,7 @@ Work in progress
 ### Point Shadows
 
 ![PointShadows](.github/PS.png)
+
+### Spot Shadows
+
+![SpotShadows](.github/SS.png)

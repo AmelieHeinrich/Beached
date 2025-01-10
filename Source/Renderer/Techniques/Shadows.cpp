@@ -171,7 +171,7 @@ void Shadows::Render(const Frame& frame, Scene& scene)
             float nearPlane = 1.0f;
             float farPlane = 25.0f;
 
-            glm::mat4 shadowProj = glm::perspective(glm::radians(50.0f), aspect, nearPlane, farPlane); 
+            glm::mat4 shadowProj = glm::perspective(light.Parent->OuterRadius * 2, aspect, nearPlane, farPlane); 
             glm::mat4 shadowView = glm::lookAt(light.Parent->Position, light.Parent->Position + light.Parent->Direction, glm::vec3(0.0f, 1.0f, 0.0f));
             light.Parent->LightView = shadowView;
             light.Parent->LightProj = shadowProj;
