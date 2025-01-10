@@ -11,7 +11,7 @@ Shadows::Shadows(RHI::Ref rhi)
 {
     {
         Asset::Handle vertexShader = AssetManager::Get("Assets/Shaders/PointShadow/Vertex.hlsl", AssetType::Shader);
-    Asset::Handle fragmentShader = AssetManager::Get("Assets/Shaders/PointShadow/Fragment.hlsl", AssetType::Shader);
+        Asset::Handle fragmentShader = AssetManager::Get("Assets/Shaders/PointShadow/Fragment.hlsl", AssetType::Shader);
 
         GraphicsPipelineSpecs specs;
         specs.Bytecodes[ShaderType::Vertex] = vertexShader->Shader;
@@ -25,13 +25,13 @@ Shadows::Shadows(RHI::Ref rhi)
         mPointPipeline = rhi->CreateGraphicsPipeline(specs);
     }
     {
-        Asset::Handle vertexShader = AssetManager::Get("Assets/Shaders/Shadow/Vertex.hlsl", AssetType::Shader);
-        Asset::Handle fragmentShader = AssetManager::Get("Assets/Shaders/Shadow/Fragment.hlsl", AssetType::Shader);
+        Asset::Handle vertexShader = AssetManager::Get("Assets/Shaders/SpotShadow/Vertex.hlsl", AssetType::Shader);
+        Asset::Handle fragmentShader = AssetManager::Get("Assets/Shaders/SpotShadow/Fragment.hlsl", AssetType::Shader);
 
         GraphicsPipelineSpecs specs;
         specs.Bytecodes[ShaderType::Vertex] = vertexShader->Shader;
         specs.Bytecodes[ShaderType::Fragment] = fragmentShader->Shader;
-        specs.Cull = CullMode::Back;
+        specs.Cull = CullMode::Front;
         specs.DepthEnabled = true;
         specs.Depth = DepthOperation::Less;
         specs.DepthFormat = TextureFormat::Depth32;
@@ -168,10 +168,10 @@ void Shadows::Render(const Frame& frame, Scene& scene)
         frame.CommandBuffer->SetGraphicsPipeline(mSpotPipeline);
         for (auto& light : mSpotLightShadows) {
             float aspect = (float)SPOT_LIGHT_SHADOW_DIMENSION / (float)SPOT_LIGHT_SHADOW_DIMENSION;
-            float nearPlane = 0.1f;
+            float nearPlane = 1.0f;
             float farPlane = 25.0f;
 
-            glm::mat4 shadowProj = glm::perspective(light.Parent->OuterRadius, aspect, nearPlane, farPlane); 
+            glm::mat4 shadowProj = glm::perspective(glm::radians(50.0f), aspect, nearPlane, farPlane); 
             glm::mat4 shadowView = glm::lookAt(light.Parent->Position, light.Parent->Position + light.Parent->Direction, glm::vec3(0.0f, 1.0f, 0.0f));
             light.Parent->LightView = shadowView;
             light.Parent->LightProj = shadowProj;

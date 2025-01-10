@@ -100,24 +100,43 @@ float PCFPoint(
 
 float PCFSpot(
     Texture2D<float> ShadowMap,
-    SamplerState sampler,
+    SamplerComparisonState comparisonSampler,
     float4 WorldSpacePosition,
     column_major float4x4 LightView,
     column_major float4x4 LightProj)
 {
-    // Transform world-space position into light space
-    float4 lightSpacePosition = mul(LightView, WorldSpacePosition);
-    float4 ndcPosition = mul(LightProj, lightSpacePosition);
-    ndcPosition.xyz /= ndcPosition.w;
+    float4 lightSpacePos = mul(LightProj, mul(LightView, WorldSpacePosition));
+    float3 lightSpaceNDC = lightSpacePos.xyz / lightSpacePos.w;
 
-    // Compute shadow map UV coordinates
-    float2 shadowUV = ndcPosition.xy * 0.5 + 0.5;
-    shadowUV.y = 1.0 - shadowUV.y;
+    float2 shadowMapUV = lightSpaceNDC.xy * 0.5 + 0.5;
+    shadowMapUV.y = 1.0 - shadowMapUV.y;
 
-    // Perform PCF with the comparison sampler
-    float currentDepth = ShadowMap.Sample(sampler, shadowUV);
-    if (currentDepth - 0.005 < ndcPosition.z) {
-        return 0.0;
+    float shadow = 0.0f;
+    float depth = lightSpaceNDC.z;
+
+    uint shadowMapWidth, shadowMapHeight;
+    ShadowMap.GetDimensions(shadowMapWidth, shadowMapHeight);
+
+    float2 texelSize = float2(1.0 / shadowMapWidth, 1.0 / shadowMapHeight);
+    float2 pcfKernel[4] = {
+        float2(-1.0, -1.0) * texelSize, 
+        float2(1.0, -1.0) * texelSize,
+        float2(-1.0, 1.0) * texelSize, 
+        float2(1.0, 1.0) * texelSize
+    };
+
+    int sampleCount = 0;
+    for (int x = -2; x <= 2; x++) {
+        for (int y = -2; y <= 2; y++) {
+            // Offset UV coordinates for sampling
+            float2 offsetUV = shadowMapUV + float2(x, y) * texelSize;
+
+            // Use the comparison sampler to perform the depth test
+            shadow += ShadowMap.SampleCmpLevelZero(comparisonSampler, offsetUV, depth - 0.005);
+            sampleCount++;
+        }
     }
-    return 1.0;
+    shadow /= sampleCount;
+
+    return shadow; 
 }

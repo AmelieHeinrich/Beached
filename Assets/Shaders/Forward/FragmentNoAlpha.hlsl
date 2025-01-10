@@ -159,7 +159,7 @@ float CalculateShadowPoint(FragmentIn input, PointLight light)
 float CalculateShadowSpot(FragmentIn input, SpotLight light)
 {
     ConstantBuffer<Camera> Cam = ResourceDescriptorHeap[PushConstants.CameraIndex];
-    SamplerState sampler = SamplerDescriptorHeap[PushConstants.ClampSamplerIndex];
+    SamplerComparisonState sampler = SamplerDescriptorHeap[PushConstants.ShadowSamplerIndex];
     Texture2D<float> shadowMap = ResourceDescriptorHeap[light.ShadowMap];
     float3 N = GetNormal(input);
     
@@ -193,19 +193,21 @@ float3 CalculateSpot(SpotLight light, FragmentIn input, float3 Albedo)
 {
     ConstantBuffer<Camera> Cam = ResourceDescriptorHeap[PushConstants.CameraIndex];
 
+    // Calculate surface normal and light direction
     float3 N = GetNormal(input);
-    float3 V = normalize(light.Position - input.FragPosWorld.xyz);
+    float3 L = normalize(light.Position - input.FragPosWorld.xyz);
     float distance = length(light.Position - input.FragPosWorld.xyz);
 
+    // Shadow calculation
     float shadow = CalculateShadowSpot(input, light);
-    float theta = dot(V, normalize(-light.Direction));
-    float epsilon = cos(light.Radius) - cos(light.OuterRadius);
-    float intensity = clamp((theta - cos(light.OuterRadius)) / epsilon, 0.0, 1.0);
-    float attenuation = 1.0 / (1.0 + 0.09 * distance + 0.032 * (distance * distance));    
-    if (theta >= cos(light.Radius)) {
-        float NdotL = max(dot(N, -light.Direction), AMBIENT);
-        return (NdotL * Albedo * intensity * attenuation * light.Color.xyz) * shadow;
+    float theta = dot(L, normalize(-light.Direction));
+    float smoothFactor = smoothstep(cos(light.OuterRadius), cos(light.Radius), theta);
+    float intensity = smoothFactor;
+    if (theta > cos(light.OuterRadius)) {
+        float NdotL = max(dot(N, L), AMBIENT);
+        return (NdotL * Albedo * intensity * light.Color.xyz) * shadow;
     } else {
+        // Return ambient lighting outside the spotlight
         return Albedo * AMBIENT;
     }
 }
