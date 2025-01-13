@@ -18,12 +18,13 @@ Work in progress
 ## Roadmap
 
 ### Planned
-- PostFX: Motion Blur, SSAO, Bloom, TAA, Auto-Exposure, Color Grading, Pixel Sorting
-- GPU Driven: Draw Indirect, Clustered Forward, Occlusion culling
-- Raytracing: Soft Shadows, Reflections, Ambient Occlusion, Global Illumination
-- Light Transport: Reference pathtracer, PBR, reflective shadow maps
-- GPU Compute: Particles, Ocean, Terrain
-- Engine: Multithreadng, DirectStorage, Upscaling, Physics, Audio
+- **PostFX**: Motion Blur, SSAO, Bloom, TAA, Auto-Exposure, Color Grading, Pixel Sorting
+- **GPU Driven**: Draw Indirect, Clustered Forward, Occlusion culling
+- **Raytracing**: Soft Shadows, Reflections, Ambient Occlusion, Global Illumination
+- **Light Transport**: Reference pathtracer, PBR, reflective shadow maps
+- **GPU Compute**: Particles, Ocean, Terrain
+- **Volumetrics**: God rays, clouds, fog
+- **Engine**: Multithreadng, DirectStorage, Upscaling, Physics, Audio, Hot Reloading
 
 ## Screenshots
 
