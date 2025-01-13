@@ -10,13 +10,6 @@
 
 static const float AMBIENT = 0.01;
 
-static const float4x4 BIAS_MATRIX = float4x4(
-	0.5, 0.0, 0.0, 0.5,
-	0.0, 0.5, 0.0, 0.5,
-	0.0, 0.0, 1.0, 0.0,
-	0.0, 0.0, 0.0, 1.0
-);
-
 struct FragmentIn
 {
     float4 Position : SV_Position;

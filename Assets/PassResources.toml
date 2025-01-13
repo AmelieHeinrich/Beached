@@ -1,7 +1,6 @@
 # This file contains all the data for the passes. I made it into a file so I didn't have to raw declare them in code. This looks better IMHO.
 # If the width and height are 0, they will inherit the screen size.
-# TODO: Add samplers? Move all frame resources to this lil file?
-# TODO: Move pipeline creation to a toml file as well?
+# TODO: One file per pass, tags, make it all nice and silly for the UI to use :)
 
 # NOTES
 # Width/Height of size 0 means the size of the window
@@ -92,16 +91,73 @@ Usage = "Depth"
 
 #############################
 # Bokeh Depth of Field
-[NearPlaneCOC]
+[COCTexture]
 Type = "Texture"
 Width = 0
 Height = 0
-Format = "RGBA16"
+Format = "RG8"
 Usage = "Render"
 
-[FarPlaneCOC]
+[DOFColorX4]
 Type = "Texture"
 Width = 0
 Height = 0
 Format = "RGBA16"
 Usage = "Render"
+Downsample = 4
+
+[DOFMulFarColorX4]
+Type = "Texture"
+Width = 0
+Height = 0
+Format = "RGBA16"
+Usage = "Render"
+Downsample = 4
+
+[COCTextureX4]
+Type = "Texture"
+Width = 0
+Height = 0
+Format = "RG8"
+Usage = "Render"
+Downsample = 4
+
+[COCNearMaxX4]
+Type = "Texture"
+Width = 0
+Height = 0
+Format = "R8"
+Usage = "Render"
+Downsample = 4
+
+[DOFNearX4]
+Type = "Texture"
+Width = 0
+Height = 0
+Format = "RGBA16"
+Usage = "Render"
+Downsample = 4
+
+[DOFFarX4]
+Type = "Texture"
+Width = 0
+Height = 0
+Format = "RGBA16"
+Usage = "Render"
+Downsample = 4
+
+[DOFNearFillX4]
+Type = "Texture"
+Width = 0
+Height = 0
+Format = "RGBA16"
+Usage = "Render"
+Downsample = 4
+
+[DOFFarFillX4]
+Type = "Texture"
+Width = 0
+Height = 0
+Format = "RGBA16"
+Usage = "Render"
+Downsample = 4

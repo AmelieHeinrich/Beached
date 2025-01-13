@@ -45,6 +45,12 @@ void PassManager::Init(RHI::Ref rhi, Window::Ref window)
                     io->Desc.Usage = TextureUsage::DepthTarget | TextureUsage::ShaderResource;
                 }
 
+                if (info.contains("Downsample")) {
+                    Int64 downsample = info["Downsample"].as_integer()->get();
+                    io->Desc.Width = std::round(io->Desc.Width / (downsample / 2));
+                    io->Desc.Height = std::round(io->Desc.Height / (downsample / 2));
+                }
+
                 LOG_INFO("Creating PassIO {0} (Width = {1}, Height = {2}, Format = {3}, Usage = {4})", name, io->Desc.Width, io->Desc.Height, format, usage);
                 io->Texture = rhi->CreateTexture(io->Desc);
 

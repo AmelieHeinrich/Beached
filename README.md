@@ -5,14 +5,12 @@ Work in progress
 ## Current features
 
 ### Renderer
-- Cascaded Shadow Maps
-- Point Shadows
-- Spot Shadows
-- Z-Prepass
+- Shadows: Cascaded (Directional Lights), Omnidirectional (Point Lights), Directional (Spot Lights)
 
 ### Engine
 - CPU side frustum culling
 - Asset caching for shaders and textures
+- Deserialization of render pass resources from a TOML file
 
 ## WIP
 - Bokeh DOF
@@ -20,35 +18,12 @@ Work in progress
 ## Roadmap
 
 ### Planned
-- Deferred
-- Motion Blur
-- SSAO
-- Bloom
-- TAA
-- Auto Exposure
-- Color Grading
-- Draw Indirect
-- Tiled Forward
-- Clustered Forward
-- Compute Frustum/Occlusion culling
-- Reference path-tracer
-- PBR
-- Reflective Shadow Maps
-- Raytraced Soft Shadows
-- Raytraced Reflections
-- Raytraced Ambient Occlusion
-- Raytraced Global Illumination
-
-### Maybe...
-
-- GPU particles (rain & snow effect)
-- Sum of sines ocean
-- Multithreading
-- DirectStorage support
-- Frame upscaling with FSR/XeSS/DLSS
-- Pixel Sorter using GPU Work Graphs
-- Physics
-- Audio
+- PostFX: Motion Blur, SSAO, Bloom, TAA, Auto-Exposure, Color Grading, Pixel Sorting
+- GPU Driven: Draw Indirect, Clustered Forward, Occlusion culling
+- Raytracing: Soft Shadows, Reflections, Ambient Occlusion, Global Illumination
+- Light Transport: Reference pathtracer, PBR, reflective shadow maps
+- GPU Compute: Particles, Ocean, Terrain
+- Engine: Multithreadng, DirectStorage, Upscaling, Physics, Audio
 
 ## Screenshots
 
