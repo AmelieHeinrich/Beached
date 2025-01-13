@@ -85,3 +85,19 @@ Height = 2048
 Format = "D32"
 Usage = "Depth"
 #############################
+
+#############################
+# Bokeh Depth of Field
+[NearPlaneCOC]
+Type = "Texture"
+Width = 0
+Height = 0
+Format = "RGBA16"
+Usage = "Render"
+
+[FarPlaneCOC]
+Type = "Texture"
+Width = 0
+Height = 0
+Format = "RGBA16"
+Usage = "Render"

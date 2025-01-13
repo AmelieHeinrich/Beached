@@ -3,6 +3,6 @@
 // > Create Time: 2024-12-08 01:45:44
 //
 
-void PSMain()
+void PSMain(float4 position : SV_Position)
 {
 }

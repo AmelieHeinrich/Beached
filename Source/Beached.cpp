@@ -34,22 +34,12 @@ Beached::Beached()
         mRenderer = MakeRef<Renderer>(mRHI);
 
         // Loading and setup
-        Settings::Get().SceneUseSun = false;
+        Settings::Get().SceneUseSun = true;
 
-        mScene.Models.push_back(AssetManager::Get("Assets/Models/SpotShadowTest/SpotShadowTest.gltf", AssetType::GLTF));
+        mScene.Models.push_back(AssetManager::Get("Assets/Models/Sponza/Sponza.gltf", AssetType::GLTF));
         mScene.Sun.Direction = glm::vec3(0.0f, -1.0f, 0.2f);
         mScene.Sun.Color = glm::vec4(1.0f);
         mScene.Sun.Strength = 1.0f;
-
-        // Push a spot light
-        SpotLight light;
-        light.Position = glm::vec3(0.0f, 1.0f, 6.0f);
-        light.Direction = glm::vec3(0.0f, 0.0f, -1.0f);
-        light.Color = glm::vec3(10.0f);
-        light.Radius = glm::radians(20.0f);
-        light.OuterRadius = glm::radians(25.0f);
-        light.CastShadows = true;
-        mScene.SpotLights.push_back(light);
 
         mScene.Init(mRHI);
         mRenderer->Bake(mScene);

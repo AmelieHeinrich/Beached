@@ -41,14 +41,22 @@ GraphicsPipeline::GraphicsPipeline(Device::Ref device, GraphicsPipelineSpecs& sp
     Desc.SampleMask = D3D12_DEFAULT_SAMPLE_MASK;
     Desc.RasterizerState.FillMode = D3D12_FILL_MODE(specs.Fill);
     Desc.RasterizerState.CullMode = D3D12_CULL_MODE(specs.Cull);
-    Desc.RasterizerState.DepthClipEnable = specs.DepthClipEnable;
+    Desc.RasterizerState.DepthClipEnable = false;
     Desc.RasterizerState.FrontCounterClockwise = specs.CCW;
     Desc.PrimitiveTopologyType = specs.Line ? D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE : D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
     if (specs.DepthEnabled) {
         Desc.DepthStencilState.DepthEnable = true;
-        Desc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+        if (specs.DepthWrite)
+            Desc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+        else
+            Desc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
         Desc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC(specs.Depth);
         Desc.DSVFormat = DXGI_FORMAT(specs.DepthFormat);
+        if (specs.DepthClampEnable) {
+            Desc.RasterizerState.DepthBias = 0;
+            Desc.RasterizerState.DepthBiasClamp = 0.0f;
+            Desc.RasterizerState.SlopeScaledDepthBias = 0.0f;
+        }
     }
     Desc.SampleDesc.Count = 1;
 

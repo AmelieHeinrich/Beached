@@ -35,14 +35,15 @@ struct GraphicsPipelineSpecs
 {
     FillMode Fill = FillMode::Solid;
     CullMode Cull = CullMode::None;
-    DepthOperation Depth = DepthOperation::None;
-
-    Vector<TextureFormat> Formats;
-    TextureFormat DepthFormat = TextureFormat::Unknown;
-    bool DepthEnabled = false;
     bool CCW = true;
     bool Line = false;
-    bool DepthClipEnable = true;
+
+    Vector<TextureFormat> Formats;
+    DepthOperation Depth = DepthOperation::None;
+    TextureFormat DepthFormat = TextureFormat::Unknown;
+    bool DepthEnabled = false;
+    bool DepthClampEnable = false;
+    bool DepthWrite = true;
 
     UnorderedMap<ShaderType, Shader> Bytecodes;
     RootSignature::Ref Signature = nullptr;

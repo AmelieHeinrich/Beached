@@ -28,6 +28,7 @@ Forward::Forward(RHI::Ref rhi)
     specs.CCW = false;
     specs.DepthEnabled = true;
     specs.DepthFormat = TextureFormat::Depth32;
+    specs.DepthWrite = false;
     specs.Formats.push_back(color->Desc.Format);
     specs.Signature = mRHI->CreateRootSignature({ RootType::PushConstant }, sizeof(int) * 10);
     
@@ -63,7 +64,7 @@ void Forward::Render(const Frame& frame, Scene& scene)
 
     frame.CommandBuffer->BeginMarker("Forward");
     frame.CommandBuffer->Barrier(color->Texture, ResourceLayout::ColorWrite);
-    frame.CommandBuffer->Barrier(depth->Texture, ResourceLayout::DepthWrite);
+    frame.CommandBuffer->Barrier(depth->Texture, ResourceLayout::DepthRead);
     frame.CommandBuffer->ClearRenderTarget(color->RenderTargetView, 0.0f, 0.0f, 0.0f);
     frame.CommandBuffer->SetRenderTargets({ color->RenderTargetView }, depth->DepthTargetView);
     frame.CommandBuffer->SetTopology(Topology::TriangleList);

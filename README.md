@@ -15,7 +15,6 @@ Work in progress
 - Asset caching for shaders and textures
 
 ## WIP
-
 - Bokeh DOF
 
 ## Roadmap
@@ -23,7 +22,6 @@ Work in progress
 ### Planned
 - Deferred
 - Motion Blur
-- Bokeh DOF
 - SSAO
 - Bloom
 - TAA

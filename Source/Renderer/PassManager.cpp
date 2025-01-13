@@ -49,11 +49,12 @@ void PassManager::Init(RHI::Ref rhi, Window::Ref window)
                 io->Texture = rhi->CreateTexture(io->Desc);
 
                 if (usage == "Render") {
-                   io->RenderTargetView = rhi->CreateView(io->Texture, ViewType::RenderTarget);
-                   io->ShaderResourceView = rhi->CreateView(io->Texture, ViewType::ShaderResource);
-                   io->UnorderedAccessView = rhi->CreateView(io->Texture, ViewType::Storage);
+                    io->RenderTargetView = rhi->CreateView(io->Texture, ViewType::RenderTarget);
+                    io->ShaderResourceView = rhi->CreateView(io->Texture, ViewType::ShaderResource);
+                    io->UnorderedAccessView = rhi->CreateView(io->Texture, ViewType::Storage);
                 } else {
-                   io->DepthTargetView = rhi->CreateView(io->Texture, ViewType::DepthTarget);
+                    io->DepthTargetView = rhi->CreateView(io->Texture, ViewType::DepthTarget);
+                    io->ShaderResourceView = rhi->CreateView(io->Texture, ViewType::ShaderResource, ViewDimension::Texture, TextureFormat::R32Float);
                 }
             } else if (type == "RingBuffer") {
                 Int64 size = info["Size"].as_integer()->get();

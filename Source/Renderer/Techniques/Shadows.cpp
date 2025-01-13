@@ -13,16 +13,6 @@ Shadows::Shadows(RHI::Ref rhi)
     : RenderPass(rhi)
 {
     {
-        Vector<::Ref<RenderPassIO>> cascades = {
-            PassManager::Get("ShadowCascade0"),
-            PassManager::Get("ShadowCascade1"),
-            PassManager::Get("ShadowCascade2"),
-            PassManager::Get("ShadowCascade3"),
-        };
-        for (::Ref<RenderPassIO> cascade : cascades) {
-            cascade->ShaderResourceView = mRHI->CreateView(cascade->Texture,    ViewType::ShaderResource, ViewDimension::Texture, TextureFormat::R32Float);
-        }
-
         Asset::Handle vertexShader = AssetManager::Get("Assets/Shaders/Shadow/Vertex.hlsl",     AssetType::Shader);
         Asset::Handle fragmentShader = AssetManager::Get("Assets/Shaders/Shadow/Fragment.hlsl",     AssetType::Shader);
 
@@ -31,9 +21,10 @@ Shadows::Shadows(RHI::Ref rhi)
         specs.Bytecodes[ShaderType::Fragment] = fragmentShader->Shader;
         specs.Cull = CullMode::Back;
         specs.DepthEnabled = true;
+        specs.DepthClampEnable = true;
         specs.Depth = DepthOperation::Less;
         specs.DepthFormat = TextureFormat::Depth32;
-        specs.Signature = rhi->CreateRootSignature({ RootType::PushConstant }, sizeof(glm::mat4)    * 3);
+        specs.Signature = rhi->CreateRootSignature({ RootType::PushConstant }, sizeof(glm::mat4) * 3);
 
         mCascadePipeline = rhi->CreateGraphicsPipeline(specs);
     }
@@ -337,7 +328,6 @@ void Shadows::UI(const Frame& frame)
     };
 
     if (ImGui::TreeNodeEx("Shadows", ImGuiTreeNodeFlags_Framed)) {
-        ImGui::SliderFloat("Far Plane Multiplier", &mZMult, 1.0f, 10.0f, "%.1f");
         ImGui::SliderFloat("Shadow Split Lambda", &mShadowSplitLambda, 0.0f, 1.0f, "%.2f");
         ImGui::Checkbox("Freeze Cascades", &mFreezeCascades);
         for (int i = 0; i < SHADOW_CASCADE_COUNT; i++) {
@@ -397,7 +387,7 @@ void Shadows::UpdateCascades(const Scene& scene)
 
         // Get extents and create view matrix
         glm::vec3 cascadeExtents = maxBounds - minBounds;
-        glm::vec3 shadowCameraPos = center - scene.Sun.Direction * -minBounds.z;
+        glm::vec3 shadowCameraPos = center - scene.Sun.Direction;
 
         glm::mat4 lightView = glm::lookAt(shadowCameraPos, center, up);
         glm::mat4 lightProjection = glm::ortho(
@@ -406,7 +396,7 @@ void Shadows::UpdateCascades(const Scene& scene)
             minBounds.y,
             maxBounds.y,
             minBounds.z,
-            maxBounds.z * mZMult
+            maxBounds.z
         );
 
         // Texel snap

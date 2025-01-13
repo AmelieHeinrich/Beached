@@ -8,6 +8,7 @@
 #include <Renderer/Techniques/Shadows.hpp>
 #include <Renderer/Techniques/GBuffer.hpp>
 #include <Renderer/Techniques/Forward.hpp>
+#include <Renderer/Techniques/BokehDOF.hpp>
 #include <Renderer/Techniques/Composite.hpp>
 #include <Renderer/Techniques/Debug.hpp>
 
@@ -20,6 +21,7 @@ Renderer::Renderer(RHI::Ref rhi)
         MakeRef<Shadows>(rhi),
         MakeRef<GBuffer>(rhi),
         MakeRef<Forward>(rhi),
+        MakeRef<BokehDOF>(rhi),
         MakeRef<Composite>(rhi),
         MakeRef<Debug>(rhi)
     };

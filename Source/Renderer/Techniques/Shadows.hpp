@@ -10,7 +10,6 @@
 constexpr int POINT_LIGHT_SHADOW_DIMENSION = 1024;
 constexpr int SPOT_LIGHT_SHADOW_DIMENSION = 2048;
 constexpr int SHADOW_CASCADE_COUNT = 4;
-constexpr float SHADOW_SPLIT_LAMBDA = 0.5f;
 
 struct Cascade
 {
@@ -52,8 +51,7 @@ public:
 private:
     void UpdateCascades(const Scene& scene);
 
-    float mZMult = 10.0f;
-    float mShadowSplitLambda = 0.80f;
+    float mShadowSplitLambda = 0.95f;
     bool mFreezeCascades = false;
 
     GraphicsPipeline::Ref mCascadePipeline = nullptr;

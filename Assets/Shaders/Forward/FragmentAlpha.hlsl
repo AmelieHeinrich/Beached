@@ -114,21 +114,12 @@ float CalculateShadowCascade(FragmentIn input, DirectionalLight Light, int layer
     Texture2D<float> shadowMap = ResourceDescriptorHeap[NonUniformResourceIndex(cascades.Cascades[layer].SRVIndex)];
     float3 N = GetNormal(input);
 
-    float baseBias = 0.005;
+    float bias = max(0.05 * (1.0 - dot(N, Light.Direction)), 0.005);
     if (layer == SHADOW_CASCADE_COUNT) {
-        baseBias *= 1 / (CAMERA_FAR * 0.5);
+        bias *= 1 / (CAMERA_FAR * 0.5);
     } else {
-        baseBias *= 1 / (cascade.Split * 0.5);
+        bias *= 1 / (cascade.Split * 0.5);
     }
-
-    // Calculate dynamic slope-scaled bias
-    float3 lightDir = normalize(Light.Direction);
-    float3 fragToLight = normalize(lightDir);
-    float NdotL = abs(dot(N, fragToLight));
-
-    // Apply slope-scaled bias
-    float slopeBias = saturate(1.0 - NdotL) * 0.01; // Tweak the scale factor (0.01) as needed.
-    float finalBias = baseBias + slopeBias;
 
     int kernelSize = SHADOW_PCF_KERNELS[layer];
     return PCFCascade(shadowMap,
@@ -137,7 +128,7 @@ float CalculateShadowCascade(FragmentIn input, DirectionalLight Light, int layer
                       Light.Direction,
                       cascade.View,
                       cascade.Proj,
-                      finalBias,
+                      bias,
                       kernelSize);
 }
 
@@ -159,7 +150,7 @@ float CalculateShadowPoint(FragmentIn input, PointLight light)
 float CalculateShadowSpot(FragmentIn input, SpotLight light)
 {
     ConstantBuffer<Camera> Cam = ResourceDescriptorHeap[PushConstants.CameraIndex];
-    SamplerState sampler = SamplerDescriptorHeap[PushConstants.ClampSamplerIndex];
+    SamplerComparisonState sampler = SamplerDescriptorHeap[PushConstants.ShadowSamplerIndex];
     Texture2D<float> shadowMap = ResourceDescriptorHeap[light.ShadowMap];
     float3 N = GetNormal(input);
     
@@ -226,7 +217,12 @@ float3 CalculateSun(DirectionalLight Light, FragmentIn Input, float3 Albedo, int
     }
 }
 
-float4 PSMain(FragmentIn Input) : SV_Target
+struct FragOutput
+{
+    float4 Target : SV_Target; 
+};
+
+FragOutput PSMain(FragmentIn Input)
 {    
     // Get cascade layer
     ConstantBuffer<CascadeBuffer> CascadeInfo = ResourceDescriptorHeap[PushConstants.CascadeBufferIndex];
@@ -266,5 +262,8 @@ float4 PSMain(FragmentIn Input) : SV_Target
     for (int i = 0; i < Lights.SpotLightCount; i++) {
         Lo += CalculateSpot(SpotLights[i], Input, Color.xyz);
     }
-    return float4(Lo, 1.0);
+    
+    FragOutput output;
+    output.Target = float4(Lo, 1.0);
+    return output;
 }
