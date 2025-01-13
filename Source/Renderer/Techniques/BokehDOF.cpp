@@ -14,7 +14,7 @@ BokehDOF::BokehDOF(RHI::Ref rhi)
     {
         Asset::Handle cocShader = AssetManager::Get("Assets/Shaders/BokehDOF/COCCompute.hlsl", AssetType::Shader);
 
-        auto cocSignature = mRHI->CreateRootSignature({ RootType::PushConstant }, sizeof(float) * 6);
+        auto cocSignature = mRHI->CreateRootSignature({ RootType::PushConstant }, sizeof(float) * 8 + sizeof(glm::mat4));
         mCOCGeneration = mRHI->CreateComputePipeline(cocShader->Shader, cocSignature);
     }
 

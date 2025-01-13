@@ -6,6 +6,7 @@
 #include <Renderer/Techniques/Shadows.hpp>
 #include <Core/Logger.hpp>
 #include <Renderer/Techniques/Debug.hpp>
+#include <Settings.hpp>
 
 #include <imgui.h>
 
@@ -115,6 +116,7 @@ void Shadows::Render(const Frame& frame, Scene& scene)
     frame.CommandBuffer->BeginMarker("Shadows");
 
     // CSM
+    if (Settings::Get().SceneUseSun)
     {
         if (!mFreezeCascades) {
             UpdateCascades(scene);

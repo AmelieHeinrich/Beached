@@ -37,7 +37,7 @@ Beached::Beached()
         Settings::Get().SceneUseSun = true;
 
         mScene.Models.push_back(AssetManager::Get("Assets/Models/Sponza/Sponza.gltf", AssetType::GLTF));
-        mScene.Sun.Direction = glm::vec3(0.0f, -1.0f, 0.2f);
+        mScene.Sun.Direction = glm::vec3(0.1f, -1.0f, 0.1f);
         mScene.Sun.Color = glm::vec4(1.0f);
         mScene.Sun.Strength = 1.0f;
 

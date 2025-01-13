@@ -177,10 +177,6 @@ void Uploader::ClearRequests()
     sData.BufferRequests = 0;
     sData.TextureRequests = 0;
     sData.ASRequests = 0;
-    for (auto& request : sData.Requests) {
-        if (request.StagingBuffer)
-            request.StagingBuffer.reset();
-    }
     sData.CmdBuffer.reset();
     sData.Requests.clear();
 }

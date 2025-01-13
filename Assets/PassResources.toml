@@ -3,6 +3,10 @@
 # TODO: Add samplers? Move all frame resources to this lil file?
 # TODO: Move pipeline creation to a toml file as well?
 
+# NOTES
+# Width/Height of size 0 means the size of the window
+# Downsample MUST be a multiple of 2
+
 #############################
 # GBuffer
 [GBufferDepth]
