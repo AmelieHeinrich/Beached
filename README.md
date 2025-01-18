@@ -19,7 +19,7 @@ Work in progress
 ## Roadmap
 
 ### Planned
-- **PostFX**: Motion Blur, SSAO, Bloom, TAA, Color Grading, Pixel Sorting
+- **PostFX**: Motion Blur, SSAO, Bloom, TAA, Color Grading, Pixel Sorting, Film Grain, Chromatic Aberration
 - **GPU Driven**: Draw Indirect, Clustered Forward, Occlusion culling
 - **Raytracing**: Soft Shadows, Reflections, Ambient Occlusion, Global Illumination
 - **Light Transport**: Reference pathtracer, PBR, reflective shadow maps
