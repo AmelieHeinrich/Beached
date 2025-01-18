@@ -122,11 +122,11 @@ Format = "RG8"
 Usage = "Render"
 Downsample = 4
 
-[COCNearMaxX4]
+[DOFNearBlurX4]
 Type = "Texture"
 Width = 0
 Height = 0
-Format = "R8"
+Format = "RGBA16"
 Usage = "Render"
 Downsample = 4
 
@@ -139,22 +139,6 @@ Usage = "Render"
 Downsample = 4
 
 [DOFFarX4]
-Type = "Texture"
-Width = 0
-Height = 0
-Format = "RGBA16"
-Usage = "Render"
-Downsample = 4
-
-[DOFNearFillX4]
-Type = "Texture"
-Width = 0
-Height = 0
-Format = "RGBA16"
-Usage = "Render"
-Downsample = 4
-
-[DOFFarFillX4]
 Type = "Texture"
 Width = 0
 Height = 0

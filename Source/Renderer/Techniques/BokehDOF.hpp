@@ -17,8 +17,17 @@ public:
     void Render(const Frame& frame, Scene& scene) override;
     void UI(const Frame& frame) override;
 private:
+    bool mEnable = false;
+
     ComputePipeline::Ref mCOCGeneration;
+    ComputePipeline::Ref mDownsample;
+    ComputePipeline::Ref mMaxFilter;
+    ComputePipeline::Ref mBlurFilter;
+    ComputePipeline::Ref mBokehFilter;
+    ComputePipeline::Ref mComposite;
+
     Sampler::Ref mPointClampSampler;
+    Sampler::Ref mLinearClampSampler;
 
     float mFocalPlaneDistance = 40.0f;
     float mFocusTransitionDistance = 20.0f;
