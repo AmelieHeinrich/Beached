@@ -6,6 +6,7 @@ Work in progress
 
 ### Renderer
 - Shadows: Cascaded (Directional Lights), Omnidirectional (Point Lights), Directional (Spot Lights)
+- PostFX: Bokeh Depth of Field
 
 ### Engine
 - CPU side frustum culling
@@ -13,12 +14,12 @@ Work in progress
 - Deserialization of render pass resources from a TOML file
 
 ## WIP
-- Bokeh DOF
+- Auto-Exposure
 
 ## Roadmap
 
 ### Planned
-- **PostFX**: Motion Blur, SSAO, Bloom, TAA, Auto-Exposure, Color Grading, Pixel Sorting
+- **PostFX**: Motion Blur, SSAO, Bloom, TAA, Color Grading, Pixel Sorting
 - **GPU Driven**: Draw Indirect, Clustered Forward, Occlusion culling
 - **Raytracing**: Soft Shadows, Reflections, Ambient Occlusion, Global Illumination
 - **Light Transport**: Reference pathtracer, PBR, reflective shadow maps
@@ -33,3 +34,9 @@ Work in progress
 | CSM         | Point       | Spot |
 | ----------- | ----------- | ---- |
 | ![CSM](.github/CSM.png) | ![PointShadows](.github/PS.png) | ![SpotShadows](.github/SS.png) |
+
+### Post Processing
+
+| Bokeh DOF   |
+| ----------- |
+| ![CSM](.github/DOF.png) |
