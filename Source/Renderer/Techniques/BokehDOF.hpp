@@ -18,7 +18,8 @@ public:
     void UI(const Frame& frame) override;
 private:
     ComputePipeline::Ref mCOCGeneration;
-    Sampler::Ref mPointSampler;
+    Sampler::Ref mPointClampSampler;
 
-    float mFocalPoint = 20.0f;
+    float mFocalPlaneDistance = 40.0f;
+    float mFocusTransitionDistance = 20.0f;
 };
