@@ -16,4 +16,9 @@ public:
     void Bake(Scene& scene) {}
     void Render(const Frame& frame, Scene& scene) override;
     void UI(const Frame& frame) override;
+private:
+    ComputePipeline::Ref mHistogramShader;
+    Buffer::Ref mLuminanceHistogram;
+    
+    float mLogLuminance = 12.0f;
 };
