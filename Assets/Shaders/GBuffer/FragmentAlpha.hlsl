@@ -7,7 +7,7 @@
 #include "Assets/Shaders/Camera.hlsl"
 #include "Assets/Shaders/Cascade.hlsl"
 
-#define DEFERRED 0
+#define DEFERRED 1
 
 struct FragmentIn
 {
