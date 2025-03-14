@@ -255,6 +255,7 @@ FragOutput PSMain(FragmentIn Input)
         Lo += CalculateSpot(SpotLights[i], Input, Color.xyz);
     }
 
+    float3 N = GetNormal(Input);
     FragOutput output;
     output.Target = float4(Lo, 1.0);
     return output;

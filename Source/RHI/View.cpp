@@ -1,6 +1,6 @@
 //
-// > Notice: Amélie Heinrich @ 2024
-// > Create Time: 2024-12-03 11:10:28
+// > Notice: Amélie Heinrich @ 2025
+// > Create Time: 2025-12-03 11:10:28
 //
 
 #include <RHI/View.hpp>
@@ -30,8 +30,8 @@ View::View(Device::Ref device, DescriptorHeaps heaps, ::Ref<Resource> resource, 
             desc.Format = format == TextureFormat::Unknown ? DXGI_FORMAT(texture.Format) : DXGI_FORMAT(format);
             desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURECUBE;
             desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-            desc.TextureCube.MipLevels = 1;
-            desc.TextureCube.MostDetailedMip = 0;
+            desc.TextureCube.MipLevels = mip == VIEW_ALL_MIPS ? texture.Levels : 1;
+            desc.TextureCube.MostDetailedMip = mip == VIEW_ALL_MIPS ? 0 : mip;
         } else {
             desc.Buffer.FirstElement = 0;
             desc.Buffer.NumElements = resource->GetSize() / resource->GetStride();
@@ -58,6 +58,7 @@ View::View(Device::Ref device, DescriptorHeaps heaps, ::Ref<Resource> resource, 
             desc.Format = format == TextureFormat::Unknown ? DXGI_FORMAT(texture.Format) : DXGI_FORMAT(format);
             desc.Texture2DArray.ArraySize = 6;
             desc.Texture2DArray.FirstArraySlice = 0;
+            desc.Texture2DArray.MipSlice = mip == VIEW_ALL_MIPS ? 0 : mip;
         } else {
             desc.Buffer.FirstElement = 0;
             desc.Buffer.NumElements = resource->GetSize();
